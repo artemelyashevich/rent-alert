@@ -1,0 +1,34 @@
+server:
+  port: 8222
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: book-service
+          uri: lb:http://identity-service
+          predicates:
+            - Path=/api/v1/identity/**
+      cors-configurations:
+        '[/**]':
+          allowedOrigins: "*"
+          allowedHeaders:
+            - "*"
+          allowedMethods:
+            - "GET"
+            - "POST"
+            - "PATCH"
+            - "DELETE"
+            - "OPTIONS"
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET,POST,PATCH,DELETE
+
+eureka:
+  instance:
+    hostname: localhost
