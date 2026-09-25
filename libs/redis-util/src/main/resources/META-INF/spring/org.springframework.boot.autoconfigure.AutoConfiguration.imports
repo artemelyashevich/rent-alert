@@ -1,1 +1,2 @@
 com.rentalert.redis.RedisUtilAutoConfiguration
+com.rentalert.redis.UserSessionAutoConfiguration

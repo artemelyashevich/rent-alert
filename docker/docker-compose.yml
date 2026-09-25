@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: postgres
+    container_name: postgres-rentalert
     restart: unless-stopped
     ports:
       - "5440:5432"
@@ -26,7 +26,7 @@ services:
     container_name: redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6400:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -34,19 +34,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-    networks:
-      - monitoring
-
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
-    container_name: redis-exporter
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:9121:9121"
-    environment:
-      REDIS_ADDR: "${REDIS_ADDR:-redis://redis:6379}"
-      REDIS_USER: "${REDIS_USER:-}"
-      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
     networks:
       - monitoring
 

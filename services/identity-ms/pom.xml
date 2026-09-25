@@ -13,7 +13,6 @@
 	<artifactId>identity-ms</artifactId>
 
 	<properties>
-		<!-- Tests tagged "integration" need a running PostgreSQL; include them with -Dtest.excludedGroups= -->
 		<test.excludedGroups>integration</test.excludedGroups>
 	</properties>
 
@@ -87,8 +86,20 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>com.rentalert</groupId>
+            <artifactId>dto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

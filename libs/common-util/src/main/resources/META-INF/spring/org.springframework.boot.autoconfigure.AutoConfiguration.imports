@@ -1,1 +1,3 @@
 com.rentalert.common.exception.ExceptionHandlingAutoConfiguration
+com.rentalert.common.config.CryptoAutoConfiguration
+com.rentalert.common.config.JwtAutoConfiguration

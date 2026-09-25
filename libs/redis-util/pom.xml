@@ -29,6 +29,18 @@
             <artifactId>common-util</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.rentalert</groupId>
+            <artifactId>dto</artifactId>
+        </dependency>
+
+        <!-- Only for UserSessionService, which is registered in servlet services only -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+
     </dependencies>
 
 </project>
