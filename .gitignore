@@ -1,1 +1,6 @@
 .idea
+.flattened-pom.xml
+mvnw.cmd
+mvnw
+.mvn
+/*/*/target/
