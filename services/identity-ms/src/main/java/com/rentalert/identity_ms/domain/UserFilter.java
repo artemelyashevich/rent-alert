@@ -1,7 +1,7 @@
 package com.rentalert.identity_ms.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.rentalert.common.jpa.AbstractEntity;
+import com.rentalert.common.util.jpa.AbstractEntity;
 import com.rentalert.dto.currency.Currency;
 import com.rentalert.dto.listing.ListingCategory;
 import jakarta.persistence.Column;

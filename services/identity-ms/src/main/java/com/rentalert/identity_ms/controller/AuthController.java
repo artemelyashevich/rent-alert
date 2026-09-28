@@ -1,6 +1,7 @@
 package com.rentalert.identity_ms.controller;
 
 import com.rentalert.dto.auth.LoginResponse;
+import com.rentalert.dto.auth.RefreshTokenRequest;
 import com.rentalert.dto.auth.TelegramAuthRequest;
 import com.rentalert.identity_ms.config.PublicUrls;
 import com.rentalert.identity_ms.service.LoginService;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final LoginService<TelegramAuthRequest> telegramUserAuthService;
+    private final LoginService<RefreshTokenRequest> refreshTokenService;
 
     @Operation(
             summary = "Вход через Telegram",
@@ -55,5 +57,34 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<@NonNull LoginResponse> login(@Valid @RequestBody TelegramAuthRequest request) {
         return ResponseEntity.ok(telegramUserAuthService.auth(request));
+    }
+
+    @Operation(
+            summary = "Обновление access-токена",
+            description = "Выдаёт новый access-токен по refresh-токену, полученному при последнем входе"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Токен обновлён",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = LoginResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Refresh-токен недействителен, истёк или отозван",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Пользователь заблокирован",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
+    @PostMapping("/refresh-token")
+    public ResponseEntity<@NonNull LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(refreshTokenService.auth(request));
     }
 }

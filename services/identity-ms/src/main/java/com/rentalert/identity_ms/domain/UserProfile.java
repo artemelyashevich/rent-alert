@@ -1,7 +1,7 @@
 package com.rentalert.identity_ms.domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.rentalert.common.jpa.AbstractEntity;
+import com.rentalert.common.util.jpa.AbstractEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,8 +1,12 @@
 package com.rentalert.redis.service;
 
+import com.rentalert.dto.user.UserSession;
+import com.rentalert.redis.dto.CacheType;
+import com.rentalert.redis.service.impl.RedisCacheServiceImpl;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,27 +35,56 @@ class RedisCacheServiceImplTests {
 		doAnswer(inv -> store.put(inv.getArgument(0), inv.getArgument(1)))
 				.when(ops).set(anyString(), anyString(), any(Duration.class));
 		when(ops.get(anyString())).thenAnswer(inv -> store.get((String) inv.getArgument(0)));
+		when(template.delete(anyString())).thenAnswer(inv -> store.remove((String) inv.getArgument(0)) != null);
 		cacheService = new RedisCacheServiceImpl(template);
 	}
 
 	@Test
-	void putThenGetReturnsSameValueUnderPrefixedKey() {
-		var value = new Listing("flat", 3);
+	void putThenGetReturnsValueOfCacheTypeUnderPrefixedKey() {
+		cacheService.put(CacheType.USER_SESSION, "token", UserSession.builder().userId(5L).username("ann").build());
 
-		cacheService.put("listings", 42, value);
+		assertThat(store).containsKey("USER_SESSION:token");
+		Optional<UserSession> cached = cacheService.get(CacheType.USER_SESSION, "token");
+		assertThat(cached).get().satisfies(session -> {
+			assertThat(session.getUserId()).isEqualTo(5L);
+			assertThat(session.getUsername()).isEqualTo("ann");
+		});
+	}
 
-		assertThat(store).containsKey("listings:42");
-		assertThat(cacheService.get("listings", 42, Listing.class)).contains(value);
+	@Test
+	void stringValuesRoundTrip() {
+		cacheService.put(CacheType.USER_ACTIVE_TOKEN, 5, "jwt");
+
+		Optional<String> token = cacheService.get(CacheType.USER_ACTIVE_TOKEN, 5);
+		assertThat(token).contains("jwt");
 	}
 
 	@Test
 	void loaderIsUsedOnMissAndResultCached() {
-		var loaded = cacheService.get("listings", 7, Listing.class, () -> new Listing("room", 1));
+		String loaded = cacheService.get(CacheType.USER_ACTIVE_TOKEN, 7, () -> "fresh");
 
-		assertThat(loaded).isEqualTo(new Listing("room", 1));
-		assertThat(store).containsKey("listings:7");
+		assertThat(loaded).isEqualTo("fresh");
+		assertThat(store).containsKey("USER_ACTIVE_TOKEN:7");
 	}
 
-	record Listing(String name, int rooms) {
+	@Test
+	void loaderIsSkippedOnHit() {
+		cacheService.put(CacheType.USER_ACTIVE_TOKEN, 7, "cached");
+
+		String value = cacheService.get(CacheType.USER_ACTIVE_TOKEN, 7, () -> {
+			throw new AssertionError("loader must not be called on a hit");
+		});
+
+		assertThat(value).isEqualTo("cached");
+	}
+
+	@Test
+	void unreadableEntryIsTreatedAsMissAndEvicted() {
+		store.put("USER_SESSION:token", "{not json");
+
+		Optional<UserSession> cached = cacheService.get(CacheType.USER_SESSION, "token");
+
+		assertThat(cached).isEmpty();
+		assertThat(store).doesNotContainKey("USER_SESSION:token");
 	}
 }

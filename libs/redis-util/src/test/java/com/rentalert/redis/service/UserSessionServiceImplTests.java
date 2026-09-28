@@ -1,11 +1,13 @@
 package com.rentalert.redis.service;
 
-import com.rentalert.common.auth.JwtService;
-import com.rentalert.common.auth.JwtServiceImpl;
-import com.rentalert.common.auth.JwtType;
+import com.rentalert.common.util.auth.JwtService;
+import com.rentalert.common.util.auth.JwtServiceImpl;
+import com.rentalert.common.util.auth.JwtType;
 import com.rentalert.common.config.AuthProperties;
 import com.rentalert.common.exception.AuthException;
 import com.rentalert.dto.user.UserSession;
+import com.rentalert.redis.dto.CacheType;
+import com.rentalert.redis.service.impl.UserSessionServiceImpl;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +19,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -33,21 +34,20 @@ class UserSessionServiceImplTests {
 	private UserSessionService sessions;
 
 	@BeforeEach
-	@SuppressWarnings("unchecked")
 	void setUp() {
 		CacheService cache = mock(CacheService.class);
 		doAnswer(inv -> redis.put(inv.getArgument(0) + ":" + inv.getArgument(1), inv.getArgument(2)))
-				.when(cache).put(anyString(), any(), any(), any(Duration.class));
+				.when(cache).put(any(CacheType.class), any(), any(), any(Duration.class));
 		doAnswer(inv -> redis.remove(inv.getArgument(0) + ":" + inv.getArgument(1)))
-				.when(cache).evict(anyString(), any());
-		when(cache.get(anyString(), any(), any(Class.class)))
+				.when(cache).evict(any(CacheType.class), any());
+		when(cache.get(any(CacheType.class), any()))
 				.thenAnswer(inv -> Optional.ofNullable(redis.get(inv.getArgument(0) + ":" + inv.getArgument(1))));
 		sessions = new UserSessionServiceImpl(cache, request, jwt);
 	}
 
 	@Test
 	void createdSessionIsFoundByAuthorizationHeader() {
-		String token = jwt.generateToken(5L, JwtType.ACCESS);
+		String token = jwt.generateToken(UserSession.builder().userId(5L).role("USER").build(), JwtType.ACCESS);
 
 		sessions.createSession(token, UserSession.builder().userId(5L).username("ann").email("a@b.c").build());
 		request.addHeader("Authorization", "Bearer " + token);
@@ -61,10 +61,10 @@ class UserSessionServiceImplTests {
 
 	@Test
 	void newLoginReplacesPreviousSessionOfSameUser() throws InterruptedException {
-		String first = jwt.generateToken(5L, JwtType.ACCESS);
+		String first = jwt.generateToken(UserSession.builder().userId(5L).role("USER").build(), JwtType.ACCESS);
 		sessions.createSession(first, UserSession.builder().userId(5L).build());
 		Thread.sleep(1100); // JWT timestamps have second precision: make the second token differ
-		String second = jwt.generateToken(5L, JwtType.ACCESS);
+		String second = jwt.generateToken(UserSession.builder().userId(5L).role("USER").build(), JwtType.ACCESS);
 
 		sessions.createSession(second, UserSession.builder().userId(5L).build());
 
@@ -73,7 +73,7 @@ class UserSessionServiceImplTests {
 
 	@Test
 	void noSessionMeansAuthException() {
-		request.addHeader("Authorization", "Bearer " + jwt.generateToken(9L, JwtType.ACCESS));
+		request.addHeader("Authorization", "Bearer " + jwt.generateToken(UserSession.builder().userId(9L).role("USER").build(), JwtType.ACCESS));
 
 		assertThatThrownBy(sessions::getCurrentUser).isInstanceOf(AuthException.class);
 	}

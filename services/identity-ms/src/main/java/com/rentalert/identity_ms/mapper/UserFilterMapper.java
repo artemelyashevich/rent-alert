@@ -2,8 +2,8 @@ package com.rentalert.identity_ms.mapper;
 
 import com.rentalert.dto.currency.Currency;
 import com.rentalert.identity_ms.domain.UserFilter;
-import com.rentalert.identity_ms.dto.filter.UserFilterRequest;
-import com.rentalert.identity_ms.dto.filter.UserFilterResponse;
+import com.rentalert.dto.profile.filter.UserFilterRequest;
+import com.rentalert.dto.profile.filter.UserFilterResponse;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

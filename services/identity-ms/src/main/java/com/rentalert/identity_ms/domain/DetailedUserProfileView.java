@@ -1,5 +1,7 @@
 package com.rentalert.identity_ms.domain;
 
+import com.rentalert.dto.profile.BotStatus;
+import com.rentalert.dto.profile.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

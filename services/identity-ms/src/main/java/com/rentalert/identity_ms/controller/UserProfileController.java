@@ -1,7 +1,8 @@
 package com.rentalert.identity_ms.controller;
 
-import com.rentalert.identity_ms.dto.profile.UserProfileResponse;
-import com.rentalert.identity_ms.dto.profile.UserProfileUpdateDto;
+import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.UserProfileUpdateDto;
+import com.rentalert.identity_ms.config.PublicUrls;
 import com.rentalert.identity_ms.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/profiles")
+@RequestMapping(PublicUrls.PROFILE_TAG)
 @RequiredArgsConstructor
 public class UserProfileController {
 
@@ -25,6 +26,7 @@ public class UserProfileController {
 
     @PutMapping
     public UserProfileResponse update(@Valid @RequestBody UserProfileUpdateDto userProfileUpdateDto) {
-        return userProfileService.update(userProfileUpdateDto);
+        userProfileService.update(userProfileUpdateDto);
+        return userProfileService.findCurrentUser();
     }
 }

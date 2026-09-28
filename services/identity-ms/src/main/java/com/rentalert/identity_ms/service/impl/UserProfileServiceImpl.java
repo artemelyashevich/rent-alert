@@ -1,26 +1,33 @@
 package com.rentalert.identity_ms.service.impl;
 
-import com.rentalert.common.auth.CryptoService;
-import com.rentalert.common.auth.HmacBlindIndexService;
+import com.rentalert.common.util.auth.CryptoService;
+import com.rentalert.common.util.auth.HmacBlindIndexService;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.AppNotFoundException;
 import com.rentalert.dto.user.UserSession;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
-import com.rentalert.identity_ms.dto.profile.UserProfileCreateDto;
-import com.rentalert.identity_ms.dto.profile.UserProfileUpdateDto;
+import com.rentalert.dto.profile.TelegramUser;
+import com.rentalert.dto.profile.UserProfileCreateDto;
+import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.UserProfileUpdateDto;
+import com.rentalert.identity_ms.mapper.DetailedUserProfileMapper;
 import com.rentalert.identity_ms.mapper.UserProfileMapper;
+import com.rentalert.identity_ms.repository.DetailedUserProfileViewRepository;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
 import com.rentalert.identity_ms.service.UserProfileService;
+import com.rentalert.redis.dto.CacheType;
+import com.rentalert.redis.service.CacheService;
 import com.rentalert.redis.service.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
@@ -28,10 +35,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 @RequiredArgsConstructor
 public class UserProfileServiceImpl implements UserProfileService {
 
-    private static final String CACHE_NAME = "user-profiles";
-
     private final UserProfileRepository userProfileRepository;
-    private final CacheManager cacheManager;
+    private final DetailedUserProfileViewRepository detailedUserProfileViewRepository;
+    private final DetailedUserProfileMapper detailedUserProfileMapper;
+    private final CacheService cacheService;
     private final CryptoService cryptoService;
     private final UserProfileMapper userProfileMapper;
     private final HmacBlindIndexService blindIndexService;
@@ -81,20 +88,89 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    @Cacheable(value = CACHE_NAME, key = "#id")
     public UserProfile getById(Long id) {
         log.debug("Fetching user profile with ID: {}", id);
         return userProfileRepository.findById(id).orElseThrow(AppNotFoundException::new);
     }
 
-    private void evictCachedProfile(Long id) {
-        if (id == null) {
+    @Override
+    public UserProfile getByTelegramId(String telegramId) {
+        log.debug("Fetching user profile by telegramId");
+
+        String hash = blindIndexService.hash(telegramId);
+        return userProfileRepository.findByTelegramIdHash(hash).orElseThrow(() -> new AppException("Профиль пользователя не найден", HttpStatus.NOT_FOUND));
+    }
+
+
+    @Override
+    @Transactional
+    public UserProfile findOrRegister(TelegramUser telegramUser, String telegramId) {
+        String hash = blindIndexService.hash(telegramId);
+        return userProfileRepository.findByTelegramIdHash(hash)
+            .orElseGet(() -> {
+                registerInNewTransaction(telegramUser);
+                return userProfileRepository.findByTelegramIdHash(hash).orElseThrow(AppNotFoundException::new);
+            });
+    }
+
+    @Override
+    public String encryptRefreshToken(String refreshToken) {
+        return cryptoService.encrypt(refreshToken);
+    }
+
+    @Override
+    public String getDecryptedRefreshToken(UserProfile profile) {
+        return profile.getSettings().getRefreshTokenHash() == null
+            ? null
+            : cryptoService.decrypt(profile.getSettings().getRefreshTokenHash());
+    }
+
+    @Override
+    public void save(UserProfile profile) {
+        userProfileRepository.save(profile);
+    }
+
+    @Override
+    public UserProfileResponse findCurrentUser() {
+        Long userId = userSessionService.getCurrentUser().getUserId();
+        return cacheService.get(CacheType.USER_PROFILE, userId, () -> detailedUserProfileViewRepository.findById(userId)
+            .map(detailedUserProfileMapper::toUserProfileResponse)
+            .orElseThrow(AppNotFoundException::new));
+    }
+
+    private void registerInNewTransaction(TelegramUser telegramUser) {
+        TransactionTemplate requiresNew = new TransactionTemplate(transactionTemplate.getTransactionManager());
+        requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        try {
+            requiresNew.executeWithoutResult(status -> register(telegramUser));
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Concurrent registration detected for telegram user, using the existing profile");
+        }
+    }
+
+    private UserProfile register(TelegramUser telegramUser) {
+        String telegramId = telegramUser.getId().toString();
+        UserProfileCreateDto createDto = UserProfileCreateDto.builder()
+            .telegramId(telegramId)
+            .username(telegramUser.getUsername())
+            .photoUrl(telegramUser.getPhotoUrl())
+            .build();
+         return create(createDto);
+    }
+
+    // Inside a transaction the entry is dropped after commit: evicting earlier lets a concurrent
+    // /me re-cache the old data before the change becomes visible
+    @Override
+    public void evictCachedProfile(Long userId) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            cacheService.evict(CacheType.USER_PROFILE, userId);
             return;
         }
-        Cache cache = cacheManager.getCache(CACHE_NAME);
-        if (cache != null) {
-            cache.evictIfPresent(id);
-            log.debug("Evicted cached user profile with id: {}", id);
-        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                cacheService.evict(CacheType.USER_PROFILE, userId);
+            }
+        });
     }
 }

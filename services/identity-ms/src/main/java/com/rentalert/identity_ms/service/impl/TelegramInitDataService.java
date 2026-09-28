@@ -1,9 +1,9 @@
 package com.rentalert.identity_ms.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.rentalert.common.exception.AuthException;
 import com.rentalert.identity_ms.config.ApplicationProperties;
-import com.rentalert.identity_ms.dto.profile.TelegramUser;
+import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.identity_ms.service.TelegramInitDataParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

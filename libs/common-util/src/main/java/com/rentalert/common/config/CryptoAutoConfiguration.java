@@ -1,7 +1,7 @@
 package com.rentalert.common.config;
 
-import com.rentalert.common.auth.CryptoService;
-import com.rentalert.common.auth.HmacBlindIndexService;
+import com.rentalert.common.util.auth.CryptoService;
+import com.rentalert.common.util.auth.HmacBlindIndexService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

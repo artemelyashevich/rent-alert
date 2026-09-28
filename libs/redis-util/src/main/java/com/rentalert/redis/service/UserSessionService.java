@@ -11,8 +11,10 @@ public interface UserSessionService {
     UserSession getCurrentUser();
 
     /**
-     * Stores {@code session} (userId, username, email) under {@code token}, replacing the user's previous session.
+     * Stores {@code session} (userId, username, email, role) under {@code token}, replacing the user's previous session.
      */
+    UserSession createSession(UserSession session);
+
     UserSession createSession(String token, UserSession session);
 
     /**

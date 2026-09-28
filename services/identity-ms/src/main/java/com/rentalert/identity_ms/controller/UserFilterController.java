@@ -1,5 +1,9 @@
 package com.rentalert.identity_ms.controller;
 
+import com.rentalert.dto.profile.filter.UserFilterRequest;
+import com.rentalert.dto.profile.filter.UserFilterResponse;
+import com.rentalert.identity_ms.config.PublicUrls;
+import com.rentalert.identity_ms.service.UserFilterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -31,7 +35,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Tag(name = "User Filters", description = "Управление фильтрами пользователя для получения уведомлений об объявлениях")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/api/v1/filters")
+@RequestMapping(PublicUrls.FILTER_TAG)
 @RequiredArgsConstructor
 public class UserFilterController {
 

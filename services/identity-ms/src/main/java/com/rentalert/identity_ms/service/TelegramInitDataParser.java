@@ -1,6 +1,6 @@
 package com.rentalert.identity_ms.service;
 
-import com.rentalert.identity_ms.dto.profile.TelegramUser;
+import com.rentalert.dto.profile.TelegramUser;
 
 public interface TelegramInitDataParser {
 

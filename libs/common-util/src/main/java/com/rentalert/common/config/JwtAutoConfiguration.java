@@ -1,7 +1,7 @@
 package com.rentalert.common.config;
 
-import com.rentalert.common.auth.JwtService;
-import com.rentalert.common.auth.JwtServiceImpl;
+import com.rentalert.common.util.auth.JwtService;
+import com.rentalert.common.util.auth.JwtServiceImpl;
 import io.jsonwebtoken.Jwts;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

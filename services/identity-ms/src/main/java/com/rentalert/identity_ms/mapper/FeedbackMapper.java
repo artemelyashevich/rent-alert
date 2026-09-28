@@ -2,7 +2,7 @@ package com.rentalert.identity_ms.mapper;
 
 
 import com.rentalert.identity_ms.domain.Feedback;
-import com.rentalert.identity_ms.dto.FeedbackResponse;
+import com.rentalert.dto.profile.FeedbackResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

@@ -1,5 +1,10 @@
 package com.rentalert.identity_ms.controller;
 
+import com.rentalert.dto.profile.FeedbackRequest;
+import com.rentalert.dto.profile.FeedbackResponse;
+import com.rentalert.identity_ms.config.PublicUrls;
+import com.rentalert.identity_ms.service.FeedbackService;
+import com.rentalert.redis.service.UserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Feedback", description = "Управление отзывами пользователей")
 @RestController
-@RequestMapping("/api/v1/feedback")
+@RequestMapping(PublicUrls.FEEDBACK_TAG)
 @RequiredArgsConstructor
 public class FeedbackController {
 

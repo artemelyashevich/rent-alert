@@ -1,27 +1,21 @@
 package com.rentalert.identity_ms.service.impl;
 
-import java.time.Instant;
-import java.util.Objects;
-
-import com.rentalert.common.auth.JwtService;
-import com.rentalert.common.auth.JwtType;
-import com.rentalert.common.exception.UserBlockedException;
+import com.rentalert.common.util.auth.JwtService;
+import com.rentalert.common.util.auth.JwtType;
+import com.rentalert.common.exception.AuthException;
 import com.rentalert.dto.auth.LoginResponse;
 import com.rentalert.dto.auth.TelegramAuthRequest;
+import com.rentalert.dto.user.UserSession;
 import com.rentalert.identity_ms.domain.UserProfile;
-import com.rentalert.identity_ms.domain.UserRole;
-import com.rentalert.identity_ms.dto.profile.TelegramUser;
+import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.identity_ms.service.LoginService;
 import com.rentalert.identity_ms.service.TelegramInitDataParser;
 import com.rentalert.identity_ms.service.UserProfileService;
-import com.rentalert.redis.service.UserSessionService;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
@@ -31,64 +25,41 @@ public class TelegramLoginService implements LoginService<TelegramAuthRequest> {
     private final UserProfileService userProfileService;
     private final JwtService jwtService;
     private final TelegramInitDataParser telegramInitDataParser;
-    private final AuthenticationService authenticationService;
-    private final UserSessionService userSessionService;
+    private final TokenIssuer tokenIssuer;
+    private final TransactionTemplate transactionTemplate;
 
     @Override
-    @Transactional
     public LoginResponse auth(TelegramAuthRequest request) {
-        TelegramUser telegramUser;
-        try {
-            telegramUser = telegramInitDataParser.verify(request.initData());
-        } catch (Exception e) {
-            log.warn("Login failed: invalid Telegram init data", e);
-            throw e;
-        }
+        TelegramUser telegramUser = telegramInitDataParser.verify(request.initData());
 
-        String telegramId = telegramUser.getId().toString();
+        LoginData loginData = transactionTemplate.execute(status -> updateProfileOnLogin(telegramUser));
 
-        UserProfile profile = authenticationService.findOrRegister(telegramUser, telegramId);
-
-        if (profile.getSettings().getRoleName() == UserRole.BLOCKED) {
-            throw new UserBlockedException();
-        }
-
-        String accessToken = jwtService.generateToken(profile, JwtType.ACCESS);
-        String refreshToken = resolveRefreshToken(profile);
-
-        profile.getSettings().setRefreshTokenHash(userProfileService.encryptRefreshToken(refreshToken));
-        profile.setLastLogin(Instant.now());
-
-        syncProfileFromTelegram(profile, telegramUser);
-
-        userProfileService.save(profile);
-
-        log.debug("User {} saved, awaiting commit before session creation", profile.getId());
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                userSessionService.createSession(accessToken, profile);
-                log.debug("User {} logged in", profile.getId());
-            }
-        });
-
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .expiresIn(jwtService.extractExpiration(accessToken).getTime())
-                .build();
+        LoginResponse response = tokenIssuer.issue(loginData.session(), loginData.refreshToken());
+        userProfileService.evictCachedProfile(loginData.session().getUserId());
+        log.debug("User {} logged in", loginData.session().getUserId());
+        return response;
     }
 
-    private String resolveRefreshToken(UserProfile profile) {
-        String existingRefreshToken = userProfileService.getDecryptedRefreshToken(profile);
+    private LoginData updateProfileOnLogin(TelegramUser telegramUser) {
+        UserProfile profile = userProfileService.findOrRegister(telegramUser, telegramUser.getId().toString());
 
+        profile.setUsername(telegramUser.getUsername());
+        profile.setPhotoUrl(telegramUser.getPhotoUrl());
+        profile.setLastLogin(Instant.now());
+
+        UserSession session = tokenIssuer.toSession(profile);
+        return new LoginData(session, resolveRefreshToken(profile, session));
+    }
+
+    private String resolveRefreshToken(UserProfile profile, UserSession session) {
+        String existingRefreshToken = userProfileService.getDecryptedRefreshToken(profile);
         if (existingRefreshToken != null && isValid(existingRefreshToken)) {
             log.debug("Reusing existing refresh token for profile id: {}", profile.getId());
             return existingRefreshToken;
         }
 
-        String newRefreshToken = jwtService.generateToken(profile, JwtType.REFRESH);
+        String newRefreshToken = jwtService.generateToken(session, JwtType.REFRESH);
+        profile.getSettings().setRefreshTokenHash(userProfileService.encryptRefreshToken(newRefreshToken));
         log.debug("Issued new refresh token for profile id: {}", profile.getId());
         return newRefreshToken;
     }
@@ -102,15 +73,6 @@ public class TelegramLoginService implements LoginService<TelegramAuthRequest> {
         }
     }
 
-    private void syncProfileFromTelegram(UserProfile profile, TelegramUser telegramUser) {
-        if (!Objects.equals(profile.getUsername(), telegramUser.getUsername())) {
-            log.debug("Username changed for profile id: {}", profile.getId());
-            profile.setUsername(telegramUser.getUsername());
-        }
-
-        if (!Objects.equals(profile.getPhotoUrl(), telegramUser.getPhotoUrl())) {
-            log.debug("Photo url changed for profile id: {}", profile.getId());
-            profile.setPhotoUrl(telegramUser.getPhotoUrl());
-        }
+    private record LoginData(UserSession session, String refreshToken) {
     }
 }

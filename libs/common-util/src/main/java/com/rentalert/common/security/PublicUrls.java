@@ -12,17 +12,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class PublicUrls {
 
-    @Value("${spring.application.name}")
-    private String prefix;
+    public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
+        PathPatternRequestMatcher.withDefaults().matcher("/actuator/**"),
+        PathPatternRequestMatcher.withDefaults().matcher("/swagger-resources/**"),
+        PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
+        PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui.html"),
+        PathPatternRequestMatcher.withDefaults().matcher("/v3/api-docs/**"),
+        PathPatternRequestMatcher.withDefaults().matcher("/v3/api-docs")
+    );
 
-    private RequestMatcher publicUrls;
-
-    @PostConstruct
-    public void init() {
-        publicUrls = new OrRequestMatcher(
-            PathPatternRequestMatcher.withDefaults().matcher("/" + prefix + "/v3/api-docs/**"),
-            PathPatternRequestMatcher.withDefaults().matcher("/" + prefix + "/swagger-ui/**"),
-            PathPatternRequestMatcher.withDefaults().matcher("/" + prefix + "/swagger-ui.html")
-        );
+    private PublicUrls() {
+        throw new UnsupportedOperationException();
     }
 }

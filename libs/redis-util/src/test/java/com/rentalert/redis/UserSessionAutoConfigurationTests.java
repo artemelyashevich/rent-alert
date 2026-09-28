@@ -1,7 +1,10 @@
 package com.rentalert.redis;
 
-import com.rentalert.common.auth.JwtService;
+import com.rentalert.common.util.auth.JwtService;
+import com.rentalert.common.security.AuthenticationService;
+import com.rentalert.redis.config.UserSessionAutoConfiguration;
 import com.rentalert.redis.service.CacheService;
+import com.rentalert.redis.service.impl.SessionAuthenticationService;
 import com.rentalert.redis.service.UserSessionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -28,7 +31,10 @@ class UserSessionAutoConfigurationTests {
 				.withBean(CacheService.class, () -> mock(CacheService.class))
 				.withBean(JwtService.class, () -> mock(JwtService.class))
 				.withConfiguration(AutoConfigurations.of(UserSessionAutoConfiguration.class))
-				.run(context -> assertThat(context).hasSingleBean(UserSessionService.class));
+				.run(context -> {
+					assertThat(context).hasSingleBean(UserSessionService.class);
+					assertThat(context).getBean(AuthenticationService.class).isInstanceOf(SessionAuthenticationService.class);
+				});
 	}
 
 	@Test

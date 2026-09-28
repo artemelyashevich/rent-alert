@@ -5,13 +5,11 @@ import com.rentalert.common.config.RequestRateLimitProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class IpAccessGuard {
 
@@ -48,13 +46,10 @@ public class IpAccessGuard {
 
         String blockKey = BLOCKED_KEY_PREFIX + ip;
         Boolean firstBlock = redisTemplate.opsForValue()
-                .setIfAbsent(blockKey, Instant.now().toString(), Duration.ofSeconds(config.getBlockDurationSeconds()));
+            .setIfAbsent(blockKey, Instant.now().toString(), Duration.ofSeconds(config.getBlockDurationSeconds()));
 
         if (Boolean.TRUE.equals(firstBlock)) {
-            log.warn(
-                    "[IP GUARD] Blocked IP {} for {}s after {} requests without a Bearer token within {}s",
-                    ip, config.getBlockDurationSeconds(), count, config.getWindowSeconds()
-            );
+            log.warn("[IP GUARD] Blocked IP {} for {}s after {} requests without a Bearer token within {}s", ip, config.getBlockDurationSeconds(), count, config.getWindowSeconds());
         }
     }
 
@@ -75,10 +70,7 @@ public class IpAccessGuard {
         }
 
         if (count == config.getRequestsPerWindow() + 1L) {
-            log.warn(
-                    "[RATE LIMIT] IP {} exceeded {} requests within {}s - throttling",
-                    ip, config.getRequestsPerWindow(), config.getWindowSeconds()
-            );
+            log.warn("[RATE LIMIT] IP {} exceeded {} requests within {}s - throttling", ip, config.getRequestsPerWindow(), config.getWindowSeconds());
         }
 
         return count > config.getRequestsPerWindow();

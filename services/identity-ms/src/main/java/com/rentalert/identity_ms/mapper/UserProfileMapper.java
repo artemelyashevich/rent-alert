@@ -1,9 +1,9 @@
 package com.rentalert.identity_ms.mapper;
 
 import com.rentalert.identity_ms.domain.UserProfile;
-import com.rentalert.identity_ms.dto.profile.UserProfileCreateDto;
-import com.rentalert.identity_ms.dto.profile.UserProfileResponse;
-import com.rentalert.identity_ms.dto.profile.UserProfileUpdateDto;
+import com.rentalert.dto.profile.UserProfileCreateDto;
+import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.UserProfileUpdateDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;

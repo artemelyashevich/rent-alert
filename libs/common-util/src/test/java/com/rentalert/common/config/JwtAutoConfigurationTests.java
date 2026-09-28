@@ -1,8 +1,9 @@
 package com.rentalert.common.config;
 
-import com.rentalert.common.auth.JwtService;
-import com.rentalert.common.auth.JwtType;
+import com.rentalert.common.util.auth.JwtService;
+import com.rentalert.common.util.auth.JwtType;
 import com.rentalert.common.exception.AuthException;
+import com.rentalert.dto.user.UserSession;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -34,7 +35,7 @@ class JwtAutoConfigurationTests {
 				"app.auth.expiration-seconds=600").run(context -> {
 			JwtService jwt = context.getBean(JwtService.class);
 
-			String token = jwt.generateToken(42L, JwtType.ACCESS);
+			String token = jwt.generateToken(UserSession.builder().userId(42L).role("USER").build(), JwtType.ACCESS);
 
 			assertThat(jwt.extractUserId(token)).isEqualTo(42L);
 			long secondsLeft = (jwt.extractExpiration(token).getTime() - new Date().getTime()) / 1000;
@@ -46,9 +47,10 @@ class JwtAutoConfigurationTests {
 	void refreshTokenIsNotAcceptedAsAccessToken() {
 		contextRunner.withPropertyValues("app.auth.access-secret=" + ACCESS, "app.auth.refresh-secret=" + REFRESH).run(context -> {
 			JwtService jwt = context.getBean(JwtService.class);
-			String refresh = jwt.generateToken(1L, JwtType.REFRESH);
+			String refresh = jwt.generateToken(UserSession.builder().userId(1L).role("USER").build(), JwtType.REFRESH);
 
 			jwt.validateToken(refresh, JwtType.REFRESH);
+			assertThat(jwt.extractUserId(refresh, JwtType.REFRESH)).isEqualTo(1L);
 			assertThatThrownBy(() -> jwt.extractUserId(refresh)).isInstanceOf(AuthException.class);
 		});
 	}

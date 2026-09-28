@@ -20,4 +20,6 @@ public class UserSession {
     private Long userId;
 
     private String email;
+
+    private String role;
 }

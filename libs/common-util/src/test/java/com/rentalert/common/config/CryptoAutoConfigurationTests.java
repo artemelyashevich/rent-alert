@@ -1,6 +1,6 @@
 package com.rentalert.common.config;
 
-import com.rentalert.common.auth.HmacBlindIndexService;
+import com.rentalert.common.util.auth.HmacBlindIndexService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;

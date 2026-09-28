@@ -1,8 +1,10 @@
 package com.rentalert.identity_ms.service;
 
 import com.rentalert.identity_ms.domain.UserProfile;
-import com.rentalert.identity_ms.dto.profile.UserProfileCreateDto;
-import com.rentalert.identity_ms.dto.profile.UserProfileUpdateDto;
+import com.rentalert.dto.profile.TelegramUser;
+import com.rentalert.dto.profile.UserProfileCreateDto;
+import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.UserProfileUpdateDto;
 
 public interface UserProfileService {
     UserProfile create(UserProfileCreateDto createDto);
@@ -13,4 +15,17 @@ public interface UserProfileService {
 
     UserProfile getById(Long id);
 
+    UserProfile getByTelegramId(String telegramId);
+
+    UserProfile findOrRegister(TelegramUser telegramUser, String telegramId);
+
+    String encryptRefreshToken(String refreshToken);
+
+    String getDecryptedRefreshToken(UserProfile profile);
+
+    void save(UserProfile profile);
+
+    UserProfileResponse findCurrentUser();
+
+    void evictCachedProfile(Long userId);
 }

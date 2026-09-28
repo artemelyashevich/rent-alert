@@ -1,6 +1,7 @@
 package com.rentalert.identity_ms.domain;
 
-import com.rentalert.common.jpa.AbstractEntity;
+import com.rentalert.common.util.jpa.AbstractEntity;
+import com.rentalert.dto.profile.FeedbackReasonCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,7 +43,7 @@ public class Feedback extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "subject_type", nullable = false, length = 20)
     @Builder.Default
-    private FeedbackSubjectType subjectType = FeedbackSubjectType.APP;
+    private com.rentalert.dto.profile.FeedbackSubjectType subjectType = com.rentalert.dto.profile.FeedbackSubjectType.APP;
 
     @Column(name = "subject_id")
     private Long subjectId;

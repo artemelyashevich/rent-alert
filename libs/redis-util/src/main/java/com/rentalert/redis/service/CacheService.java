@@ -1,7 +1,6 @@
 package com.rentalert.redis.service;
 
-import tools.jackson.core.type.TypeReference;
-
+import com.rentalert.redis.dto.CacheType;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -10,35 +9,33 @@ import java.util.function.Supplier;
 
 public interface CacheService {
 
-    <T> Optional<T> get( String cacheName, Object key, TypeReference<T> type );
+    <T> Optional<T> get(CacheType cacheType, Object key);
 
-    <T> T get(String cacheName, Object key, Class<T> type, Supplier<T> loader);
+    <T> T get(CacheType cacheType, Object key, Supplier<T> loader);
 
-    <T> Optional<T> get(String cacheName, Object key, Class<T> type);
+    void put(CacheType cacheType, Object key, Object value);
 
-    void put(String cacheName, Object key, Object value);
+    void put(CacheType cacheType, Object key, Object value, Duration ttl);
 
-    void put(String cacheName, Object key, Object value, Duration ttl);
+    void evict(CacheType cacheType, Object key);
 
-    void evict(String cacheName, Object key);
+    void evict(CacheType cacheType);
 
-    void evict(String cacheName);
-
-    void clear(String cacheName);
+    void clear(CacheType cacheType);
 
     Map<String, Object> stats();
 
-    boolean putIfAbsent(String cacheName, Object key, Object value, Duration ttl);
+    boolean putIfAbsent(CacheType cacheType, Object key, Object value, Duration ttl);
 
-    boolean putIfAbsent(String cacheName, Object key, Object value);
+    boolean putIfAbsent(CacheType cacheType, Object key, Object value);
 
-    boolean contains(String cacheName, Object key);
+    boolean contains(CacheType cacheType, Object key);
 
-    long increment(String cacheName, Object key);
+    long increment(CacheType cacheType, Object key);
 
-    void addToSet(String cacheName, String value, Duration ttl);
+    void addToSet(CacheType cacheType, String value, Duration ttl);
 
-    void addToSetBatch(String cacheName, List<String> values, Duration ttl);
+    void addToSetBatch(CacheType cacheType, List<String> values, Duration ttl);
 
-    boolean isMember(String cacheName, String value);
+    boolean isMember(CacheType cacheType, String value);
 }

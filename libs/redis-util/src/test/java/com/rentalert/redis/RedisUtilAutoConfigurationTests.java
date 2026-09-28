@@ -1,5 +1,6 @@
 package com.rentalert.redis;
 
+import com.rentalert.redis.config.RedisUtilAutoConfiguration;
 import java.time.LocalDate;
 import java.util.List;
 
