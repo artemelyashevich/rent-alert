@@ -1,4 +1,4 @@
-package com.rentalert.notification_ms.domain;
+package com.rentalert.dto.notification;
 
 public enum ReminderStatus {
     NEW,

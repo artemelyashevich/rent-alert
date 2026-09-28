@@ -1,0 +1,28 @@
+server:
+  port: 8083
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5440/ops}
+    # Same scheme as identity-ms: DB_* wins, otherwise the names from docker/.env; no real password default
+    username: ${DB_USERNAME:${OPS_DB_USER:ops_ms}}
+    password: ${DB_PASSWORD:${OPS_DB_PASSWORD:}}
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 0
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6400}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+app:
+  auth:
+    # Must equal identity-ms: access tokens issued there are verified here (AbstractSecurityConfiguration)
+    access-secret: ${APP_AUTH_ACCESS_SECRET:}
+    refresh-secret: ${APP_AUTH_REFRESH_SECRET:}

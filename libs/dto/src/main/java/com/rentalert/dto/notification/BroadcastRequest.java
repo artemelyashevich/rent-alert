@@ -1,6 +1,6 @@
 package com.rentalert.dto.notification;
 
-import com.bsu.renalert.infra.domain.dto.AbstractDto;
+import com.rentalert.dto.AbstractDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;

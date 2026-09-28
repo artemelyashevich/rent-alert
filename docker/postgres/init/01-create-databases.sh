@@ -20,3 +20,4 @@ create_service_db() {
 
 create_service_db identity "$IDENTITY_DB_USER" "$IDENTITY_DB_PASSWORD"
 create_service_db notification "$NOTIFICATION_DB_USER" "$NOTIFICATION_DB_PASSWORD"
+create_service_db ops "$OPS_DB_USER" "$OPS_DB_PASSWORD"

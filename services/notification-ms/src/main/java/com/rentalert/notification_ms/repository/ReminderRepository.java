@@ -2,7 +2,7 @@ package com.rentalert.notification_ms.repository;
 
 import com.rentalert.dto.notification.ReminderIntervalType;
 import com.rentalert.notification_ms.domain.Reminder;
-import com.rentalert.notification_ms.domain.ReminderStatus;
+import com.rentalert.dto.notification.ReminderStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

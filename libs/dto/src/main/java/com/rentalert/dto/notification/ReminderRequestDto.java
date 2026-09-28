@@ -1,6 +1,6 @@
 package com.rentalert.dto.notification;
 
-import com.bsu.renalert.infra.util.ValidationConstants;
+import com.rentalert.dto.ValidationConstants;
 import jakarta.validation.constraints.NotNull;
 
 public record ReminderRequestDto(

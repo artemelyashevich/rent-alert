@@ -1,7 +1,5 @@
 package com.rentalert.dto.notification;
 
-import com.bsu.renalert.notification.domain.ReminderStatus;
-
 import java.time.Instant;
 
 public record ReminderResponseDto(

@@ -1,5 +1,7 @@
 package com.rentalert.notification_ms.domain;
 
+import com.rentalert.dto.notification.ReminderStatus;
+
 import com.rentalert.common.util.jpa.AbstractEntity;
 import com.rentalert.dto.notification.ReminderIntervalType;
 import jakarta.persistence.Entity;

@@ -1,5 +1,7 @@
 package com.rentalert.notification_ms.domain;
 
+import com.rentalert.dto.notification.BroadcastRecipientStatus;
+
 import com.rentalert.common.util.jpa.AbstractEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

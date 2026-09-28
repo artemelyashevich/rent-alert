@@ -1,6 +1,5 @@
 package com.rentalert.dto.notification;
 
-import com.bsu.renalert.notification.domain.BroadcastRecipientStatus;
 import java.time.Instant;
 
 public record BroadcastRecipientResponse(

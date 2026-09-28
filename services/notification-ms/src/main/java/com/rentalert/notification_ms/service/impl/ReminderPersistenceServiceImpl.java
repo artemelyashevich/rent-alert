@@ -8,7 +8,7 @@ import com.rentalert.dto.notification.ReminderRequestDto;
 import com.rentalert.dto.notification.ReminderResponseDto;
 import com.rentalert.notification_ms.domain.NotificationTemplate;
 import com.rentalert.notification_ms.domain.Reminder;
-import com.rentalert.notification_ms.domain.ReminderStatus;
+import com.rentalert.dto.notification.ReminderStatus;
 import com.rentalert.notification_ms.mapper.ReminderMapper;
 import com.rentalert.notification_ms.repository.NotificationTemplateRepository;
 import com.rentalert.notification_ms.repository.ReminderRepository;
