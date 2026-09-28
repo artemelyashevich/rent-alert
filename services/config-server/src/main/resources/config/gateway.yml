@@ -14,6 +14,12 @@ spring:
               uri: lb://identity-ms
               predicates:
                 - Path=/api/v1/identity/**
+            - id: notification-ms
+              uri: lb://notification-ms
+              predicates:
+                - Path=/api/v1/notification/**
+              filters:
+                - StripPrefix=2
           globalcors:
             cors-configurations:
               '[/**]':

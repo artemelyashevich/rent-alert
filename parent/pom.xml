@@ -20,10 +20,12 @@
 		<module>../libs/redis-util</module>
 		<module>../libs/dto</module>
 		<module>../libs/internal-integration</module>
+		<module>../services</module>
 		<module>../services/config-server</module>
 		<module>../services/discovery</module>
 		<module>../services/gateway</module>
 		<module>../services/identity-ms</module>
+		<module>../services/notification-ms</module>
 	</modules>
 
 	<properties>

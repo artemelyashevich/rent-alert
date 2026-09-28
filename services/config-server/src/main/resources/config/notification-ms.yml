@@ -1,0 +1,26 @@
+server:
+  port: 8082
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5440/notification}
+    # Same scheme as identity-ms: DB_* wins, otherwise the names from docker/.env; no real password default
+    username: ${DB_USERNAME:${NOTIFICATION_DB_USER:notification_ms}}
+    password: ${DB_PASSWORD:${NOTIFICATION_DB_PASSWORD:}}
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 0
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6400}
+
+app:
+  auth:
+    # Must equal identity-ms: access tokens issued there are verified here (AbstractSecurityConfiguration)
+    access-secret: ${APP_AUTH_ACCESS_SECRET:}
+    refresh-secret: ${APP_AUTH_REFRESH_SECRET:}
