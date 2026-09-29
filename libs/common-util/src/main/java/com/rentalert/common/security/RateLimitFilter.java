@@ -30,7 +30,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/actuator");
+        return request.getRequestURI().startsWith("/actuator") || InternalAuth.isInternalCall();
     }
 
     @Override

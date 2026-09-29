@@ -1,6 +1,7 @@
 package com.rentalert.common.security;
 
 import com.rentalert.common.common.I18nService;
+import com.rentalert.common.config.InternalAuthProperties;
 import com.rentalert.common.config.IpRateLimitProperties;
 import com.rentalert.common.config.RequestRateLimitProperties;
 import com.rentalert.common.util.JsonHelper;
@@ -20,6 +21,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -35,6 +37,10 @@ public abstract class AbstractSecurityConfiguration {
 
     protected RequestMatcher publicUrls() {
         return request -> false;
+    }
+
+    protected RequestMatcher internalUrls() {
+        return PathPatternRequestMatcher.withDefaults().matcher(InternalAuth.URL_PATTERN);
     }
 
     @Bean
@@ -54,6 +60,11 @@ public abstract class AbstractSecurityConfiguration {
     }
 
     @Bean
+    public InternalAuthProperties internalAuthProperties() {
+        return new InternalAuthProperties();
+    }
+
+    @Bean
     public IpAccessGuard ipAccessGuard(StringRedisTemplate redisTemplate, IpRateLimitProperties ipRateLimitProperties, RequestRateLimitProperties requestRateLimitProperties) {
         return new IpAccessGuard(redisTemplate, ipRateLimitProperties, requestRateLimitProperties);
     }
@@ -69,10 +80,12 @@ public abstract class AbstractSecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager, IpAccessGuard ipAccessGuard, MessageSource messageSource, HttpServletRequest request) {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager, IpAccessGuard ipAccessGuard, InternalAuthProperties internalAuthProperties, MessageSource messageSource, HttpServletRequest request) {
         RequestMatcher publicUrls = publicUrls();
+        RequestMatcher internalUrls = internalUrls();
         I18nService i18nService = new I18nService(messageSource, request);
         RateLimitFilter rateLimitFilter = new RateLimitFilter(ipAccessGuard, JsonHelper.mapper, i18nService);
+        InternalTokenFilter internalTokenFilter = new InternalTokenFilter(internalUrls, internalAuthProperties);
         JwtTokenSecurityFilter jwtTokenSecurityFilter = new JwtTokenSecurityFilter(publicUrls, ipAccessGuard, i18nService, JsonHelper.mapper, authenticationManager);
         http
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
@@ -82,9 +95,11 @@ public abstract class AbstractSecurityConfiguration {
                     log.error("access denied");
                     res.setStatus(FORBIDDEN.value());
                 }))
+            .addFilterBefore(internalTokenFilter, AnonymousAuthenticationFilter.class)
             .addFilterBefore(rateLimitFilter, AnonymousAuthenticationFilter.class)
             .addFilterBefore(jwtTokenSecurityFilter, AnonymousAuthenticationFilter.class)
             .authorizeHttpRequests(req -> req
+                .requestMatchers(internalUrls).hasAuthority(InternalAuth.AUTHORITY)
                 .requestMatchers(publicUrls).permitAll()
                 .anyRequest().authenticated())
             .csrf(AbstractHttpConfigurer::disable)

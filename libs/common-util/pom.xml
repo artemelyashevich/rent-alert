@@ -104,6 +104,17 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+		<!-- MetricService; services bring it with spring-boot-starter-actuator -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+			<optional>true</optional>
+		</dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

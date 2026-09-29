@@ -10,14 +10,36 @@ spring:
               enabled: true
               lower-case-service-id: true
           routes:
+            # Internal endpoints are for service-to-service calls only; also covers the discovery locator paths
+            - id: internal-deny
+              uri: no://op
+              order: -1
+              predicates:
+                - Path=/api/v1/*/internal/**,/*/*/internal/**
+              filters:
+                - SetStatus=404
             - id: identity-ms
               uri: lb://identity-ms
               predicates:
                 - Path=/api/v1/identity/**
+              filters:
+                - StripPrefix=2
             - id: notification-ms
               uri: lb://notification-ms
               predicates:
                 - Path=/api/v1/notification/**
+              filters:
+                - StripPrefix=2
+            - id: listing-ms
+              uri: lb://listing-ms
+              predicates:
+                - Path=/api/v1/listing/**
+              filters:
+                - StripPrefix=2
+            - id: processing-ms
+              uri: lb://processing-ms
+              predicates:
+                - Path=/api/v1/processing/**
               filters:
                 - StripPrefix=2
           globalcors:

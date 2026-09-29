@@ -1,6 +1,8 @@
 package com.rentalert.internal.configuration;
 
 import com.rentalert.common.exception.UpstreamHttpException;
+import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.internal.client.service.IdentityMsServiceImpl;
 import com.rentalert.internal.decoder.InternalErrorDecoder;
 import com.rentalert.internal.interceptor.HeaderPropagationInterceptor;
 import feign.Logger;
@@ -37,6 +39,7 @@ class CommonFeignConfigurationTests {
     void registersFeignBeans() {
         runner.run(context -> {
             assertThat(context).hasSingleBean(HeaderPropagationInterceptor.class);
+            assertThat(context).getBean(IdentityMsService.class).isInstanceOf(IdentityMsServiceImpl.class);
             assertThat(context).getBean(ErrorDecoder.class).isInstanceOf(InternalErrorDecoder.class);
             assertThat(context).doesNotHaveBean(Logger.Level.class);
         });

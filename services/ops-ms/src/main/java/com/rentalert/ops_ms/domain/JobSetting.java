@@ -1,12 +1,17 @@
 package com.rentalert.ops_ms.domain;
 
 import com.rentalert.common.util.jpa.AbstractEntity;
+import com.rentalert.dto.event.job.JobInitiator;
+import com.rentalert.dto.event.job.JobName;
+import com.rentalert.dto.event.job.JobScope;
+import com.rentalert.dto.event.job.JobStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +24,9 @@ import lombok.Setter;
 @Entity
 @Table(name = "job_setting")
 public class JobSetting extends AbstractEntity {
+
+    @Column(name = "event_id", unique = true)
+    private UUID eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "job_name")

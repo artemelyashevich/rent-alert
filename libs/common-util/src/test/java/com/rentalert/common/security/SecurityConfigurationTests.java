@@ -28,11 +28,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class SecurityConfigurationTests {
 
+    private static final String INTERNAL_TOKEN = "internal-secret";
+
     private final WebApplicationContextRunner runner = new WebApplicationContextRunner()
             .withUserConfiguration(TestSecurityConfiguration.class, TestWebConfiguration.class)
             .withBean(StringRedisTemplate.class, () -> mock(StringRedisTemplate.class))
             .withBean(AuthenticationService.class, () -> SecurityConfigurationTests::findUserByToken)
-            .withPropertyValues("app.ip-rate-limit.enabled=false", "app.rate-limit.enabled=false");
+            .withPropertyValues("app.ip-rate-limit.enabled=false", "app.rate-limit.enabled=false",
+                    "app.internal.token=" + INTERNAL_TOKEN);
 
     @Configuration
     static class TestSecurityConfiguration extends AbstractSecurityConfiguration {
@@ -60,6 +63,16 @@ class SecurityConfigurationTests {
 
         @GetMapping("/private/me")
         String me(@AuthenticationPrincipal AuthenticatedUser user) {
+            return String.valueOf(user.userId());
+        }
+
+        @GetMapping("/svc/internal/ping")
+        String internalPing() {
+            return "internal";
+        }
+
+        @GetMapping("/svc/internal/me")
+        String internalMe(@AuthenticationPrincipal AuthenticatedUser user) {
             return String.valueOf(user.userId());
         }
 
@@ -119,11 +132,50 @@ class SecurityConfigurationTests {
         perform("/admin", "admin-token", result -> result.andExpect(status().isOk()));
     }
 
+    @Test
+    void internalUrlAcceptsServiceToken() {
+        perform("/svc/internal/ping", null, INTERNAL_TOKEN, result -> result
+                .andExpect(status().isOk())
+                .andExpect(content().string("internal")));
+    }
+
+    @Test
+    void internalUrlRejectsMissingOrWrongServiceToken() {
+        perform("/svc/internal/ping", null, null, result -> result.andExpect(status().isForbidden()));
+        perform("/svc/internal/ping", null, "wrong", result -> result.andExpect(status().isForbidden()));
+    }
+
+    @Test
+    void internalUrlRejectsUserToken() {
+        perform("/svc/internal/ping", "admin-token", null, result -> result.andExpect(status().isForbidden()));
+    }
+
+    @Test
+    void internalUrlSeesUserPassedAlongWithServiceToken() {
+        perform("/svc/internal/me", "user-token", INTERNAL_TOKEN, result -> result
+                .andExpect(status().isOk())
+                .andExpect(content().string("1")));
+    }
+
+    @Test
+    void internalUrlRejectsInvalidUserTokenEvenWithServiceToken() {
+        perform("/svc/internal/me", "garbage", INTERNAL_TOKEN, result -> result.andExpect(status().isUnauthorized()));
+    }
+
+    @Test
+    void serviceTokenDoesNotOpenUserEndpoints() {
+        perform("/private/me", null, INTERNAL_TOKEN, result -> result.andExpect(status().isUnauthorized()));
+    }
+
     private interface ResultCheck {
         void check(ResultActions result) throws Exception;
     }
 
     private void perform(String url, String token, ResultCheck check) {
+        perform(url, token, null, check);
+    }
+
+    private void perform(String url, String token, String internalToken, ResultCheck check) {
         runner.run(context -> {
             MockMvc mockMvc = MockMvcBuilders.webAppContextSetup((WebApplicationContext) context)
                     .addFilters(context.getBean("springSecurityFilterChain", Filter.class))
@@ -131,6 +183,9 @@ class SecurityConfigurationTests {
             var request = get(url);
             if (token != null) {
                 request.header("Authorization", "Bearer " + token);
+            }
+            if (internalToken != null) {
+                request.header(InternalAuth.HEADER, internalToken);
             }
             check.check(mockMvc.perform(request));
         });

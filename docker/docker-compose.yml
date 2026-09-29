@@ -14,8 +14,10 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:?set NOTIFICATION_DB_PASSWORD in docker/.env}
       OPS_DB_USER: ${OPS_DB_USER:-ops_ms}
       OPS_DB_PASSWORD: ${OPS_DB_PASSWORD:?set OPS_DB_PASSWORD in docker/.env}
-      CORE_DB_USER: ${OPS_DB_USER:-ops_ms}
-      CORE_DB_PASSWORD: ${OPS_DB_PASSWORD:?set OPS_DB_PASSWORD in docker/.env}
+      LISTING_DB_USER: ${LISTING_DB_USER:-listing_ms}
+      LISTING_DB_PASSWORD: ${LISTING_DB_PASSWORD:?set LISTING_DB_PASSWORD in docker/.env}
+      PROCESSING_DB_USER: ${PROCESSING_DB_USER:-processing_ms}
+      PROCESSING_DB_PASSWORD: ${PROCESSING_DB_PASSWORD:?set PROCESSING_DB_PASSWORD in docker/.env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro

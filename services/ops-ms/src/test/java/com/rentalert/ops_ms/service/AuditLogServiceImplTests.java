@@ -1,7 +1,9 @@
 package com.rentalert.ops_ms.service;
 
 import com.rentalert.dto.event.AdminActionEvent;
+import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.admin.AdminEvent;
+import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.ops_ms.domain.AuditLog;
 import com.rentalert.ops_ms.mapper.AuditLogMapper;
 import com.rentalert.ops_ms.repository.AuditLogRepository;
@@ -37,5 +39,16 @@ class AuditLogServiceImplTests {
         service.record(event);
 
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    void recordsNewUserEventOnce() {
+        UserActionEvent userEvent = UserActionEvent.builder().event(UserEvent.HIDDEN_LISTING).build();
+        when(repository.existsByEventId(userEvent.getIdempotencyKey())).thenReturn(false, true);
+
+        service.recordUserAction(userEvent);
+        service.recordUserAction(userEvent);
+
+        verify(repository).save(argThat((AuditLog log) -> userEvent.getIdempotencyKey().equals(log.getEventId())));
     }
 }

@@ -2,6 +2,7 @@ package com.rentalert.ops_ms.service;
 
 import com.rentalert.dto.event.AdminActionEvent;
 import com.rentalert.dto.event.EventInitiatorType;
+import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.ops_ms.domain.AuditLog;
 import com.rentalert.ops_ms.dto.AuditLogResponse;
 import com.rentalert.ops_ms.mapper.AuditLogMapper;
@@ -33,6 +34,16 @@ public class AuditLogServiceImpl implements AuditLogService {
     public void record(AdminActionEvent event) {
         if (auditLogRepository.existsByEventId(event.getIdempotencyKey())) {
             log.debug("Audit event {} already recorded, skipping", event.getIdempotencyKey());
+            return;
+        }
+        auditLogRepository.save(auditLogMapper.toEntity(event));
+    }
+
+    @Override
+    @Transactional
+    public void recordUserAction(UserActionEvent event) {
+        if (auditLogRepository.existsByEventId(event.getIdempotencyKey())) {
+            log.debug("User event {} already recorded, skipping", event.getIdempotencyKey());
             return;
         }
         auditLogRepository.save(auditLogMapper.toEntity(event));

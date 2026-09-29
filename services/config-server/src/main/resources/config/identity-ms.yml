@@ -4,11 +4,6 @@ server:
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5440/identity}
-    # DB_* wins; otherwise the same names as docker/.env, so that file can be loaded as-is.
-    # Password has no real default: when neither variable is set, startup fails with
-    # "The server requested SCRAM-based authentication, but no password was provided".
-    # (The empty default matters: Boot binds an unresolved ${...} literally, which would
-    # surface as a misleading "password authentication failed" instead.)
     username: ${DB_USERNAME:${IDENTITY_DB_USER:identity_ms}}
     password: ${DB_PASSWORD:${IDENTITY_DB_PASSWORD:}}
   flyway:
@@ -25,13 +20,13 @@ spring:
 
 app:
   auth:
-    # JWT signing secrets (JwtService, common-util): at least 32 bytes each. Must equal the monolith's
-    # secrets while both issue/accept the same tokens. Startup fails when unset or too short.
+    # JWT signing secrets (JwtService, common-util): at least 32 bytes each, the same in every service
+    # that verifies the tokens. Startup fails when unset or too short.
     access-secret: ${APP_AUTH_ACCESS_SECRET:}
     refresh-secret: ${APP_AUTH_REFRESH_SECRET:}
   crypto:
-    # Base64 AES key for CryptoService (common-util); must equal the monolith's to decrypt its data.
+    # Base64 AES key for CryptoService (common-util); must equal the key the stored data was encrypted with.
     aes-key: ${APP_CRYPTO_AES_KEY:}
-    # Base64 HMAC key for HmacBlindIndexService (common-util). Must equal the monolith's key if its
-    # data is reused, otherwise stored blind-index hashes won't match. Startup fails when unset.
+    # Base64 HMAC key for HmacBlindIndexService (common-util). Must equal the key the stored blind-index
+    # hashes were computed with, otherwise they won't match. Startup fails when unset.
     hmac-key: ${APP_CRYPTO_HMAC_KEY:}

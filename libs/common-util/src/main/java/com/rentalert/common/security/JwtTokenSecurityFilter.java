@@ -47,8 +47,9 @@ public class JwtTokenSecurityFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String ip = resolveClientIp(request);
         String uri = request.getRequestURI();
+        boolean internalCall = InternalAuth.isInternalCall();
 
-        if (ipAccessGuard.isBlocked(ip)) {
+        if (!internalCall && ipAccessGuard.isBlocked(ip)) {
             log.debug("[AUTH FILTER] Rejected request from blocked IP {} for {} {}", ip, request.getMethod(), uri);
             writeTooManyRequestsResponse(response);
             return;
@@ -57,7 +58,9 @@ public class JwtTokenSecurityFilter extends OncePerRequestFilter {
 
         String token = extractToken(request);
         if (token == null || token.isBlank()) {
-            ipAccessGuard.registerRequestWithoutToken(ip);
+            if (!internalCall) {
+                ipAccessGuard.registerRequestWithoutToken(ip);
+            }
             log.debug("[AUTH FILTER] No Bearer token found for {} {} from {}", request.getMethod(), uri, ip);
             filterChain.doFilter(request, response);
             return;
@@ -65,7 +68,8 @@ public class JwtTokenSecurityFilter extends OncePerRequestFilter {
         log.debug("[AUTH FILTER] Token found for {} {} -> authenticating", request.getMethod(), uri);
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(token, token));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(
+                internalCall ? InternalAuth.withInternalAuthority(authentication) : authentication);
             log.info("[AUTH FILTER] Authentication SUCCESS for {} {}", request.getMethod(), uri);
         } catch (UserBlockedException ex) {
             SecurityContextHolder.clearContext();

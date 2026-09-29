@@ -25,7 +25,7 @@ public enum NotificationType {
     BOT_UNBLOCKED(false),
     ADMIN_BROADCAST(false),
 
-    // Соседи (co-living matching) — шаг 5
+    // Соседи (co-living matching)
     ROOMMATE_NEW_INTEREST(false),
     ROOMMATE_NEW_CANDIDATES(false),
     ROOMMATE_MATCHED(false),

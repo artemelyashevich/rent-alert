@@ -94,6 +94,9 @@ app:
   auth:
     access-secret: ${JWT_ACCESS_SECRET}
     refresh-secret: ${JWT_REFRESH_SECRET}
+  internal:
+    # Shared secret of service-to-service calls (X-Internal-Token); internal endpoints reject everything when unset
+    token: ${APP_INTERNAL_TOKEN:}
   security:
     super-user-email: ${SUPER_USER_EMAIL}
     super-user-password: ${SUPER_USER_PASSWORD}

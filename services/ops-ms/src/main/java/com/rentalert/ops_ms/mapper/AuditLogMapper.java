@@ -2,7 +2,7 @@ package com.rentalert.ops_ms.mapper;
 
 import com.rentalert.dto.event.AdminActionEvent;
 import com.rentalert.dto.event.EventStatus;
-import com.rentalert.dto.event.admin.AdminEvent;
+import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.ops_ms.domain.AuditLog;
 import com.rentalert.ops_ms.dto.AuditLogResponse;
 import java.util.IllegalFormatException;
@@ -23,7 +23,23 @@ public interface AuditLogMapper {
         return AuditLog.builder()
             .eventId(event.getIdempotencyKey())
             .eventName(event.getEvent().name())
-            .eventDescription(describe(event.getEvent(), event.getParams()))
+            .eventDescription(describe(event.getEvent().getDescription(), event.getParams()))
+            .userId(event.getInitiatorId())
+            .eventInitiator(event.getEventType())
+            .eventStatus(event.getEventStatus() == null ? EventStatus.SUCCESS : event.getEventStatus())
+            .build();
+    }
+
+    default AuditLog toEntity(UserActionEvent event) {
+        StringBuilder description = new StringBuilder(describe(event.getEvent().getDescription(), event.getParams()))
+            .append(". Пользователь id='").append(event.getInitiatorId()).append('\'');
+        if (event.getFilterId() != null) {
+            description.append(". Фильтр id='").append(event.getFilterId()).append('\'');
+        }
+        return AuditLog.builder()
+            .eventId(event.getIdempotencyKey())
+            .eventName(event.getEvent().getGroup().getName())
+            .eventDescription(description.toString())
             .userId(event.getInitiatorId())
             .eventInitiator(event.getEventType())
             .eventStatus(event.getEventStatus() == null ? EventStatus.SUCCESS : event.getEventStatus())
@@ -31,14 +47,14 @@ public interface AuditLogMapper {
     }
 
     // A producer sending fewer params than the template expects must not lose the audit entry
-    private static String describe(AdminEvent event, List<String> params) {
+    private static String describe(String template, List<String> params) {
         if (params == null || params.isEmpty()) {
-            return event.getDescription();
+            return template;
         }
         try {
-            return event.getDescription().formatted(params.toArray());
+            return template.formatted(params.toArray());
         } catch (IllegalFormatException e) {
-            return event.getDescription() + " " + params;
+            return template + " " + params;
         }
     }
 }

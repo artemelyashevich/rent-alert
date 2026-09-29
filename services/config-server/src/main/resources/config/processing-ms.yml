@@ -1,0 +1,41 @@
+server:
+  port: 8085
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5440/processing}
+    username: ${DB_USERNAME:${PROCESSING_DB_USER:processing_ms}}
+    password: ${DB_PASSWORD:${PROCESSING_DB_PASSWORD:}}
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 0
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6400}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+app:
+  auth:
+    # Must equal identity-ms: access tokens issued there are verified here (AbstractSecurityConfiguration)
+    access-secret: ${APP_AUTH_ACCESS_SECRET:}
+    refresh-secret: ${APP_AUTH_REFRESH_SECRET:}
+  schedulers:
+    enabled: true
+  parsers:
+    # пауза между запросами по разным городам одного провайдера
+    city-request-delay-ms: ${PARSER_CITY_REQUEST_DELAY_MS:1000}
+    city-request-jitter-ms: ${PARSER_CITY_REQUEST_JITTER_MS:500}
+  kufar:
+    url: ${KUFAR_URL:}
+  realt:
+    url: ${REALT_URL:}
+  onliner:
+    url: ${ONLINER_URL:}
+  currency:
+    frankfurter-url: ${CURRENCY_FRANKFUTTER_URL:https://api.frankfurter.dev}

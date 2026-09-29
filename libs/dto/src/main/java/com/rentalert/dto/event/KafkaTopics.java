@@ -12,6 +12,16 @@ public class KafkaTopics {
 
     public static final String AUDIT_EVENTS = "ops.audit-events.v1";
 
+    public static final String USER_EVENTS = "ops.user-events.v1";
+
+    public static final String JOB_EVENTS = "ops.job-events.v1";
+
+    /** {@code ListingCreatedEvent} from processing-ms, key = listingId. */
+    public static final String LISTINGS = "processing.listings.v1";
+
+    /** {@code CurrencyRateDto} from processing-ms, key = currency pair. */
+    public static final String CURRENCY_RATES = "processing.currency-rates.v1";
+
     public static String notificationRequests(NotificationType type) {
         return type.isPriority()
             ? NOTIFICATION_REQUESTS_PRIORITY

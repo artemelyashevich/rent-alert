@@ -21,4 +21,5 @@ create_service_db() {
 create_service_db identity "$IDENTITY_DB_USER" "$IDENTITY_DB_PASSWORD"
 create_service_db notification "$NOTIFICATION_DB_USER" "$NOTIFICATION_DB_PASSWORD"
 create_service_db ops "$OPS_DB_USER" "$OPS_DB_PASSWORD"
-create_service_db core "$CORE_DB_USER" "$CORE_DB_PASSWORD"
+create_service_db listing "$LISTING_DB_USER" "$LISTING_DB_PASSWORD"
+create_service_db processing "$PROCESSING_DB_USER" "$PROCESSING_DB_PASSWORD"

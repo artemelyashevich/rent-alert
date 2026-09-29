@@ -3,7 +3,9 @@ package com.rentalert.ops_ms.mapper;
 import com.rentalert.dto.event.AdminActionEvent;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.event.EventStatus;
+import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.admin.AdminEvent;
+import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.ops_ms.domain.AuditLog;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -53,5 +55,25 @@ class AuditLogMapperTests {
         AuditLog auditLog = mapper.toEntity(AdminActionEvent.builder().event(AdminEvent.JOB_CLEAN_UP).build());
 
         assertThat(auditLog.getEventDescription()).isEqualTo("Очистка базы данных");
+    }
+
+    @Test
+    void mapsUserEventWithGroupNameAndUser() {
+        UserActionEvent event = UserActionEvent.builder()
+            .event(UserEvent.FAVORITE_ADDED)
+            .filterId(3L)
+            .params(List.of("15"))
+            .build();
+        event.setInitiatorId(42L);
+
+        AuditLog auditLog = mapper.toEntity(event);
+
+        assertThat(auditLog.getEventId()).isEqualTo(event.getIdempotencyKey());
+        assertThat(auditLog.getEventName()).isEqualTo("Избранное");
+        assertThat(auditLog.getEventDescription())
+            .isEqualTo("Добавление объявления id='15' в избранное. Пользователь id='42'. Фильтр id='3'");
+        assertThat(auditLog.getUserId()).isEqualTo(42L);
+        assertThat(auditLog.getEventInitiator()).isEqualTo(EventInitiatorType.USER);
+        assertThat(auditLog.getEventStatus()).isEqualTo(EventStatus.SUCCESS);
     }
 }
