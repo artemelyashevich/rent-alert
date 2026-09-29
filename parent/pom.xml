@@ -28,6 +28,7 @@
 		<module>../services/identity-ms</module>
 		<module>../services/notification-ms</module>
 		<module>../services/ops-ms</module>
+		<module>../services/core-ms</module>
 	</modules>
 
 	<properties>

@@ -14,6 +14,8 @@ services:
       NOTIFICATION_DB_PASSWORD: ${NOTIFICATION_DB_PASSWORD:?set NOTIFICATION_DB_PASSWORD in docker/.env}
       OPS_DB_USER: ${OPS_DB_USER:-ops_ms}
       OPS_DB_PASSWORD: ${OPS_DB_PASSWORD:?set OPS_DB_PASSWORD in docker/.env}
+      CORE_DB_USER: ${OPS_DB_USER:-ops_ms}
+      CORE_DB_PASSWORD: ${OPS_DB_PASSWORD:?set OPS_DB_PASSWORD in docker/.env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro

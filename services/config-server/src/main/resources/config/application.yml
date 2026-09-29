@@ -1,0 +1,119 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+  # Jackson
+  jackson:
+    date-format: com.fasterxml.jackson.databind.util.ISO8601DateFormat
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    time-zone: ${JACKSON_TIME_ZONE:UTC}
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+
+server:
+  servlet:
+    context-path: ${CONTEXT_PATH:/}
+    session:
+      timeout: 30m
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 2048
+  shutdown: graceful
+  forward-headers-strategy: framework
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics,prometheus,env}
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.bsu.renalert: ${LOG_LEVEL_APP:DEBUG}
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS,Europe/Minsk
+    console: "%d{${logging.pattern.dateformat}} %clr(%-5level) [%thread] [%X{traceId:-}] %logger{0} : %replace(%msg){'\\R+',' '} %ex%n"
+
+app:
+  schedulers:
+    enabled: true
+  parsers:
+    # пауза между запросами по разным городам одного провайдера
+    city-request-delay-ms: ${PARSER_CITY_REQUEST_DELAY_MS:1000}
+    city-request-jitter-ms: ${PARSER_CITY_REQUEST_JITTER_MS:500}
+  notifications:
+    # общий флаг уведомлений о новых объявлениях: и в админский чат, и рассылка пользователям
+    new-listing-enabled: ${NEW_LISTING_NOTIFICATIONS_ENABLED:true}
+  cleanup:
+    listing-retention-days: ${CLEANUP_LISTING_RETENTION_DAYS:30}
+    task-record-retention-days: ${CLEANUP_TASK_RECORD_RETENTION_DAYS:7}
+    notification-retention-days: ${CLEANUP_NOTIFICATION_RETENTION_DAYS:30}
+    job-setting-retention-days: ${CLEANUP_JOB_SETTING_RETENTION_DAYS:90}
+    audit-log-retention-days: ${CLEANUP_AUDIT_LOG_RETENTION_DAYS:180}
+    max-listings-per-run: ${CLEANUP_MAX_LISTINGS_PER_RUN:20000}
+  telegram:
+    bot-token: ${TELEGRAM_MAIN_BOT_TOKEN}
+    bot-name: ${TELEGRAM_MAIN_BOT_NAME}
+    admin-name: ${TELEGRAM_ADMIN_BOT_NAME}
+    admin-token: ${TELEGRAM_ADMIN_BOT_TOKEN}
+    admin-chat-id: ${TELEGRAM_ADMIN_BOT_CHAT_ID}
+    url: ${TELEGRAM_URL}
+    auth-date-ttl-seconds: 3600 # 1h
+  kufar:
+    url: ${KUFAR_URL}
+    count-url: ${KUFAR_COUNT_URL}
+  realt:
+    url: ${REALT_URL}
+  onliner:
+    url: ${ONLINER_URL}
+  http:
+    client:
+      max-connections: 200
+      max-connections-per-route: 50
+
+      connect-timeout-ms: 5000
+      connection-request-timeout-ms: 3000
+      read-timeout-ms: 15000
+
+      idle-evict-seconds: 30
+      validate-after-inactivity-seconds: 5
+      connection-ttl-minutes: 5
+  auth:
+    access-secret: ${JWT_ACCESS_SECRET}
+    refresh-secret: ${JWT_REFRESH_SECRET}
+  security:
+    super-user-email: ${SUPER_USER_EMAIL}
+    super-user-password: ${SUPER_USER_PASSWORD}
+    allowed-methods: "*"
+    allowed-headers: "*"
+    allow-credentials: true
+    front-addresses:
+      - ${FRONT_ADDRESS:}
+      - ${FRONT_TEST_ADDRESS:}
+    ip-rate-limit:
+      enabled: ${IP_RATE_LIMIT_ENABLED:true}
+      max-requests-without-token: ${IP_RATE_LIMIT_MAX_REQUESTS:60}
+      window-seconds: ${IP_RATE_LIMIT_WINDOW_SECONDS:60}
+      block-duration-seconds: ${IP_RATE_LIMIT_BLOCK_SECONDS:900}
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      requests-per-window: ${RATE_LIMIT_REQUESTS_PER_WINDOW:50}
+      window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:10}
+  crypto:
+    aes-key: ${APP_CRYPTO_AES_KEY}
+    hmac-key: ${APP_CRYPTO_HMAC_KEY}
+  currency:
+    frankfurter-url: ${CURRENCY_FRANKFUTTER_URL:https://api.frankfurter.dev}
