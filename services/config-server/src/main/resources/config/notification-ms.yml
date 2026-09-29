@@ -26,3 +26,8 @@ app:
     # Must equal identity-ms: access tokens issued there are verified here (AbstractSecurityConfiguration)
     access-secret: ${APP_AUTH_ACCESS_SECRET:}
     refresh-secret: ${APP_AUTH_REFRESH_SECRET:}
+  crypto:
+    # Must equal identity-ms: receivers in NotificationRequest are encrypted there with this key,
+    # deduplication keys are hashed with the HMAC key
+    aes-key: ${APP_CRYPTO_AES_KEY:}
+    hmac-key: ${APP_CRYPTO_HMAC_KEY:}

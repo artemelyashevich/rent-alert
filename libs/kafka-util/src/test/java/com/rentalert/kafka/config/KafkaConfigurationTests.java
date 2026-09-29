@@ -119,6 +119,7 @@ class KafkaConfigurationTests {
     private ApplicationContextRunner runner() {
         return runner.withPropertyValues(
             "spring.application.name=test-service",
+            "app.kafka.outbox.enabled=false",
             "spring.kafka.bootstrap-servers=" + broker.getBrokersAsString());
     }
 

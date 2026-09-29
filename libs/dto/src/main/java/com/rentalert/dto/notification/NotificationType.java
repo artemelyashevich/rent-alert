@@ -1,41 +1,45 @@
 package com.rentalert.dto.notification;
 
-import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * What happened, as producers see it. How it is delivered (category, channels, mandatory, on/off)
+ * is notification's own data: the notification_type_settings table.
+ */
 @Getter
 @RequiredArgsConstructor
 public enum NotificationType {
 
-    APP_STARTED(NotificationCategory.OPS_ALERTS, List.of(NotificationEngine.TELEGRAM_ADMIN)),
-    APP_STOPPED(NotificationCategory.OPS_ALERTS, List.of(NotificationEngine.TELEGRAM_ADMIN)),
-    NEW_LISTING_ADMIN_ALERT(NotificationCategory.SCRAPER_ALERTS, List.of(NotificationEngine.TELEGRAM_ADMIN)),
-    USER_CREATED(NotificationCategory.OPS_ALERTS, List.of(NotificationEngine.TELEGRAM_ADMIN)),
+    APP_STARTED(false),
+    APP_STOPPED(false),
+    NEW_LISTING_ADMIN_ALERT(false),
+    USER_CREATED(false),
 
-    NEW_LISTING_MATCHED(NotificationCategory.LISTING_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    FAVORITE_REMINDER(NotificationCategory.REMINDER_ALERTS , List.of(
-            NotificationEngine.TELEGRAM_BOT
-    )),
-    EMAIL_ACTIVATION(NotificationCategory.EMAIL_ALERTS, List.of(NotificationEngine.EMAIL)),
-    EMAIL_ACTIVATION_SUCCESS(NotificationCategory.EMAIL_ALERTS, List.of(NotificationEngine.EMAIL)),
-    NEW_FEEDBACK(NotificationCategory.OPS_ALERTS, List.of(NotificationEngine.TELEGRAM_ADMIN)),
-    BOT_BLOCKED(NotificationCategory.OPS_ALERTS, List.of(NotificationEngine.TELEGRAM_ADMIN)),
-    BOT_UNBLOCKED(NotificationCategory.OPS_ALERTS, List.of(NotificationEngine.TELEGRAM_ADMIN)),
-    ADMIN_BROADCAST(NotificationCategory.BROADCAST_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
+    NEW_LISTING_MATCHED(false),
+    FAVORITE_REMINDER(false),
+    EMAIL_ACTIVATION(true),
+    EMAIL_ACTIVATION_SUCCESS(true),
+    NEW_FEEDBACK(false),
+    BOT_BLOCKED(false),
+    BOT_UNBLOCKED(false),
+    ADMIN_BROADCAST(false),
 
     // Соседи (co-living matching) — шаг 5
-    ROOMMATE_NEW_INTEREST(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_NEW_CANDIDATES(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_MATCHED(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_CHAT_STARTED(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_VIEWING_SCHEDULED(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_VIEWING_REMINDER(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_MATCH_ENDED(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_INTEREST_EXPIRED(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_PROFILE_APPROVED(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT)),
-    ROOMMATE_PROFILE_REJECTED(NotificationCategory.ROOMMATE_ALERTS, List.of(NotificationEngine.TELEGRAM_BOT));
+    ROOMMATE_NEW_INTEREST(false),
+    ROOMMATE_NEW_CANDIDATES(false),
+    ROOMMATE_MATCHED(false),
+    ROOMMATE_CHAT_STARTED(false),
+    ROOMMATE_VIEWING_SCHEDULED(false),
+    ROOMMATE_VIEWING_REMINDER(false),
+    ROOMMATE_MATCH_ENDED(false),
+    ROOMMATE_INTEREST_EXPIRED(false),
+    ROOMMATE_PROFILE_APPROVED(false),
+    ROOMMATE_PROFILE_REJECTED(false);
 
-    private final NotificationCategory category;
-    private final List<NotificationEngine> defaultEngines;
+    /**
+     * The user is waiting for it right now (email codes): goes to the priority topic, so a mass mailing
+     * never delays it. Producers route by this, so it lives in code, not in notification's database.
+     */
+    private final boolean priority;
 }

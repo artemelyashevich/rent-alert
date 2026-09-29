@@ -4,11 +4,11 @@ import com.rentalert.common.exception.AppRateLimitException;
 import com.rentalert.common.util.JsonHelper;
 import com.rentalert.common.util.auth.CryptoService;
 import com.rentalert.common.util.auth.HmacBlindIndexService;
-import com.rentalert.dto.notification.NotificationCategory;
 import com.rentalert.dto.notification.NotificationDispatchResult;
 import com.rentalert.dto.notification.NotificationDispatchStatus;
 import com.rentalert.dto.notification.NotificationDto;
 import com.rentalert.dto.notification.NotificationEngine;
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.notification_ms.domain.Notification;
 import com.rentalert.notification_ms.domain.NotificationStatus;
@@ -20,6 +20,8 @@ import com.rentalert.notification_ms.repository.NotificationTemplateRepository;
 import com.rentalert.notification_ms.repository.UserNotificationSettingRepository;
 import com.rentalert.notification_ms.service.NotificationService;
 import com.rentalert.notification_ms.service.NotificationStrategy;
+import com.rentalert.notification_ms.service.NotificationTypeSettings;
+import com.rentalert.notification_ms.service.NotificationTypeSettingsService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationMapper notificationMapper;
     private final CryptoService cryptoService;
     private final HmacBlindIndexService blindIndexService;
+    private final NotificationTypeSettingsService typeSettingsService;
 
     public NotificationServiceImpl(
         List<NotificationStrategy> strategies,
@@ -54,7 +57,8 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationTemplateRepository notificationTemplateRepository,
         UserNotificationSettingRepository userNotificationSettingRepository,
         NotificationMapper notificationMapper, CryptoService cryptoService,
-        HmacBlindIndexService blindIndexService
+        HmacBlindIndexService blindIndexService,
+        NotificationTypeSettingsService typeSettingsService
     ) {
         this.strategyMap = strategies.stream()
             .collect(Collectors.toMap(NotificationStrategy::getSupportedEngine, s -> s));
@@ -64,6 +68,7 @@ public class NotificationServiceImpl implements NotificationService {
         this.notificationMapper = notificationMapper;
         this.cryptoService = cryptoService;
         this.blindIndexService = blindIndexService;
+        this.typeSettingsService = typeSettingsService;
     }
 
     @Override
@@ -79,9 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
         dto.setDeduplicationKey(blindIndexService.hash(dto.getDeduplicationKey()));
 
         NotificationType type = dto.getType();
-        List<NotificationEngine> engines = dto.getEngine() != null
-            ? List.of(dto.getEngine())
-            : type.getDefaultEngines();
+        List<NotificationEngine> engines = resolveEngines(type, dto.getEngine());
 
         if (engines.isEmpty()) {
             log.warn("No engines resolved for type={}", type);
@@ -100,12 +103,21 @@ public class NotificationServiceImpl implements NotificationService {
         return results;
     }
 
+    // A disabled type resolves to no channel: it is accepted but not delivered
+    private List<NotificationEngine> resolveEngines(NotificationType type, NotificationEngine explicitEngine) {
+        NotificationTypeSettings typeSettings = typeSettingsService.get(type);
+        if (!typeSettings.enabled()) {
+            log.info("Notification type {} is disabled, skipping", type);
+            return List.of();
+        }
+        return explicitEngine != null ? List.of(explicitEngine) : typeSettings.engines();
+    }
+
     private boolean isEnabledForUser(Long userId, NotificationType type, NotificationEngine engine) {
         if (engine == NotificationEngine.WEBSOCKET) {
             return true;
         }
-        NotificationCategory category = type.getCategory();
-        if (category.isMandatory() && category.getMandatoryEngines().contains(engine)) {
+        if (typeSettingsService.get(type).mandatory()) {
             return true;
         }
         if (userId == null) {
@@ -170,9 +182,7 @@ public class NotificationServiceImpl implements NotificationService {
         dto.setDeduplicationKey(blindIndexService.hash(dto.getDeduplicationKey()));
 
         NotificationType type = dto.getType();
-        List<NotificationEngine> engines = dto.getEngine() != null
-            ? List.of(dto.getEngine())
-            : type.getDefaultEngines();
+        List<NotificationEngine> engines = resolveEngines(type, dto.getEngine());
 
         if (engines.isEmpty()) {
             log.warn("No engines resolved for type={}", type);
@@ -258,6 +268,68 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception dbEx) {
             log.error("Failed to persist FAILED notification for receiver={}", dto.getReceiver(), dbEx);
         }
+    }
+
+    @Override
+    @Transactional
+    public List<Notification> enqueue(NotificationRequest request, Instant sendAt) {
+        if (notificationRepository.existsByRequestId(request.requestId())) {
+            log.debug("Request {} already queued, skipping", request.requestId());
+            return List.of();
+        }
+        NotificationType type = request.type();
+        String deduplicationKey = request.deduplicationKey() == null
+            ? null
+            : blindIndexService.hash(request.deduplicationKey());
+
+        List<Notification> queued = new ArrayList<>();
+        for (NotificationEngine engine : resolveEngines(type, null)) {
+            if (!isEnabledForUser(request.userId(), type, engine)) {
+                log.debug("Engine {} disabled by user settings. userId={}, type={}", engine, request.userId(), type);
+                continue;
+            }
+            if (deduplicationKey != null && notificationRepository.existsByDeduplicationKeyAndEngineAndStatusIn(
+                deduplicationKey, engine, List.of(NotificationStatus.SUCCESS))) {
+                log.debug("Already sent, skipping queue. requestId={}, engine={}", request.requestId(), engine);
+                continue;
+            }
+            queued.add(notificationRepository.save(Notification.builder()
+                .requestId(request.requestId())
+                .userId(request.userId())
+                .engine(engine)
+                .receiver(receiverFor(engine, request.receiver()))
+                .status(NotificationStatus.QUEUED)
+                .attempt(0)
+                .nextRetryAt(sendAt)
+                .retryType(type)
+                .deduplicationKey(deduplicationKey)
+                .templateParamsJson(serializeParams(request.templateParams()))
+                .listingId(request.listingId())
+                .build()));
+        }
+        log.info("Queued request {} of type {} on {} channel(s)", request.requestId(), type, queued.size());
+        return queued;
+    }
+
+    // Queued rows keep the plain address, like the rest of the retry pipeline expects
+    private String receiverFor(NotificationEngine engine, NotificationRequest.Receiver receiver) {
+        return switch (engine) {
+            case TELEGRAM_BOT -> cryptoService.decrypt(requireAddress(receiver == null ? null : receiver.telegramIdEnc(), engine));
+            case EMAIL -> cryptoService.decrypt(requireAddress(receiver == null ? null : receiver.emailEnc(), engine));
+            default -> "[internal]";
+        };
+    }
+
+    private static String requireAddress(String address, NotificationEngine engine) {
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("No receiver address for engine " + engine);
+        }
+        return address;
+    }
+
+    @Override
+    public void dispatch(List<Notification> notifications) {
+        notifications.forEach(this::retryOne);
     }
 
     @Override

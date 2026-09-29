@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.rentalert.notification_ms.service.NotificationTypeSettingsService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -24,6 +25,7 @@ public class WebSocketNotificationStrategy implements NotificationStrategy {
     static final String USER_DESTINATION = "/queue/notifications";
 
     private final ObjectProvider<SimpMessagingTemplate> messagingTemplateProvider;
+    private final NotificationTypeSettingsService typeSettingsService;
 
     @Override
     public void sendNotification(NotificationDto dto) {
@@ -49,7 +51,7 @@ public class WebSocketNotificationStrategy implements NotificationStrategy {
         RealtimeNotificationPayload payload = new RealtimeNotificationPayload(
             dto.getId(),
             dto.getType(),
-            dto.getType().getCategory().name(),
+            typeSettingsService.get(dto.getType()).category(),
             dto.getListingId(),
             dto.getContent(),
             params,

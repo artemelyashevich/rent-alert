@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -48,6 +49,8 @@ public interface NotificationRepository extends JpaRepository<@NonNull Notificat
         where n.createdAt < :cutoff
         """)
     int deleteByCreatedAtBefore(@Param("cutoff") Instant cutoff);
+
+    boolean existsByRequestId(UUID requestId);
 
     boolean existsByDeduplicationKeyAndEngineAndStatusIn(String deduplicationKey, NotificationEngine engine, List<NotificationStatus> success);
 }

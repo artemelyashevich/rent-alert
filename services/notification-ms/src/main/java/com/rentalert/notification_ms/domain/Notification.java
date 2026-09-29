@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -64,4 +65,7 @@ public class Notification extends AbstractEntity {
 
     @Column(name = "listing_id")
     private Long listingId;
+
+    @Column(name = "request_id")
+    private UUID requestId;
 }
