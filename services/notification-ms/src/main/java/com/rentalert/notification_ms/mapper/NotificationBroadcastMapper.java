@@ -8,8 +8,9 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface NotificationBroadcastMapper {
 
-    @Mapping(target = "createdByUserId", source = "createdBy.id")
-    @Mapping(target = "createdByUsername", source = "createdBy.username")
+    // TODO: username автора рассылки — из identity-ms
+    @Mapping(target = "createdByUserId", source = "userId")
+    @Mapping(target = "createdByUsername", ignore = true)
     @Mapping(target = "sent", source = "sentCount")
     @Mapping(target = "failed", source = "failedCount")
     @Mapping(target = "skipped", source = "skippedCount")

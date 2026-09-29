@@ -44,6 +44,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final HmacBlindIndexService blindIndexService;
     private final UserSessionService userSessionService;
     private final TransactionTemplate transactionTemplate;
+    private final ProfileCacheEvictor profileCacheEvictor;
 
     @Override
     @Transactional
@@ -162,21 +163,14 @@ public class UserProfileServiceImpl implements UserProfileService {
      @Override
     public void evictCachedProfile(Long userId) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            evictProfileCaches(userId);
+            profileCacheEvictor.evict(userId);
             return;
         }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                evictProfileCaches(userId);
+                profileCacheEvictor.evict(userId);
             }
         });
-    }
-
-    // Other services cache the internal API responses in the shared Redis
-    private void evictProfileCaches(Long userId) {
-        cacheService.evict(CacheType.USER_PROFILE, userId);
-        cacheService.evict(CacheType.USER_PROFILE_INTERNAL, userId);
-        cacheService.evict(CacheType.USER_ACTIVE_FILTER, userId);
     }
 }

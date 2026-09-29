@@ -19,10 +19,6 @@
             <artifactId>kafka-util</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rentalert</groupId>
-            <artifactId>internal-integration</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
         </dependency>

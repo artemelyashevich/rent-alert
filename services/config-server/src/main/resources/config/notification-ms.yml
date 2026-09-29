@@ -4,30 +4,37 @@ server:
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5440/notification}
-    # Same scheme as identity-ms: DB_* wins, otherwise the names from docker/.env; no real password default
     username: ${DB_USERNAME:${NOTIFICATION_DB_USER:notification_ms}}
     password: ${DB_PASSWORD:${NOTIFICATION_DB_PASSWORD:}}
-  flyway:
-    baseline-on-migrate: true
-    baseline-version: 0
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6400}
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 app:
-  auth:
-    # Must equal identity-ms: access tokens issued there are verified here (AbstractSecurityConfiguration)
-    access-secret: ${APP_AUTH_ACCESS_SECRET:}
-    refresh-secret: ${APP_AUTH_REFRESH_SECRET:}
   crypto:
     # Must equal identity-ms: receivers in NotificationRequest are encrypted there with this key,
     # deduplication keys are hashed with the HMAC key
     aes-key: ${APP_CRYPTO_AES_KEY:}
     hmac-key: ${APP_CRYPTO_HMAC_KEY:}
+  telegram:
+    bot-token: ${TELEGRAM_MAIN_BOT_TOKEN:}
+    bot-name: ${TELEGRAM_MAIN_BOT_NAME:RentAlert}
+    # Bot API URL with %s for the admin bot token, e.g. https://api.telegram.org/bot%s/sendMessage
+    url: ${TELEGRAM_URL:https://api.telegram.org/bot%s/sendMessage}
+    admin-token: ${TELEGRAM_ADMIN_BOT_TOKEN:}
+    admin-chat-id: ${TELEGRAM_ADMIN_BOT_CHAT_ID:}
+  http:
+    client:
+      max-connections: 200
+      max-connections-per-route: 50
+      connect-timeout-ms: 5000
+      connection-request-timeout-ms: 3000
+      read-timeout-ms: 15000
+      idle-evict-seconds: 30
+      validate-after-inactivity-seconds: 5
+      connection-ttl-minutes: 5

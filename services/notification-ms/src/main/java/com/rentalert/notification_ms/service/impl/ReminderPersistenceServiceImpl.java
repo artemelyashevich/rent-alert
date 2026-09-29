@@ -12,6 +12,7 @@ import com.rentalert.dto.notification.ReminderStatus;
 import com.rentalert.notification_ms.mapper.ReminderMapper;
 import com.rentalert.notification_ms.repository.NotificationTemplateRepository;
 import com.rentalert.notification_ms.repository.ReminderRepository;
+import com.rentalert.notification_ms.service.NotificationSettingsService;
 import com.rentalert.notification_ms.service.ReminderPersistenceService;
 import java.time.Instant;
 import java.util.List;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReminderPersistenceServiceImpl implements ReminderPersistenceService {
 
     private final ReminderRepository reminderRepository;
-    private final FavoriteService favoriteService;
     private final NotificationTemplateRepository notificationTemplateRepository;
     private final NotificationSettingsService notificationSettingsService;
     private final ReminderMapper reminderMapper;
@@ -35,13 +35,12 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
     @Override
     @Transactional
     public ReminderResponseDto save(ReminderRequestDto requestDto, Long userId) {
-        Favorite favorite = favoriteService.findById(userId, requestDto.listingId());
-
-        if (favorite.getViewingDate() == null) {
+        Instant viewingDate = findViewingDate(userId, requestDto.listingId());
+        if (viewingDate == null) {
             throw new AppException(InternalExceptionCode.EX400_VIEWING_DATE_REQUIRED, HttpStatus.BAD_REQUEST);
         }
 
-        Instant remindAt = requestDto.intervalType().applyTo(favorite.getViewingDate());
+        Instant remindAt = requestDto.intervalType().applyTo(viewingDate);
         if (!remindAt.isAfter(Instant.now())) {
             throw new AppException(InternalExceptionCode.EX400_REMINDER_TIME_IN_PAST, HttpStatus.BAD_REQUEST);
         }
@@ -66,6 +65,11 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
                 .build();
 
         return reminderMapper.toResponse(reminderRepository.save(reminder));
+    }
+
+    // TODO: дата просмотра избранного объявления пользователя — из listing-ms
+    private Instant findViewingDate(Long userId, Long listingId) {
+        throw new AppException(InternalExceptionCode.EX404_FAVORITE_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     private NotificationChannelDto resolveChannel(ReminderRequestDto requestDto, Long userId) {

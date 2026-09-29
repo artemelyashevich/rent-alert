@@ -1,7 +1,7 @@
 package com.rentalert.identity_ms.service.impl;
 
-import com.rentalert.redis.dto.CacheType;
-import com.rentalert.redis.service.CacheService;
+import com.rentalert.identity_ms.domain.UserProfile;
+import com.rentalert.identity_ms.repository.UserProfileRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +18,10 @@ import static org.mockito.Mockito.verify;
 class UserProfileServiceImplTests {
 
     @Mock
-    private CacheService cacheService;
+    private ProfileCacheEvictor profileCacheEvictor;
+
+    @Mock
+    private UserProfileRepository userProfileRepository;
 
     @InjectMocks
     private UserProfileServiceImpl userProfileService;
@@ -34,7 +37,7 @@ class UserProfileServiceImplTests {
     void evictsImmediatelyOutsideTransaction() {
         userProfileService.evictCachedProfile(5L);
 
-        verify(cacheService).evict(CacheType.USER_PROFILE, 5L);
+        verify(profileCacheEvictor).evict(5L);
     }
 
     @Test
@@ -42,9 +45,19 @@ class UserProfileServiceImplTests {
         TransactionSynchronizationManager.initSynchronization();
 
         userProfileService.evictCachedProfile(5L);
-        verify(cacheService, never()).evict(CacheType.USER_PROFILE, 5L);
+        verify(profileCacheEvictor, never()).evict(5L);
 
         TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
-        verify(cacheService).evict(CacheType.USER_PROFILE, 5L);
+        verify(profileCacheEvictor).evict(5L);
+    }
+
+    @Test
+    void saveEvictsCachedProfile() {
+        UserProfile profile = new UserProfile();
+        profile.setId(5L);
+
+        userProfileService.save(profile);
+
+        verify(profileCacheEvictor).evict(5L);
     }
 }
