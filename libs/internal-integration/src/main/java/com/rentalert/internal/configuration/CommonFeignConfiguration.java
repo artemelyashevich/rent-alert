@@ -6,6 +6,7 @@ import com.rentalert.internal.client.service.IdentityMsServiceImpl;
 import com.rentalert.internal.decoder.InternalErrorDecoder;
 import com.rentalert.internal.interceptor.HeaderPropagationInterceptor;
 import com.rentalert.internal.interceptor.InternalTokenInterceptor;
+import com.rentalert.redis.service.CacheService;
 import feign.Logger;
 import feign.codec.ErrorDecoder;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -50,8 +51,8 @@ public class CommonFeignConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public IdentityMsService identityMsService(@Lazy IdentityMsClient identityMsClient, RetryRegistry retryRegistry,
-                                               CircuitBreakerRegistry circuitBreakerRegistry) {
-        return new IdentityMsServiceImpl(identityMsClient, retryRegistry, circuitBreakerRegistry);
+    public IdentityMsService identityMsService(@Lazy IdentityMsClient identityMsClient, @Lazy CacheService cacheService,
+                                               RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
+        return new IdentityMsServiceImpl(identityMsClient, cacheService, retryRegistry, circuitBreakerRegistry);
     }
 }

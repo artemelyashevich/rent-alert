@@ -128,6 +128,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     public void save(UserProfile profile) {
         userProfileRepository.save(profile);
+        evictCachedProfile(profile.getId());
     }
 
     @Override
@@ -158,19 +159,24 @@ public class UserProfileServiceImpl implements UserProfileService {
          return create(createDto);
     }
 
-    // Inside a transaction the entry is dropped after commit: evicting earlier lets a concurrent
-    // /me re-cache the old data before the change becomes visible
-    @Override
+     @Override
     public void evictCachedProfile(Long userId) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            cacheService.evict(CacheType.USER_PROFILE, userId);
+            evictProfileCaches(userId);
             return;
         }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                cacheService.evict(CacheType.USER_PROFILE, userId);
+                evictProfileCaches(userId);
             }
         });
+    }
+
+    // Other services cache the internal API responses in the shared Redis
+    private void evictProfileCaches(Long userId) {
+        cacheService.evict(CacheType.USER_PROFILE, userId);
+        cacheService.evict(CacheType.USER_PROFILE_INTERNAL, userId);
+        cacheService.evict(CacheType.USER_ACTIVE_FILTER, userId);
     }
 }

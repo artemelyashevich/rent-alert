@@ -13,6 +13,7 @@ public class PublicUrls {
     public static final String FILTER_TAG = PREFIX + "/filters";
     public static final String PROFILE_TAG = PREFIX + "/profiles";
     public static final String INTERNAL_PROFILE_TAG = PREFIX + INTERNAL_PREFIX + "/profiles";
+    public static final String INTERNAL_FILTER_TAG = PREFIX + INTERNAL_PREFIX + "/filters";
 
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
         PathPatternRequestMatcher.withDefaults().matcher(PREFIX + "/temp/**"),

@@ -17,6 +17,10 @@
             <artifactId>common-util</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.rentalert</groupId>
+            <artifactId>redis-util</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>

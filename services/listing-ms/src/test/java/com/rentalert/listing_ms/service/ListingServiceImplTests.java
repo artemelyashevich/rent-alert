@@ -8,11 +8,18 @@ import com.rentalert.listing_ms.mapper.ListingMapper;
 import com.rentalert.listing_ms.repository.ListingRepository;
 import com.rentalert.listing_ms.service.impl.ListingServiceImpl;
 import com.rentalert.redis.service.UserSessionService;
+import com.rentalert.common.exception.NoActiveFiltersException;
+import com.rentalert.dto.user.UserSession;
+import com.rentalert.internal.client.service.IdentityMsService;
+import java.util.Optional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -23,12 +30,15 @@ import static org.mockito.Mockito.when;
 class ListingServiceImplTests {
 
     private final ListingRepository repository = mock(ListingRepository.class);
+    private final UserSessionService userSessionService = mock(UserSessionService.class);
+    private final IdentityMsService identityMsService = mock(IdentityMsService.class);
     private final ListingService service = new ListingServiceImpl(
         repository,
         Mappers.getMapper(ListingMapper.class),
         Mappers.getMapper(ListingEventMapper.class),
-        mock(UserSessionService.class),
-        mock(CurrencyRateService.class)
+        userSessionService,
+        mock(CurrencyRateService.class),
+        identityMsService
     );
 
     private final ListingCreatedEvent event = ListingCreatedEvent.builder()
@@ -63,5 +73,15 @@ class ListingServiceImplTests {
 
         assertThat(listing.getSource()).isEqualTo(ScheduleProvider.ONLINER);
         assertThat(listing.getSourceId()).isEqualTo("42");
+    }
+
+    @Test
+    void userWithoutActiveFilterGetsNoActiveFilters() {
+        when(userSessionService.getCurrentUser()).thenReturn(UserSession.builder().userId(42L).username("ann").build());
+        when(identityMsService.getActiveFilter(42L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.findAll(null, null, null, Pageable.unpaged()))
+            .isInstanceOf(NoActiveFiltersException.class);
+        verify(repository, never()).findAll(any(Specification.class), any(Pageable.class));
     }
 }

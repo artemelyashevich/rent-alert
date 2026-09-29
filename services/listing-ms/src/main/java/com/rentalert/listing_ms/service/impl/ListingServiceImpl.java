@@ -16,6 +16,7 @@ import com.rentalert.dto.listing.ListingDto;
 import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.dto.user.UserSession;
+import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.redis.service.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,13 +43,14 @@ public class ListingServiceImpl implements ListingService {
     private final ListingEventMapper listingEventMapper;
     private final UserSessionService userSessionService;
     private final CurrencyRateService currencyRateService;
+    private final IdentityMsService identityMsService;
 
     @Override
     public Page<ListingDto> findAll(String filter, Set<String> sources, ListingCategory category, Pageable pageable) {
         UserSession currentUser = userSessionService.getCurrentUser();
         log.debug("Attempting findAll listings by user: {}, filters: sources={}, category={}", currentUser.getUsername(), sources, category);
 
-        UserFilterResponse activeFilter = findActiveFilter(currentUser.getUserId());
+        UserFilterResponse activeFilter = identityMsService.getActiveFilter(currentUser.getUserId()).orElse(null);
 
         if (activeFilter == null) {
             log.warn("No active filters found for user: {}", currentUser.getUsername());
@@ -72,11 +74,6 @@ public class ListingServiceImpl implements ListingService {
         Page<ListingDto> result = listingRepository.findAll(spec, pageable).map(listingMapper::toDto);
         log.info("Found {} listings for user {}", result.getTotalElements(), currentUser.getUsername());
         return result;
-    }
-
-    // TODO: получать активный фильтр пользователя из identity-ms
-    private UserFilterResponse findActiveFilter(Long userId) {
-        return null;
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.rentalert.listing_ms.service.impl;
 
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
+import com.rentalert.common.exception.UpstreamHttpException;
+import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.listing_ms.domain.Favorite;
 import com.rentalert.listing_ms.domain.FavoriteEmbeddedId;
 import com.rentalert.listing_ms.domain.Listing;
@@ -46,6 +48,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final ListingStatusService listingStatusService;
     private final FavoriteMapper favoriteMapper;
     private final OpsEventPublisher opsEventPublisher;
+    private final IdentityMsService identityMsService;
 
     @Override
     @Transactional
@@ -63,7 +66,7 @@ public class FavoriteServiceImpl implements FavoriteService {
             throw new AppException(InternalExceptionCode.EX400_FAVORITE_LIMIT_REACHED, HttpStatus.BAD_REQUEST);
         }
 
-        // TODO: проверка существования пользователя identity-ms
+        ensureUserExists(userId);
 
         Listing listing = listingRepository.findById(createDto.listingId())
                 .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_LISTING_NOT_FOUND, HttpStatus.NOT_FOUND));
@@ -152,6 +155,17 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteRepository.deleteById(favoriteEmbeddedId);
         log.info("Listing {} removed from favorites for user {}", listingId, userId);
         opsEventPublisher.publishUserEvent(UserEvent.FAVORITE_REMOVED, userId, listingId);
+    }
+
+    private void ensureUserExists(Long userId) {
+        try {
+            identityMsService.getProfile(userId);
+        } catch (UpstreamHttpException e) {
+            if (e.getUpstreamStatus() == HttpStatus.NOT_FOUND.value()) {
+                throw new AppException(InternalExceptionCode.EX404_USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+            }
+            throw e;
+        }
     }
 
     private Instant resolveViewingDate(ListingStatus status, Instant requestedDate) {

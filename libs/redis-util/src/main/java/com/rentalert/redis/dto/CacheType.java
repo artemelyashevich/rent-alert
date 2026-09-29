@@ -3,6 +3,7 @@ package com.rentalert.redis.dto;
 import com.rentalert.dto.currency.CurrencyRateDto;
 import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.dto.user.UserSession;
 import java.util.List;
 import lombok.Getter;
@@ -19,6 +20,10 @@ public enum CacheType {
     USER_PROFILE(new TypeReference<UserProfileResponse>() {}),
     USER_SESSION(new TypeReference<UserSession>() {}),
     USER_ACTIVE_TOKEN(new TypeReference<String>() {}),
+    /** Key: userId. Profile as returned by identity-ms internal API. */
+    USER_PROFILE_INTERNAL(new TypeReference<UserProfileResponse>() {}),
+    /** Key: userId. */
+    USER_ACTIVE_FILTER(new TypeReference<UserFilterResponse>() {}),
 
     /** Key: {@code ScheduleProvider}. */
     SCHEDULER_SETTINGS(new TypeReference<SchedulerSettingsResponse>() {}),
