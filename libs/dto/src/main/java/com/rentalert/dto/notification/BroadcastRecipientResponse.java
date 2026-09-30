@@ -11,4 +11,5 @@ public record BroadcastRecipientResponse(
     String errorMessage,
     Instant createdAt
 ) {
+
 }

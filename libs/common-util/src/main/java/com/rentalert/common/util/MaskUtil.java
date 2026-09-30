@@ -1,8 +1,7 @@
 package com.rentalert.common.util;
 
-import lombok.experimental.UtilityClass;
-
 import java.util.regex.Pattern;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class MaskUtil {
@@ -10,7 +9,7 @@ public class MaskUtil {
     private static final String MASK = "**********";
 
     private static final Pattern URL_PATTERN = Pattern.compile(
-            "(?i)\\b((?:https?|ftp)://[^\\s]+|www\\.[^\\s]+)"
+        "(?i)\\b((?:https?|ftp)://[^\\s]+|www\\.[^\\s]+)"
     );
 
     public static String maskLinks(String input) {

@@ -5,4 +5,5 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties(prefix = "app.auth")
 public record AuthProperties(String accessSecret, String refreshSecret, @DefaultValue("3600") long expirationSeconds) {
+
 }

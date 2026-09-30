@@ -1,13 +1,13 @@
 package com.rentalert.identity_ms.service.impl;
 
+import com.rentalert.common.exception.AuthException;
 import com.rentalert.common.util.auth.JwtService;
 import com.rentalert.common.util.auth.JwtType;
-import com.rentalert.common.exception.AuthException;
 import com.rentalert.dto.auth.LoginResponse;
 import com.rentalert.dto.auth.TelegramAuthRequest;
+import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.dto.user.UserSession;
 import com.rentalert.identity_ms.domain.UserProfile;
-import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.identity_ms.service.LoginService;
 import com.rentalert.identity_ms.service.TelegramInitDataParser;
 import com.rentalert.identity_ms.service.UserProfileService;
@@ -74,5 +74,6 @@ public class TelegramLoginService implements LoginService<TelegramAuthRequest> {
     }
 
     private record LoginData(UserSession session, String refreshToken) {
+
     }
 }

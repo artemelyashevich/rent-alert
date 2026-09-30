@@ -1,13 +1,13 @@
 package com.rentalert.common.interceptor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.dto.GlobalConstants;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class RequestLoggingFilterTests {
 
@@ -33,7 +33,8 @@ class RequestLoggingFilterTests {
         request.addHeader(GlobalConstants.TRACE_ID_HEADER, "bad value\r\ninjected");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        filter.doFilter(request, response, (req, res) -> { });
+        filter.doFilter(request, response, (req, res) -> {
+        });
 
         assertThat(response.getHeader(GlobalConstants.TRACE_ID_HEADER))
             .isNotEqualTo("bad value\r\ninjected")

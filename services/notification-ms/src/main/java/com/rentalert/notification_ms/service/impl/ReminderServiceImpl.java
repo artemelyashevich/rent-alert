@@ -31,7 +31,7 @@ public class ReminderServiceImpl implements ReminderService {
 
     private static final Locale RU_LOCALE = Locale.forLanguageTag("ru");
     private static final DateTimeFormatter VIEWING_DATE_FORMAT =
-            DateTimeFormatter.ofPattern("d MMMM, HH:mm", RU_LOCALE);
+        DateTimeFormatter.ofPattern("d MMMM, HH:mm", RU_LOCALE);
     private static final String LINK_LABEL = "Смотреть объявление →";
 
     private final NotificationService notificationService;
@@ -39,6 +39,34 @@ public class ReminderServiceImpl implements ReminderService {
 
     @Value("${app.bot.timezone:Europe/Minsk}")
     private ZoneId botZone;
+
+    private static String joinNonBlank(String separator, String... values) {
+        List<String> nonBlank = new ArrayList<>();
+        for (String value : values) {
+            if (StringUtils.hasText(value)) {
+                nonBlank.add(value);
+            }
+        }
+        return String.join(separator, nonBlank);
+    }
+
+    private static String capitalize(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
+    }
+
+    private static String escapeHtml(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;");
+    }
 
     @Override
     public void send() {
@@ -59,7 +87,7 @@ public class ReminderServiceImpl implements ReminderService {
             } catch (Exception e) {
                 failed++;
                 log.error("Failed to process reminder id={}, userId={}, listingId={}: {}",
-                        reminder.getId(), reminder.getUserId(), reminder.getListingId(), e.getMessage(), e);
+                    reminder.getId(), reminder.getUserId(), reminder.getListingId(), e.getMessage(), e);
                 reminderPersistenceService.markAsFailed(reminder, e.getMessage());
             }
         }
@@ -69,24 +97,24 @@ public class ReminderServiceImpl implements ReminderService {
 
     private void send(Reminder reminder) {
         NotificationEngine engine = reminder.getNotificationTemplate() != null
-                ? reminder.getNotificationTemplate().getEngine()
-                : null;
+            ? reminder.getNotificationTemplate().getEngine()
+            : null;
         ReminderTarget target = loadTarget(reminder, engine);
 
         String message = buildReminderMessage(reminder, target);
         notificationService.sendNotification(NotificationDto.builder()
-                .userId(reminder.getUserId())
-                .receiver(target.receiver())
-                .type(NotificationType.FAVORITE_REMINDER)
-                .engine(engine)
-                .templateParams(Map.of("message", message))
-                .deduplicationKey("REMINDER:" + reminder.getId())
-                .build());
+            .userId(reminder.getUserId())
+            .receiver(target.receiver())
+            .type(NotificationType.FAVORITE_REMINDER)
+            .engine(engine)
+            .templateParams(Map.of("message", message))
+            .deduplicationKey("REMINDER:" + reminder.getId())
+            .build());
         reminderPersistenceService.markAsSent(reminder);
 
         log.debug("Reminder sent id={}, userId={}, listingId={}, interval={}, viewingDate={}",
-                reminder.getId(), reminder.getUserId(), reminder.getListingId(),
-                reminder.getIntervalType(), target.viewingDate());
+            reminder.getId(), reminder.getUserId(), reminder.getListingId(),
+            reminder.getIntervalType(), target.viewingDate());
     }
 
     // TODO: дата просмотра и объявление — из listing-ms (избранное пользователя),
@@ -101,9 +129,9 @@ public class ReminderServiceImpl implements ReminderService {
         Instant viewingDate = target.viewingDate();
         if (viewingDate != null) {
             builder.append("🗓 <b>")
-                    .append(VIEWING_DATE_FORMAT.format(viewingDate.atZone(botZone)))
-                    .append("</b> — ")
-                    .append(leadPhrase(reminder.getIntervalType()));
+                .append(VIEWING_DATE_FORMAT.format(viewingDate.atZone(botZone)))
+                .append("</b> — ")
+                .append(leadPhrase(reminder.getIntervalType()));
         } else {
             builder.append(capitalize(leadPhrase(reminder.getIntervalType())));
         }
@@ -142,34 +170,7 @@ public class ReminderServiceImpl implements ReminderService {
         return String.join("\n", lines);
     }
 
-    private static String joinNonBlank(String separator, String... values) {
-        List<String> nonBlank = new ArrayList<>();
-        for (String value : values) {
-            if (StringUtils.hasText(value)) {
-                nonBlank.add(value);
-            }
-        }
-        return String.join(separator, nonBlank);
-    }
-
-    private static String capitalize(String value) {
-        if (value == null || value.isEmpty()) {
-            return value;
-        }
-        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
-    }
-
-    private static String escapeHtml(String value) {
-        if (value == null) {
-            return null;
-        }
-        return value
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
-    }
-
     private record ReminderTarget(Instant viewingDate, ListingDto listing, String receiver) {
+
     }
 }

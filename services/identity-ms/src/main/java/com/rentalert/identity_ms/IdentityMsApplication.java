@@ -1,7 +1,7 @@
 package com.rentalert.identity_ms;
 
-import org.springframework.boot.SpringApplication;
 import com.rentalert.identity_ms.config.ApplicationProperties;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
@@ -9,8 +9,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootApplication
 public class IdentityMsApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(IdentityMsApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(IdentityMsApplication.class, args);
+    }
 
 }

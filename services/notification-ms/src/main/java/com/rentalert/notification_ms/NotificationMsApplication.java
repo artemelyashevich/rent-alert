@@ -9,8 +9,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootApplication
 public class NotificationMsApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(NotificationMsApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(NotificationMsApplication.class, args);
+    }
 
 }

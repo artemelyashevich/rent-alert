@@ -1,7 +1,7 @@
 package com.rentalert.identity_ms.repository;
 
-import com.rentalert.identity_ms.domain.Feedback;
 import com.rentalert.dto.profile.FeedbackSubjectType;
+import com.rentalert.identity_ms.domain.Feedback;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

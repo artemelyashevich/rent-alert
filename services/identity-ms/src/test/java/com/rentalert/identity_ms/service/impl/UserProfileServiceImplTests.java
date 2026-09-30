@@ -1,5 +1,8 @@
 package com.rentalert.identity_ms.service.impl;
 
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -10,9 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class UserProfileServiceImplTests {

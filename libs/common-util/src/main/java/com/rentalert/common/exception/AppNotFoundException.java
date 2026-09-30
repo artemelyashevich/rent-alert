@@ -3,6 +3,7 @@ package com.rentalert.common.exception;
 import org.springframework.http.HttpStatus;
 
 public class AppNotFoundException extends AppException {
+
     public AppNotFoundException(String message) {
         super(InternalExceptionCode.EX404, message, HttpStatus.NOT_FOUND);
     }

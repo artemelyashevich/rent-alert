@@ -8,7 +8,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class SecurityConfiguration extends AbstractSecurityConfiguration {
 
     @Override
-    public RequestMatcher publicUrls(){
+    public RequestMatcher publicUrls() {
         return PublicUrls.PUBLIC_URLS;
     }
 }

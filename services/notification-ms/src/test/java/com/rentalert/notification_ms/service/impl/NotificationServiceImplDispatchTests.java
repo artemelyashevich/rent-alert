@@ -1,5 +1,11 @@
 package com.rentalert.notification_ms.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.util.auth.CryptoService;
 import com.rentalert.common.util.auth.HmacBlindIndexService;
@@ -22,12 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class NotificationServiceImplDispatchTests {
 
     private final NotificationStrategy telegram = mock(NotificationStrategy.class);
@@ -35,6 +35,15 @@ class NotificationServiceImplDispatchTests {
     private final NotificationTemplateRepository templates = mock(NotificationTemplateRepository.class);
     private final NotificationMapper mapper = mock(NotificationMapper.class);
     private NotificationServiceImpl service;
+
+    private static Notification queued() {
+        return Notification.builder()
+            .engine(NotificationEngine.TELEGRAM_BOT)
+            .retryType(NotificationType.NEW_LISTING_MATCHED)
+            .status(NotificationStatus.QUEUED)
+            .attempt(0)
+            .build();
+    }
 
     @BeforeEach
     void setUp() {
@@ -66,14 +75,5 @@ class NotificationServiceImplDispatchTests {
 
         assertThat(notification.getStatus()).isEqualTo(NotificationStatus.FAILURE);
         assertThat(notification.getNextRetryAt()).isAfter(Instant.now());
-    }
-
-    private static Notification queued() {
-        return Notification.builder()
-            .engine(NotificationEngine.TELEGRAM_BOT)
-            .retryType(NotificationType.NEW_LISTING_MATCHED)
-            .status(NotificationStatus.QUEUED)
-            .attempt(0)
-            .build();
     }
 }

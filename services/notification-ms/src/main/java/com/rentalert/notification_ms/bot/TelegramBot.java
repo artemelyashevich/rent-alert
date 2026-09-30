@@ -150,8 +150,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private boolean isBotBlockedByUser(TelegramApiRequestException e) {
         return e.getErrorCode() != null
-                && e.getErrorCode() == ERROR_CODE_FORBIDDEN
-                && e.getApiResponse() != null
-                && e.getApiResponse().toLowerCase().contains(BOT_BLOCKED_MARKER);
+            && e.getErrorCode() == ERROR_CODE_FORBIDDEN
+            && e.getApiResponse() != null
+            && e.getApiResponse().toLowerCase().contains(BOT_BLOCKED_MARKER);
     }
 }

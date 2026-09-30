@@ -1,5 +1,7 @@
 package com.rentalert.ops_ms.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.dto.event.AdminActionEvent;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.event.EventStatus;
@@ -10,8 +12,6 @@ import com.rentalert.ops_ms.domain.AuditLog;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AuditLogMapperTests {
 

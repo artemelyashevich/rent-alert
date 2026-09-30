@@ -15,4 +15,5 @@ public record FeedbackResponse(
     Instant createdAt,
     Instant updatedAt
 ) {
+
 }

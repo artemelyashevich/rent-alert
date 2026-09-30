@@ -14,6 +14,7 @@ public class ApplicationProperties {
     @Getter
     @Setter
     public static class Telegram {
+
         private String botToken;
         private long authDateTtlSeconds = 3600;
     }

@@ -26,8 +26,7 @@ public class OutboxRelay {
         FOR UPDATE SKIP LOCKED
         """;
     private static final String MARK_PUBLISHED = "UPDATE outbox_event SET published_at = ? WHERE id = ?";
-    private static final String MARK_FAILED =
-        "UPDATE outbox_event SET attempts = attempts + 1, last_error = ? WHERE id = ?";
+    private static final String MARK_FAILED = "UPDATE outbox_event SET attempts = attempts + 1, last_error = ? WHERE id = ?";
     private static final String DELETE_PUBLISHED = "DELETE FROM outbox_event WHERE published_at < ?";
 
     private final JdbcTemplate jdbcTemplate;
@@ -39,8 +38,8 @@ public class OutboxRelay {
     private final Duration retention;
 
     public OutboxRelay(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate,
-                       KafkaTemplate<String, Object> kafkaTemplate, JsonMapper jsonMapper,
-                       int batchSize, Duration sendTimeout, Duration retention) {
+        KafkaTemplate<String, Object> kafkaTemplate, JsonMapper jsonMapper,
+        int batchSize, Duration sendTimeout, Duration retention) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.kafkaTemplate = kafkaTemplate;
@@ -99,5 +98,6 @@ public class OutboxRelay {
     }
 
     private record OutboxRow(long id, String topic, String key, String payload, String traceId) {
+
     }
 }

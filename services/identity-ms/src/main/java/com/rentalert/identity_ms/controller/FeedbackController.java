@@ -31,28 +31,28 @@ public class FeedbackController {
     private final UserSessionService userSessionService;
 
     @Operation(
-            summary = "Создать отзыв",
-            description = "Позволяет пользователю оставить отзыв с оценкой от 1 до 5 звёзд"
+        summary = "Создать отзыв",
+        description = "Позволяет пользователю оставить отзыв с оценкой от 1 до 5 звёзд"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Отзыв успешно создан",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = FeedbackResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Некорректные данные запроса",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Пользователь не авторизован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        @ApiResponse(
+            responseCode = "201",
+            description = "Отзыв успешно создан",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = FeedbackResponse.class)
             )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Некорректные данные запроса",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Пользователь не авторизован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        )
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

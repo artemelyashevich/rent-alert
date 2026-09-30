@@ -14,4 +14,5 @@ public record NotificationTypeSettings(
     boolean mandatory,
     boolean enabled
 ) {
+
 }

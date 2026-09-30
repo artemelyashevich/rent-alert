@@ -2,6 +2,9 @@ package com.rentalert.processing_ms.scheduler;
 
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.common.service.LockService;
+import com.rentalert.dto.GlobalConstants;
+import com.rentalert.dto.listing.ScheduleProvider;
+import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import com.rentalert.processing_ms.domain.City;
 import com.rentalert.processing_ms.domain.Listing;
 import com.rentalert.processing_ms.domain.ScheduleTask;
@@ -11,57 +14,36 @@ import com.rentalert.processing_ms.service.CityService;
 import com.rentalert.processing_ms.service.ListingService;
 import com.rentalert.processing_ms.service.ScheduledTaskRecordService;
 import com.rentalert.processing_ms.service.SchedulerSettingsService;
-import com.rentalert.dto.GlobalConstants;
-import com.rentalert.dto.listing.ScheduleProvider;
-import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
 import io.micrometer.core.instrument.LongTaskTimer;
 import io.micrometer.core.instrument.Tag;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.web.client.ResourceAccessException;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
 public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
 
-    private static final int FETCH_MAX_ATTEMPTS = 2;
-
-    private Retry fetchRetry;
-
-    private CircuitBreaker fetchCircuitBreaker;
-
-    @Autowired
-    private CacheService cacheService;
-
-    @Autowired
-    private LockService lockService;
-
-    @Autowired
-    private ScheduleTaskRepository scheduleTaskRepository;
-
-    @Autowired
-    private ScheduledTaskRecordService taskRecordService;
-
     @Autowired
     protected SchedulerSettingsService schedulerSettingsService;
-
+    @Autowired
+    private CacheService cacheService;
+    @Autowired
+    private LockService lockService;
+    @Autowired
+    private ScheduleTaskRepository scheduleTaskRepository;
+    @Autowired
+    private ScheduledTaskRecordService taskRecordService;
     @Autowired
     private ListingRepository listingRepository;
 
@@ -79,12 +61,10 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
     @Value("${app.parsers.city-request-jitter-ms:500}")
     private long cityRequestJitterMs;
 
-
     @Override
     @PostConstruct
     public void init() {
         super.init();
-        initResilience();
         scheduleTaskRepository.findByProvider(getSchedulerProvider())
             .orElseGet(() -> scheduleTaskRepository.save(
                 ScheduleTask.builder()
@@ -93,37 +73,6 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
                     .build()
             ));
         warmupProcessedCache();
-    }
-
-    protected void initResilience() {
-        fetchRetry = Retry.of(getSchedulerName() + "-fetch", RetryConfig.custom()
-            .maxAttempts(FETCH_MAX_ATTEMPTS)
-            .waitDuration(getFetchRetryWait())
-            .retryOnException(e -> isTransientFetchError(e))
-            .build());
-        fetchCircuitBreaker = CircuitBreaker.of(getSchedulerName() + "-fetch", CircuitBreakerConfig.custom()
-            .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
-            .slidingWindowSize(10)
-            .minimumNumberOfCalls(5)
-            .failureRateThreshold(50)
-            .waitDurationInOpenState(Duration.ofMinutes(5))
-            .permittedNumberOfCallsInHalfOpenState(2)
-            .recordException(e -> isTransientFetchError(e)
-                || e instanceof UpstreamHttpException upstream && upstream.isRateLimited())
-            .build());
-    }
-
-    protected Duration getFetchRetryWait() {
-        return Duration.ofSeconds(2);
-    }
-
-    private List<T> fetchTasks(City city) {
-        return CircuitBreaker.decorateSupplier(fetchCircuitBreaker,
-            Retry.decorateSupplier(fetchRetry, () -> findTasks(city))).get();
-    }
-
-    private static boolean isTransientFetchError(Throwable e) {
-        return e instanceof ResourceAccessException || e instanceof UpstreamHttpException upstream && upstream.isServerError();
     }
 
     @Scheduled(fixedDelayString = "PT6H", initialDelayString = "PT5M")
@@ -171,7 +120,7 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
                 City city = cities.get(i);
                 List<T> tasks;
                 try {
-                    tasks = fetchTasks(city);
+                    tasks = findTasks(city);
                 } catch (CallNotPermittedException e) {
                     log.warn("Circuit breaker is open, skipping iteration. scheduler={}", getSchedulerName());
                     getMetricService().increment(
@@ -288,7 +237,7 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
     }
 
     protected void warmupProcessedCache() {
-         boolean ran = lockService.tryWithLock(
+        boolean ran = lockService.tryWithLock(
             "scheduled:warmup:" + getSchedulerProvider(),
             Duration.ofMinutes(5),
             this::doWarmupProcessedCache
@@ -412,11 +361,6 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
         return ListingOutcome.CREATED;
     }
 
-    protected enum ListingOutcome {
-        CREATED,
-        DUPLICATE
-    }
-
     protected abstract ScheduleProvider getSchedulerProvider();
 
     protected void afterSuccessExecute(T task, City city) {
@@ -451,5 +395,10 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
 
     protected SchedulerSettingsResponse getSettings() {
         return schedulerSettingsService.findByProvider(getSchedulerProvider());
+    }
+
+    protected enum ListingOutcome {
+        CREATED,
+        DUPLICATE
     }
 }

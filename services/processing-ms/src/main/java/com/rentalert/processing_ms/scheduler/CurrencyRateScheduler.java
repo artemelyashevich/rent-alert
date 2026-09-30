@@ -1,21 +1,20 @@
 package com.rentalert.processing_ms.scheduler;
 
 import com.rentalert.common.service.LockService;
-import com.rentalert.processing_ms.messaging.OpsEventPublisher;
-import com.rentalert.processing_ms.service.CurrencyRateService;
 import com.rentalert.dto.event.JobExecutionEvent;
 import com.rentalert.dto.event.job.JobInitiator;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.dto.event.job.JobScope;
 import com.rentalert.dto.event.job.JobStatus;
+import com.rentalert.processing_ms.messaging.OpsEventPublisher;
+import com.rentalert.processing_ms.service.CurrencyRateService;
+import java.time.Duration;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.time.Duration;
-import java.time.Instant;
 
 @Slf4j
 @Component

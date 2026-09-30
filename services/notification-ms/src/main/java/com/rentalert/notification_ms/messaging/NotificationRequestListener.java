@@ -27,6 +27,10 @@ public class NotificationRequestListener {
         this.priorityDispatchGrace = priorityDispatchGrace;
     }
 
+    private static Optional<Instant> deferredUntil(NotificationRequest request) {
+        return Optional.ofNullable(request.sendAt()).filter(sendAt -> sendAt.isAfter(Instant.now()));
+    }
+
     @KafkaListener(topics = KafkaTopics.NOTIFICATION_REQUESTS, groupId = "notification.requests", concurrency = "${app.notification.requests-concurrency:3}")
     public void onRequest(NotificationRequest request) {
         if (isAcceptable(request)) {
@@ -58,10 +62,6 @@ public class NotificationRequestListener {
             return false;
         }
         return true;
-    }
-
-    private static Optional<Instant> deferredUntil(NotificationRequest request) {
-        return Optional.ofNullable(request.sendAt()).filter(sendAt -> sendAt.isAfter(Instant.now()));
     }
 
     private List<Notification> enqueue(NotificationRequest request, Instant sendAt) {

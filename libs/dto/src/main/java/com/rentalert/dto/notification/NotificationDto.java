@@ -16,6 +16,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NotificationDto {
+
     @Builder.Default
     private String id = UUID.randomUUID().toString();
     private NotificationType type;

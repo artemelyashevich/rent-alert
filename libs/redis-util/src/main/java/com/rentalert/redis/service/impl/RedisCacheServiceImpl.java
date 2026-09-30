@@ -3,18 +3,20 @@ package com.rentalert.redis.service.impl;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.util.JsonHelper;
 import com.rentalert.redis.dto.CacheType;
-
 import com.rentalert.redis.service.CacheService;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
-
-import java.time.Duration;
-import java.util.*;
-import java.util.function.Supplier;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -101,12 +103,12 @@ public class RedisCacheServiceImpl implements CacheService {
         redisTemplate.delete(cacheType.name());
 
         ScanOptions options = ScanOptions.scanOptions()
-                .match(cacheType.name() + ":*")
-                .count(1000)
-                .build();
+            .match(cacheType.name() + ":*")
+            .count(1000)
+            .build();
 
         try (RedisConnection connection = Objects.requireNonNull(
-                redisTemplate.getConnectionFactory()
+            redisTemplate.getConnectionFactory()
         ).getConnection()) {
 
             List<byte[]> keysToDelete = new ArrayList<>();
@@ -130,7 +132,7 @@ public class RedisCacheServiceImpl implements CacheService {
     @Override
     public Map<String, Object> stats() {
         return Map.of(
-                "redis", "stats unsupported"
+            "redis", "stats unsupported"
         );
     }
 
@@ -154,9 +156,9 @@ public class RedisCacheServiceImpl implements CacheService {
     @Override
     public boolean contains(CacheType cacheType, Object key) {
         return Boolean.TRUE.equals(
-                redisTemplate.hasKey(
-                        buildKey(cacheType, key)
-                )
+            redisTemplate.hasKey(
+                buildKey(cacheType, key)
+            )
         );
     }
 
@@ -205,11 +207,11 @@ public class RedisCacheServiceImpl implements CacheService {
     private void requireNonNullValue(CacheType cacheType, Object key, Object value) {
         if (value == null) {
             throw new IllegalArgumentException(
-                    String.format(
-                            "Cache value must not be null. cache=%s, key=%s",
-                            cacheType,
-                            key
-                    )
+                String.format(
+                    "Cache value must not be null. cache=%s, key=%s",
+                    cacheType,
+                    key
+                )
             );
         }
     }

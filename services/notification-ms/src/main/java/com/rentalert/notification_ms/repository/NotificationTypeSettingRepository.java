@@ -5,4 +5,5 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NotificationTypeSettingRepository extends JpaRepository<@NonNull NotificationTypeSetting, @NonNull Long> {
+
 }

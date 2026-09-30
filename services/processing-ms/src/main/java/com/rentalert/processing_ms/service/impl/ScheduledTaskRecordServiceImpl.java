@@ -1,18 +1,17 @@
 package com.rentalert.processing_ms.service.impl;
 
+import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.processing_ms.domain.ScheduledTaskStatus;
 import com.rentalert.processing_ms.repository.ScheduledTaskRecordRepository;
 import com.rentalert.processing_ms.service.ScheduledTaskRecordService;
-import com.rentalert.dto.listing.ScheduleProvider;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
 
 @Slf4j
 @Service

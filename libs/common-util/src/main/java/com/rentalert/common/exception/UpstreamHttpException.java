@@ -3,10 +3,6 @@ package com.rentalert.common.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-/**
- * Внешний сервис ответил не-2xx. Для клиентов нашего API это по-прежнему 500,
- * а исходный статус и Retry-After доступны вызывающему коду для ретраев и backoff.
- */
 @Getter
 public class UpstreamHttpException extends AppException {
 

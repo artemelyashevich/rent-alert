@@ -20,17 +20,17 @@ public enum CurrencyPair {
 
     public static List<CurrencyPair> getPairsByMain(Currency currency) {
         return Arrays.stream(values())
-                .filter(pair -> pair.from.equalsIgnoreCase(currency.name()))
-                .toList();
+            .filter(pair -> pair.from.equalsIgnoreCase(currency.name()))
+            .toList();
     }
 
     public static CurrencyPair getPair(Currency from, Currency to) {
         return Arrays.stream(values())
-                .filter(pair ->
-                        pair.from.equalsIgnoreCase(from.name())
-                                && pair.to.equalsIgnoreCase(to.name())
-                )
-                .findFirst()
-                .orElse(null);
+            .filter(pair ->
+                pair.from.equalsIgnoreCase(from.name())
+                    && pair.to.equalsIgnoreCase(to.name())
+            )
+            .findFirst()
+            .orElse(null);
     }
 }

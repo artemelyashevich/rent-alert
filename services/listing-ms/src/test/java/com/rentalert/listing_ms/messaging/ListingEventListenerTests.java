@@ -1,16 +1,16 @@
 package com.rentalert.listing_ms.messaging;
 
-import com.rentalert.dto.event.listing.ListingCreatedEvent;
-import com.rentalert.dto.listing.ScheduleProvider;
-import com.rentalert.kafka.NonRetryableEventException;
-import com.rentalert.listing_ms.service.ListingService;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import com.rentalert.dto.event.listing.ListingCreatedEvent;
+import com.rentalert.dto.listing.ScheduleProvider;
+import com.rentalert.kafka.NonRetryableEventException;
+import com.rentalert.listing_ms.service.ListingService;
+import org.junit.jupiter.api.Test;
 
 class ListingEventListenerTests {
 

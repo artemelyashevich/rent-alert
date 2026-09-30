@@ -46,12 +46,12 @@ public class TelegramSendMessageClient {
                     }
                 )
                 .onStatus(
-                        status -> status.value() == 400,
-                        (request, response) -> {
-                            log.error("[TELEGRAM] Bad request, possibly malformed {} markup. body={}",
-                                    PARSE_MODE, text);
-                            throw new AppException("[TELEGRAM]: bad request", HttpStatus.BAD_REQUEST);
-                        }
+                    status -> status.value() == 400,
+                    (request, response) -> {
+                        log.error("[TELEGRAM] Bad request, possibly malformed {} markup. body={}",
+                            PARSE_MODE, text);
+                        throw new AppException("[TELEGRAM]: bad request", HttpStatus.BAD_REQUEST);
+                    }
                 )
                 .onStatus(
                     status -> status.value() == 403,

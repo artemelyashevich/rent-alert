@@ -1,126 +1,140 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <artifactId>rentalert-service-parent</artifactId>
 
-	<parent>
-		<groupId>com.rentalert</groupId>
-		<artifactId>rentalert-parent</artifactId>
-		<version>${revision}</version>
-		<relativePath>../parent/pom.xml</relativePath>
-	</parent>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.springframework.boot</groupId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${test.excludedGroups}</excludedGroups>
+                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+            </plugin>
+        </plugins>
+    </build>
 
-	<artifactId>rentalert-service-parent</artifactId>
-	<packaging>pom</packaging>
+    <dependencies>
 
-	<properties>
-		<test.excludedGroups>integration</test.excludedGroups>
-	</properties>
+        <dependency>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
 
-	<dependencies>
+        <dependency>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-		</dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-flyway</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-database-postgresql</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-config</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-		</dependency>
+        <dependency>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <groupId>org.springdoc</groupId>
+        </dependency>
 
-		<dependency>
-			<groupId>com.rentalert</groupId>
-			<artifactId>common-util</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.rentalert</groupId>
-			<artifactId>redis-util</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.rentalert</groupId>
-			<artifactId>dto</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.rentalert</groupId>
-			<artifactId>internal-integration</artifactId>
-		</dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-flyway-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
 
-	</dependencies>
+        <dependency>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <groupId>org.flywaydb</groupId>
+        </dependency>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<excludedGroups>${test.excludedGroups}</excludedGroups>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+        <dependency>
+            <artifactId>postgresql</artifactId>
+            <groupId>org.postgresql</groupId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-cloud-starter-config</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>common-util</artifactId>
+            <groupId>com.rentalert</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>redis-util</artifactId>
+            <groupId>com.rentalert</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>dto</artifactId>
+            <groupId>com.rentalert</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>internal-integration</artifactId>
+            <groupId>com.rentalert</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-starter-flyway-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-starter-validation-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+    <modelVersion>4.0.0</modelVersion>
+
+    <packaging>pom</packaging>
+
+    <parent>
+        <artifactId>rentalert-parent</artifactId>
+        <groupId>com.rentalert</groupId>
+        <relativePath>../parent/pom.xml</relativePath>
+        <version>${revision}</version>
+    </parent>
+
+    <properties>
+        <test.excludedGroups>integration</test.excludedGroups>
+    </properties>
 
 </project>

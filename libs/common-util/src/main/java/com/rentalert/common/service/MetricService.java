@@ -8,11 +8,10 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
-import lombok.RequiredArgsConstructor;
-
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class MetricService {
@@ -21,22 +20,22 @@ public class MetricService {
 
     public void increment(String metricName, Tag... tags) {
         Counter.builder(metricName)
-                .tags(Tags.of(tags))
-                .register(meterRegistry)
-                .increment();
+            .tags(Tags.of(tags))
+            .register(meterRegistry)
+            .increment();
     }
 
     public void increment(String metricName, double amount, Tag... tags) {
         Counter.builder(metricName)
-                .tags(Tags.of(tags))
-                .register(meterRegistry)
-                .increment(amount);
+            .tags(Tags.of(tags))
+            .register(meterRegistry)
+            .increment(amount);
     }
 
     public <T> T recordTime(
-            String metricName,
-            Supplier<T> supplier,
-            Tag... tags
+        String metricName,
+        Supplier<T> supplier,
+        Tag... tags
     ) {
         Timer.Sample sample = Timer.start(meterRegistry);
         try {
@@ -50,9 +49,9 @@ public class MetricService {
     }
 
     public void recordTime(
-            String metricName,
-            Runnable runnable,
-            Tag... tags
+        String metricName,
+        Runnable runnable,
+        Tag... tags
     ) {
         Timer.Sample sample = Timer.start(meterRegistry);
         try {
@@ -65,22 +64,22 @@ public class MetricService {
     }
 
     public <T extends Number> void gauge(
-            String metricName,
-            T number,
-            Tag... tags
+        String metricName,
+        T number,
+        Tag... tags
     ) {
         Gauge.builder(metricName, number, Number::doubleValue)
-                .tags(Tags.of(tags))
-                .register(meterRegistry);
+            .tags(Tags.of(tags))
+            .register(meterRegistry);
     }
 
     public LongTaskTimer.Sample startLongTask(
-            String metricName,
-            Tag... tags
+        String metricName,
+        Tag... tags
     ) {
         LongTaskTimer timer = LongTaskTimer.builder(metricName)
-                .tags(Tags.of(tags))
-                .register(meterRegistry);
+            .tags(Tags.of(tags))
+            .register(meterRegistry);
         return timer.start();
     }
 
@@ -89,32 +88,32 @@ public class MetricService {
     }
 
     public void record(
-            String metricName,
-            long duration,
-            TimeUnit unit,
-            Tag... tags
+        String metricName,
+        long duration,
+        TimeUnit unit,
+        Tag... tags
     ) {
         Timer.builder(metricName)
-                .publishPercentileHistogram()
-                .publishPercentiles(0.5, 0.95, 0.99)
-                .tags(Tags.of(tags))
-                .register(meterRegistry)
-                .record(duration, unit);
+            .publishPercentileHistogram()
+            .publishPercentiles(0.5, 0.95, 0.99)
+            .tags(Tags.of(tags))
+            .register(meterRegistry)
+            .record(duration, unit);
     }
 
     private void stopTimer(
-            Timer.Sample sample,
-            String metricName,
-            String status,
-            Tag... tags
+        Timer.Sample sample,
+        String metricName,
+        String status,
+        Tag... tags
     ) {
         Tags allTags = Tags.of(tags).and("status", status);
         sample.stop(
-                Timer.builder(metricName)
-                        .publishPercentileHistogram()
-                        .publishPercentiles(0.5, 0.95, 0.99)
-                        .tags(allTags)
-                        .register(meterRegistry)
+            Timer.builder(metricName)
+                .publishPercentileHistogram()
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .tags(allTags)
+                .register(meterRegistry)
         );
     }
 
@@ -128,14 +127,14 @@ public class MetricService {
             return;
         }
         DistributionSummary.builder(metricName)
-                .tags(Tags.of(tags))
-                .register(meterRegistry)
-                .record(load);
+            .tags(Tags.of(tags))
+            .register(meterRegistry)
+            .record(load);
     }
 
     private double currentProcessCpuLoadPercent() {
         if (ManagementFactory.getOperatingSystemMXBean()
-                instanceof com.sun.management.OperatingSystemMXBean sunOsBean) {
+            instanceof com.sun.management.OperatingSystemMXBean sunOsBean) {
             return sunOsBean.getProcessCpuLoad() * 100;
         }
         return -1;

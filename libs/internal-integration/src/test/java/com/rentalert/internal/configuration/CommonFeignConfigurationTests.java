@@ -1,8 +1,10 @@
 package com.rentalert.internal.configuration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.internal.client.service.IdentityMsService;
-import com.rentalert.internal.client.service.IdentityMsServiceImpl;
+import com.rentalert.internal.client.service.impl.IdentityMsServiceImpl;
 import com.rentalert.internal.decoder.InternalErrorDecoder;
 import com.rentalert.internal.interceptor.HeaderPropagationInterceptor;
 import feign.Logger;
@@ -20,13 +22,11 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.annotation.ImportCandidates;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class CommonFeignConfigurationTests {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(CommonFeignConfiguration.class,
-                    RetryAutoConfiguration.class, CircuitBreakerAutoConfiguration.class));
+        .withConfiguration(AutoConfigurations.of(CommonFeignConfiguration.class,
+            RetryAutoConfiguration.class, CircuitBreakerAutoConfiguration.class));
 
     @Test
     void isRegisteredAsAutoConfiguration() {
@@ -48,7 +48,7 @@ class CommonFeignConfigurationTests {
     @Test
     void fullLoggingEnabledByProperty() {
         runner.withPropertyValues("client.server.log-mode=true")
-                .run(context -> assertThat(context.getBean(Logger.Level.class)).isEqualTo(Logger.Level.FULL));
+            .run(context -> assertThat(context.getBean(Logger.Level.class)).isEqualTo(Logger.Level.FULL));
     }
 
     @Test
@@ -60,7 +60,7 @@ class CommonFeignConfigurationTests {
             assertThat(retry.getExceptionPredicate().test(new UpstreamHttpException("x", 404, null))).isFalse();
 
             CircuitBreakerConfig circuitBreaker = context.getBean(CircuitBreakerRegistry.class)
-                    .circuitBreaker("identity-ms").getCircuitBreakerConfig();
+                .circuitBreaker("identity-ms").getCircuitBreakerConfig();
             assertThat(circuitBreaker.getSlidingWindowSize()).isEqualTo(20);
             assertThat(circuitBreaker.getWaitIntervalFunctionInOpenState().apply(1)).isEqualTo(Duration.ofSeconds(10).toMillis());
             assertThat(circuitBreaker.getRecordExceptionPredicate().test(new UpstreamHttpException("x", 404, null))).isFalse();
@@ -70,7 +70,7 @@ class CommonFeignConfigurationTests {
     @Test
     void serviceConfigOverridesDefaults() {
         runner.withPropertyValues("resilience4j.retry.instances.identity-ms.max-attempts=5")
-                .run(context -> assertThat(context.getBean(RetryRegistry.class).retry("identity-ms")
-                        .getRetryConfig().getMaxAttempts()).isEqualTo(5));
+            .run(context -> assertThat(context.getBean(RetryRegistry.class).retry("identity-ms")
+                .getRetryConfig().getMaxAttempts()).isEqualTo(5));
     }
 }

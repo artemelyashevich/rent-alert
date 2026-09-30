@@ -73,6 +73,17 @@ public class NotificationServiceImpl implements NotificationService {
         this.typeSettingsService = typeSettingsService;
     }
 
+    private static String requireAddress(String address, NotificationEngine engine) {
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("No receiver address for engine " + engine);
+        }
+        return address;
+    }
+
+    private static boolean isPermanentFailure(Exception e) {
+        return e instanceof AppException appException && appException.getHttpStatus() == HttpStatus.FORBIDDEN;
+    }
+
     @Override
     public List<NotificationDispatchResult> sendNotification(NotificationDto dto) {
         if (dto == null || dto.getType() == null) {
@@ -326,13 +337,6 @@ public class NotificationServiceImpl implements NotificationService {
         };
     }
 
-    private static String requireAddress(String address, NotificationEngine engine) {
-        if (address == null || address.isBlank()) {
-            throw new IllegalArgumentException("No receiver address for engine " + engine);
-        }
-        return address;
-    }
-
     @Override
     public void dispatch(List<Notification> notifications) {
         notifications.forEach(this::retryOne);
@@ -434,10 +438,6 @@ public class NotificationServiceImpl implements NotificationService {
         return new TemplateResponse(text, template.getTemplateName());
     }
 
-    private static boolean isPermanentFailure(Exception e) {
-        return e instanceof AppException appException && appException.getHttpStatus() == HttpStatus.FORBIDDEN;
-    }
-
     private Instant calculateNextRetry(int attempt, Long overrideDelaySeconds) {
         long delaySeconds;
         if (overrideDelaySeconds != null && overrideDelaySeconds > 0) {
@@ -469,5 +469,7 @@ public class NotificationServiceImpl implements NotificationService {
         return (Map<String, String>) JsonHelper.fromJson(json, Map.class);
     }
 
-    record TemplateResponse(String content, String name) {}
+    record TemplateResponse(String content, String name) {
+
+    }
 }

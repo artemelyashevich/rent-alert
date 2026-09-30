@@ -24,23 +24,23 @@ public class CurrencyRateController {
     private final CurrencyRateService currencyRateService;
 
     @Operation(
-            summary = "Получить актуальные курсы валют",
-            description = "Возвращает последние доступные курсы валют из базы данных"
+        summary = "Получить актуальные курсы валют",
+        description = "Возвращает последние доступные курсы валют из базы данных"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Курсы валют успешно получены",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CurrencyRateResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        @ApiResponse(
+            responseCode = "200",
+            description = "Курсы валют успешно получены",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = CurrencyRateResponse.class)
             )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Внутренняя ошибка сервера",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        )
     })
     @GetMapping
     public CurrencyRateResponse getCurrencyRates() {

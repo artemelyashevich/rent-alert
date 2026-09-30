@@ -16,6 +16,17 @@ public class HmacBlindIndexService {
         this.key = new SecretKeySpec(decodeKey(cryptoProperties.hmacKey()), ALGORITHM);
     }
 
+    private static byte[] decodeKey(String hmacKey) {
+        if (hmacKey == null || hmacKey.isBlank()) {
+            throw new IllegalStateException("app.crypto.hmac-key is empty: set it (Base64) for this service");
+        }
+        try {
+            return Base64.getDecoder().decode(hmacKey);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("app.crypto.hmac-key is not valid Base64", e);
+        }
+    }
+
     public String hash(String value) {
         if (value == null) {
             return null;
@@ -27,17 +38,6 @@ public class HmacBlindIndexService {
             return Base64.getEncoder().encodeToString(result);
         } catch (Exception e) {
             throw new IllegalStateException("Ошибка вычисления HMAC", e);
-        }
-    }
-
-    private static byte[] decodeKey(String hmacKey) {
-        if (hmacKey == null || hmacKey.isBlank()) {
-            throw new IllegalStateException("app.crypto.hmac-key is empty: set it (Base64) for this service");
-        }
-        try {
-            return Base64.getDecoder().decode(hmacKey);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateException("app.crypto.hmac-key is not valid Base64", e);
         }
     }
 }

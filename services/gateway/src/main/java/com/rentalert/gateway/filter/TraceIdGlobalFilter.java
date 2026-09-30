@@ -20,6 +20,13 @@ public class TraceIdGlobalFilter implements GlobalFilter, Ordered {
     private static final Logger log = LoggerFactory.getLogger(TraceIdGlobalFilter.class);
     private static final Pattern VALID_TRACE_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
 
+    private static String traceIdOf(ServerHttpRequest request) {
+        String incoming = request.getHeaders().getFirst(TRACE_ID_HEADER);
+        return incoming != null && VALID_TRACE_ID.matcher(incoming).matches()
+            ? incoming
+            : UUID.randomUUID().toString();
+    }
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -43,12 +50,5 @@ public class TraceIdGlobalFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
-    }
-
-    private static String traceIdOf(ServerHttpRequest request) {
-        String incoming = request.getHeaders().getFirst(TRACE_ID_HEADER);
-        return incoming != null && VALID_TRACE_ID.matcher(incoming).matches()
-            ? incoming
-            : UUID.randomUUID().toString();
     }
 }

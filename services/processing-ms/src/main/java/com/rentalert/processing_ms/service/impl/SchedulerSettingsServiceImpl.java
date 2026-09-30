@@ -1,21 +1,20 @@
 package com.rentalert.processing_ms.service.impl;
 
 import com.rentalert.common.exception.AppException;
+import com.rentalert.dto.listing.ScheduleProvider;
+import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import com.rentalert.processing_ms.domain.SchedulerSettings;
 import com.rentalert.processing_ms.mapper.SchedulerSettingsMapper;
 import com.rentalert.processing_ms.repository.SchedulerSettingRepository;
 import com.rentalert.processing_ms.service.SchedulerSettingsService;
-import com.rentalert.dto.listing.ScheduleProvider;
-import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
+import java.time.Duration;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -36,7 +35,7 @@ public class SchedulerSettingsServiceImpl implements SchedulerSettingsService {
         }
         log.debug("Attempting find scheduler setting: {}", scheduleProvider);
         SchedulerSettings schedulerSettings = schedulerSettingRepository.findByProviderName(scheduleProvider)
-                        .orElseThrow(() -> throwNotFoundException(scheduleProvider));
+            .orElseThrow(() -> throwNotFoundException(scheduleProvider));
         log.info("Scheduler settings has been found: {}", scheduleProvider);
         SchedulerSettingsResponse response = schedulerSettingsMapper.toResponse(schedulerSettings);
         cacheService.put(CacheType.SCHEDULER_SETTINGS, scheduleProvider, response, CACHE_TTL);

@@ -61,8 +61,7 @@ public class UserProfile extends AbstractEntity {
     private Instant lastLogin;
 
     /**
-     * Settings / credentials split out into {@link UserSettings}. Lazily instantiated so freshly
-     * built profiles and mappers never hit an NPE; the back reference is always kept in sync.
+     * Settings / credentials split out into {@link UserSettings}. Lazily instantiated so freshly built profiles and mappers never hit an NPE; the back reference is always kept in sync.
      */
     public UserSettings getSettings() {
         if (settings == null) {

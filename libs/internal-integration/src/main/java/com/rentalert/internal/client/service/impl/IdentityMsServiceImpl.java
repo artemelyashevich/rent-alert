@@ -1,9 +1,10 @@
-package com.rentalert.internal.client.service;
+package com.rentalert.internal.client.service.impl;
 
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.internal.client.AbstractResilientClient;
 import com.rentalert.internal.client.IdentityMsClient;
+import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -19,7 +20,7 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
     private final CacheService cacheService;
 
     public IdentityMsServiceImpl(IdentityMsClient identityMsClient, CacheService cacheService,
-                                 RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
+        RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
         super(IdentityMsClient.SERVICE_NAME, retryRegistry, circuitBreakerRegistry);
         this.identityMsClient = identityMsClient;
         this.cacheService = cacheService;

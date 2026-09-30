@@ -52,7 +52,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     @Override
     public Page<AuditLogResponse> findAll(EventInitiatorType eventInitiator, Long userId, Pageable pageable) {
         return auditLogRepository.search(eventInitiator, userId, pageable)
-                .map(auditLogMapper::toResponse);
+            .map(auditLogMapper::toResponse);
     }
 
     @Override

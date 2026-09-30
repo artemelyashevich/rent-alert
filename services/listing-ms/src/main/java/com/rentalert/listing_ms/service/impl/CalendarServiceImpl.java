@@ -9,12 +9,6 @@ import com.rentalert.listing_ms.dto.CalendarEventDto;
 import com.rentalert.listing_ms.mapper.CalendarEventMapper;
 import com.rentalert.listing_ms.repository.CalendarEventViewRepository;
 import com.rentalert.listing_ms.service.CalendarService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -25,6 +19,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -48,11 +47,11 @@ public class CalendarServiceImpl implements CalendarService {
         Instant fromInstant = from.atStartOfDay(ZoneOffset.UTC).toInstant();
         Instant toInstant = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
         List<CalendarEventView> events = calendarEventViewRepository
-                .findAllByIdUserIdAndViewingDateBetweenOrderByViewingDateAsc(userId, fromInstant, toInstant);
+            .findAllByIdUserIdAndViewingDateBetweenOrderByViewingDateAsc(userId, fromInstant, toInstant);
         log.info("Found {} calendar events for user {} in range [{}, {}]", events.size(), userId, from, to);
         return events.stream()
-                .map(calendarEventMapper::toDto)
-                .toList();
+            .map(calendarEventMapper::toDto)
+            .toList();
     }
 
     @Override
@@ -61,11 +60,11 @@ public class CalendarServiceImpl implements CalendarService {
         Objects.requireNonNull(userId, "userId must not be null");
         log.debug("Fetching all calendar events for user {}", userId);
         List<CalendarEventView> events = calendarEventViewRepository
-                .findAllByIdUserIdOrderByViewingDateAsc(userId);
+            .findAllByIdUserIdOrderByViewingDateAsc(userId);
         log.info("Found {} total calendar events for user {}", events.size(), userId);
         return events.stream()
-                .map(calendarEventMapper::toDto)
-                .toList();
+            .map(calendarEventMapper::toDto)
+            .toList();
     }
 
     @Override
@@ -75,14 +74,14 @@ public class CalendarServiceImpl implements CalendarService {
         validateMonth(month);
         List<CalendarEventDto> events = getEvents(userId, month.atDay(1), month.atEndOfMonth());
         return events.stream()
-                .collect(Collectors.groupingBy(
-                        event -> event.viewingDate().atZone(ZoneOffset.UTC).toLocalDate(),
-                        Collectors.counting()
-                ))
-                .entrySet().stream()
-                .map(entry -> new CalendarDaySummaryDto(entry.getKey(), entry.getValue().intValue()))
-                .sorted(Comparator.comparing(CalendarDaySummaryDto::date))
-                .toList();
+            .collect(Collectors.groupingBy(
+                event -> event.viewingDate().atZone(ZoneOffset.UTC).toLocalDate(),
+                Collectors.counting()
+            ))
+            .entrySet().stream()
+            .map(entry -> new CalendarDaySummaryDto(entry.getKey(), entry.getValue().intValue()))
+            .sorted(Comparator.comparing(CalendarDaySummaryDto::date))
+            .toList();
     }
 
     @Override
@@ -91,7 +90,7 @@ public class CalendarServiceImpl implements CalendarService {
         Objects.requireNonNull(userId, "userId must not be null");
         FavoriteEmbeddedId id = new FavoriteEmbeddedId(userId, listingId);
         return calendarEventViewRepository.findById(id)
-                .map(calendarEventMapper::toDto);
+            .map(calendarEventMapper::toDto);
     }
 
     private void validateRange(LocalDate from, LocalDate to) {

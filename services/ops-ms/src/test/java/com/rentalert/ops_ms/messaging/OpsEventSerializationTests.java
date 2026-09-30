@@ -1,5 +1,7 @@
 package com.rentalert.ops_ms.messaging;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.event.JobExecutionEvent;
 import com.rentalert.dto.event.UserActionEvent;
@@ -12,8 +14,6 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /** Events produced by other services must survive the JSON round trip of the outbox and the listener. */
 class OpsEventSerializationTests {

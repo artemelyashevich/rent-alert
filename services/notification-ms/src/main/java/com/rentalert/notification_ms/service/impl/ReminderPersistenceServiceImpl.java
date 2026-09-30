@@ -6,9 +6,9 @@ import com.rentalert.dto.notification.NotificationChannelDto;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.dto.notification.ReminderRequestDto;
 import com.rentalert.dto.notification.ReminderResponseDto;
+import com.rentalert.dto.notification.ReminderStatus;
 import com.rentalert.notification_ms.domain.NotificationTemplate;
 import com.rentalert.notification_ms.domain.Reminder;
-import com.rentalert.dto.notification.ReminderStatus;
 import com.rentalert.notification_ms.mapper.ReminderMapper;
 import com.rentalert.notification_ms.repository.NotificationTemplateRepository;
 import com.rentalert.notification_ms.repository.ReminderRepository;
@@ -25,12 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReminderPersistenceServiceImpl implements ReminderPersistenceService {
 
+    private static final List<ReminderStatus> ACTIVE_STATUSES = List.of(ReminderStatus.NEW, ReminderStatus.PROCESSING);
     private final ReminderRepository reminderRepository;
     private final NotificationTemplateRepository notificationTemplateRepository;
     private final NotificationSettingsService notificationSettingsService;
     private final ReminderMapper reminderMapper;
-
-    private static final List<ReminderStatus> ACTIVE_STATUSES = List.of(ReminderStatus.NEW, ReminderStatus.PROCESSING);
 
     @Override
     @Transactional
@@ -46,23 +45,23 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
         }
 
         if (reminderRepository.existsByUserIdAndListingIdAndIntervalTypeAndStatusIn(
-                userId, requestDto.listingId(), requestDto.intervalType(), ACTIVE_STATUSES)) {
+            userId, requestDto.listingId(), requestDto.intervalType(), ACTIVE_STATUSES)) {
             throw new AppException(InternalExceptionCode.EX400_REMINDER_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         }
 
         NotificationChannelDto channel = resolveChannel(requestDto, userId);
         NotificationTemplate notificationTemplate = notificationTemplateRepository
-                .findByNotificationTypeAndEngine(NotificationType.FAVORITE_REMINDER, channel.getEngine())
-                .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_NOTIFICATION_TEMPLATE_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .findByNotificationTypeAndEngine(NotificationType.FAVORITE_REMINDER, channel.getEngine())
+            .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_NOTIFICATION_TEMPLATE_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         Reminder reminder = Reminder.builder()
-                .userId(userId)
-                .listingId(requestDto.listingId())
-                .remindAt(remindAt)
-                .status(ReminderStatus.NEW)
-                .notificationTemplate(notificationTemplate)
-                .intervalType(requestDto.intervalType())
-                .build();
+            .userId(userId)
+            .listingId(requestDto.listingId())
+            .remindAt(remindAt)
+            .status(ReminderStatus.NEW)
+            .notificationTemplate(notificationTemplate)
+            .intervalType(requestDto.intervalType())
+            .build();
 
         return reminderMapper.toResponse(reminderRepository.save(reminder));
     }
@@ -77,15 +76,15 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
 
         if (requestDto.engine() != null) {
             return settings.stream()
-                    .filter(setting -> setting.getEngine() == requestDto.engine() && setting.isEnabled())
-                    .findFirst()
-                    .orElseThrow(() -> new AppException(InternalExceptionCode.EX400_NOTIFICATION_CHANNEL_NOT_CONFIGURED, HttpStatus.BAD_REQUEST));
+                .filter(setting -> setting.getEngine() == requestDto.engine() && setting.isEnabled())
+                .findFirst()
+                .orElseThrow(() -> new AppException(InternalExceptionCode.EX400_NOTIFICATION_CHANNEL_NOT_CONFIGURED, HttpStatus.BAD_REQUEST));
         }
 
         return settings.stream()
-                .filter(setting -> setting.isEnabled() && setting.isDefault())
-                .findFirst()
-                .orElseThrow(() -> new AppException(InternalExceptionCode.EX400_NOTIFICATION_CHANNEL_NOT_CONFIGURED, HttpStatus.BAD_REQUEST));
+            .filter(setting -> setting.isEnabled() && setting.isDefault())
+            .findFirst()
+            .orElseThrow(() -> new AppException(InternalExceptionCode.EX400_NOTIFICATION_CHANNEL_NOT_CONFIGURED, HttpStatus.BAD_REQUEST));
     }
 
     @Override
@@ -97,7 +96,7 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
     @Transactional
     public void cancel(Long reminderId, Long userId) {
         Reminder reminder = reminderRepository.findByIdAndUserId(reminderId, userId)
-                .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_REMINDER_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         if (reminder.getStatus() != ReminderStatus.NEW) {
             throw new AppException(InternalExceptionCode.EX400_REMINDER_NOT_CANCELLABLE, HttpStatus.BAD_REQUEST);
@@ -111,9 +110,9 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
     @Transactional
     public List<Reminder> findBatchToRemind(int limit) {
         List<Reminder> reminders = reminderRepository.findBatchToRemind(
-                ReminderStatus.NEW.name(),
-                Instant.now(),
-                limit
+            ReminderStatus.NEW.name(),
+            Instant.now(),
+            limit
         );
         reminders.forEach(reminder -> reminder.setStatus(ReminderStatus.PROCESSING));
         return reminderRepository.saveAll(reminders);

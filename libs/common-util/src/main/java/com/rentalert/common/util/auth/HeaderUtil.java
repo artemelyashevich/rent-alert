@@ -14,8 +14,8 @@ public class HeaderUtil {
 
     public static String getToken(HttpServletRequest httpServletRequest) {
         return Optional.ofNullable(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION))
-                .orElseThrow(() -> new AuthException("Absent session token in request header"))
-                .replace("Bearer ", "");
+            .orElseThrow(() -> new AuthException("Absent session token in request header"))
+            .replace("Bearer ", "");
     }
 
     public static String getLanguage(HttpServletRequest httpServletRequest) {

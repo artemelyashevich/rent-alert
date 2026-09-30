@@ -1,18 +1,20 @@
 package com.rentalert.common.security;
 
-import com.rentalert.common.common.I18nService;
 import com.rentalert.common.exception.AuthException;
 import com.rentalert.common.exception.ExceptionBody;
 import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.common.exception.UserBlockedException;
+import com.rentalert.common.i18n.I18nService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,11 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Locale;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,11 +37,7 @@ public class JwtTokenSecurityFilter extends OncePerRequestFilter {
     private final AuthenticationManager authenticationManager;
 
     @Override
-    protected void doFilterInternal(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
-        @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String ip = resolveClientIp(request);
         String uri = request.getRequestURI();
         boolean internalCall = InternalAuth.isInternalCall();

@@ -1,15 +1,14 @@
 package com.rentalert.listing_ms.service;
 
 import com.rentalert.dto.event.listing.ListingCreatedEvent;
-import com.rentalert.listing_ms.domain.Listing;
 import com.rentalert.dto.listing.ListingCategory;
 import com.rentalert.dto.listing.ListingDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
+import com.rentalert.listing_ms.domain.Listing;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ListingService {
 
@@ -19,8 +18,7 @@ public interface ListingService {
     Listing getById(Long id);
 
     /**
-     * Идентификаторы объявлений, которые можно безопасно удалить: не парсились дольше
-     * {@code cutoff} и ни у кого не в избранном / не скрыты. Ограничено {@code limit}.
+     * Идентификаторы объявлений, которые можно безопасно удалить: не парсились дольше {@code cutoff} и ни у кого не в избранном / не скрыты. Ограничено {@code limit}.
      */
     List<Long> findStaleListingIds(Instant cutoff, int limit);
 

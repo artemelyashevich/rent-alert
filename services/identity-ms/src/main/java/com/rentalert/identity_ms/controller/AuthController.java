@@ -31,28 +31,28 @@ public class AuthController {
     private final LoginService<RefreshTokenRequest> refreshTokenService;
 
     @Operation(
-            summary = "Вход через Telegram",
-            description = "Аутентифицирует пользователя по данным Telegram и возвращает JWT-токен"
+        summary = "Вход через Telegram",
+        description = "Аутентифицирует пользователя по данным Telegram и возвращает JWT-токен"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Успешная аутентификация",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = LoginResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Некорректные данные запроса (ошибка валидации)",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Неверная подпись Telegram или данные устарели",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        @ApiResponse(
+            responseCode = "200",
+            description = "Успешная аутентификация",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = LoginResponse.class)
             )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Некорректные данные запроса (ошибка валидации)",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Неверная подпись Telegram или данные устарели",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        )
     })
     @PostMapping("/login")
     public ResponseEntity<@NonNull LoginResponse> login(@Valid @RequestBody TelegramAuthRequest request) {
@@ -60,28 +60,28 @@ public class AuthController {
     }
 
     @Operation(
-            summary = "Обновление access-токена",
-            description = "Выдаёт новый access-токен по refresh-токену, полученному при последнем входе"
+        summary = "Обновление access-токена",
+        description = "Выдаёт новый access-токен по refresh-токену, полученному при последнем входе"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Токен обновлён",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = LoginResponse.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Refresh-токен недействителен, истёк или отозван",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Пользователь заблокирован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        @ApiResponse(
+            responseCode = "200",
+            description = "Токен обновлён",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = LoginResponse.class)
             )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Refresh-токен недействителен, истёк или отозван",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Пользователь заблокирован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+        )
     })
     @PostMapping("/refresh-token")
     public ResponseEntity<@NonNull LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {

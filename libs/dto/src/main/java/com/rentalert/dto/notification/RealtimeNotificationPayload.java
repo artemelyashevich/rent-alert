@@ -16,4 +16,5 @@ public record RealtimeNotificationPayload(
     Map<String, String> params,
     Instant createdAt
 ) {
+
 }

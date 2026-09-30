@@ -33,18 +33,14 @@ public class InternalTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
-        @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         if (!isValid(request.getHeader(InternalAuth.HEADER))) {
             log.warn("[INTERNAL AUTH] Rejected {} {} from {}", request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
             response.setStatus(HttpStatus.FORBIDDEN.value());
             return;
         }
-        SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-            InternalAuth.AUTHORITY, null, List.of(new SimpleGrantedAuthority(InternalAuth.AUTHORITY))));
+        SecurityContextHolder.getContext()
+            .setAuthentication(UsernamePasswordAuthenticationToken.authenticated(InternalAuth.AUTHORITY, null, List.of(new SimpleGrantedAuthority(InternalAuth.AUTHORITY))));
         filterChain.doFilter(request, response);
     }
 

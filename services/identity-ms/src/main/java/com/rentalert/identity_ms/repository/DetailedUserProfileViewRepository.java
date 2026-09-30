@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface DetailedUserProfileViewRepository
     extends JpaRepository<@NonNull DetailedUserProfileView, @NonNull Long>,
-            JpaSpecificationExecutor<DetailedUserProfileView> {
+    JpaSpecificationExecutor<DetailedUserProfileView> {
+
 }

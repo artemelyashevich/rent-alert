@@ -18,11 +18,11 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(
-        name = "cities",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_cities_provider_city_code",
-                columnNames = {"provider", "city_code"}
-        )
+    name = "cities",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_cities_provider_city_code",
+        columnNames = {"provider", "city_code"}
+    )
 )
 @NoArgsConstructor
 @AllArgsConstructor

@@ -6,7 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
 public record FavoriteUpdateStatusDto(
-        @NotNull(message = ValidationConstants.NOT_NULL) Long listingStatusId,
-        Instant viewingDate
+    @NotNull(message = ValidationConstants.NOT_NULL) Long listingStatusId,
+    Instant viewingDate
 ) {
+
 }

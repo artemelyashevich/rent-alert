@@ -8,8 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * A user action for the ops audit log, sent to {@link KafkaTopics#USER_EVENTS} with key = userId.
- * The user is {@link #getInitiatorId()}.
+ * A user action for the ops audit log, sent to {@link KafkaTopics#USER_EVENTS} with key = userId. The user is {@link #getInitiatorId()}.
  */
 @Builder
 @Getter

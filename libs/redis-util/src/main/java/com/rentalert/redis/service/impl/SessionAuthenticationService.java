@@ -1,10 +1,10 @@
 package com.rentalert.redis.service.impl;
 
-import com.rentalert.common.util.auth.JwtService;
 import com.rentalert.common.exception.AuthException;
 import com.rentalert.common.exception.UserBlockedException;
 import com.rentalert.common.security.AuthenticatedUser;
 import com.rentalert.common.security.AuthenticationService;
+import com.rentalert.common.util.auth.JwtService;
 import com.rentalert.dto.user.UserSession;
 import com.rentalert.redis.service.UserSessionService;
 import java.util.Objects;

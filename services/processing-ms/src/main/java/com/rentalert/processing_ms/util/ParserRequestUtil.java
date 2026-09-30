@@ -1,10 +1,10 @@
 package com.rentalert.processing_ms.util;
 
 import com.rentalert.common.util.JsonHelper;
+import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import com.rentalert.processing_ms.domain.City;
 import com.rentalert.processing_ms.dto.KufarParams;
 import com.rentalert.processing_ms.dto.RealtParams;
-import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +16,81 @@ public final class ParserRequestUtil {
     private static final String USD_CODE = "840";
     private static final String BYN_CODE = "933";
     private static final String DEFAULT_CURRENCY = "BYN";
+    private static final String REALT_SEARCH_QUERY = """
+        query searchObjects($data: GetObjectsByAddressInput!) {
+          searchObjects(data: $data) {
+            body {
+              results {
+                uuid
+                code
+                headline
+                description
+                createdAt
+                updatedAt
+                metroTime
+                metroStationName
+                price
+                priceCurrency
+                storeys
+                storey
+                rooms
+                contactPhones
+                images
+                areaTotal
+                streetName
+                address
+                contactName
+                furniture
+                location
+              }
+              pagination {
+                page
+                pageSize
+                totalCount
+              }
+            }
+          }
+        }
+        """;
+    private static final String REALT_ROOM_SEARCH_QUERY = """
+        query searchObjects($data: GetObjectsByAddressInput!) {
+          searchObjects(data: $data) {
+            body {
+              results {
+                uuid
+                code
+                headline
+                description
+                createdAt
+                updatedAt
+                metroTime
+                metroStationName
+                price
+                priceCurrency
+                storeys
+                storey
+                rooms
+                contactPhones
+                images
+                areaTotal
+                areaLiving
+                streetName
+                address
+                contactName
+                furniture
+                repairState
+                appliances
+                location
+              }
+              pagination {
+                page
+                pageSize
+                totalCount
+              }
+            }
+          }
+        }
+        """;
 
     public static Map<String, Object> buildOnlinerParams(SchedulerSettingsResponse settings, City city) {
         Map<String, Object> params = new LinkedHashMap<>();
@@ -59,83 +134,6 @@ public final class ParserRequestUtil {
         }
         return parsed;
     }
-
-    private static final String REALT_SEARCH_QUERY = """
-        query searchObjects($data: GetObjectsByAddressInput!) {
-          searchObjects(data: $data) {
-            body {
-              results {
-                uuid
-                code
-                headline
-                description
-                createdAt
-                updatedAt
-                metroTime
-                metroStationName
-                price
-                priceCurrency
-                storeys
-                storey
-                rooms
-                contactPhones
-                images
-                areaTotal
-                streetName
-                address
-                contactName
-                furniture
-                location
-              }
-              pagination {
-                page
-                pageSize
-                totalCount
-              }
-            }
-          }
-        }
-        """;
-
-    private static final String REALT_ROOM_SEARCH_QUERY = """
-        query searchObjects($data: GetObjectsByAddressInput!) {
-          searchObjects(data: $data) {
-            body {
-              results {
-                uuid
-                code
-                headline
-                description
-                createdAt
-                updatedAt
-                metroTime
-                metroStationName
-                price
-                priceCurrency
-                storeys
-                storey
-                rooms
-                contactPhones
-                images
-                areaTotal
-                areaLiving
-                streetName
-                address
-                contactName
-                furniture
-                repairState
-                appliances
-                location
-              }
-              pagination {
-                page
-                pageSize
-                totalCount
-              }
-            }
-          }
-        }
-        """;
 
     public static RealtParams buildRealtParams(SchedulerSettingsResponse settings, City city) {
         return buildRealtParams(settings, city, REALT_SEARCH_QUERY, settings.getCategoryId());

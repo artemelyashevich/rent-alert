@@ -14,9 +14,4 @@ public class KafkaConsumerConfiguration extends AbstractKafkaConsumerConfigurati
     public KafkaAdmin.NewTopics listingsTopics() {
         return topicWithDeadLetter(KafkaTopics.LISTINGS, Duration.ofDays(7));
     }
-
-    @Bean
-    public KafkaAdmin.NewTopics currencyRatesTopics() {
-        return topicWithDeadLetter(KafkaTopics.CURRENCY_RATES, Duration.ofDays(7));
-    }
 }

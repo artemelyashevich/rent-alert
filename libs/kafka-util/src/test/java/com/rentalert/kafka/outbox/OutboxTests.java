@@ -1,5 +1,8 @@
 package com.rentalert.kafka.outbox;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.rentalert.kafka.config.AbstractKafkaConsumerConfiguration;
 import com.rentalert.kafka.config.AbstractKafkaProducerConfiguration;
 import java.util.Map;
@@ -28,55 +31,21 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class OutboxTests {
 
     private static final String TOPIC = "outbox-test";
     private static final JsonMapper JSON = JsonMapper.builder().build();
 
     private static EmbeddedKafkaKraftBroker broker;
-
-    @Configuration
-    static class TestProducerConfiguration extends AbstractKafkaProducerConfiguration {
-    }
-
-    @Configuration
-    static class TestConsumerConfiguration extends AbstractKafkaConsumerConfiguration {
-    }
-
-    // H2 lacks partial indexes, so the test schema is the table of db/outbox/outbox_event.sql only
-    @Configuration
-    static class DatabaseConfiguration {
-        @Bean
-        DataSource dataSource() {
-            return new EmbeddedDatabaseBuilder()
-                .setType(EmbeddedDatabaseType.H2)
-                .generateUniqueName(true)
-                .addScript("classpath:outbox-test-schema.sql")
-                .build();
-        }
-
-        @Bean
-        JdbcTemplate jdbcTemplate(DataSource dataSource) {
-            return new JdbcTemplate(dataSource);
-        }
-
-        @Bean
-        PlatformTransactionManager transactionManager(DataSource dataSource) {
-            return new DataSourceTransactionManager(dataSource);
-        }
-    }
-
-    static class RawListener {
-        final BlockingQueue<ConsumerRecord<String, String>> received = new LinkedBlockingQueue<>();
-
-        @KafkaListener(topics = TOPIC)
-        void on(ConsumerRecord<String, String> record) {
-            received.add(record);
-        }
-    }
+    // A Boot application converts "PT10S" for @Value itself; the bare runner needs Boot's conversion service
+    private final ApplicationContextRunner runner = new ApplicationContextRunner()
+        .withInitializer(context -> context.getBeanFactory()
+            .setConversionService(ApplicationConversionService.getSharedInstance()))
+        .withConfiguration(AutoConfigurations.of(KafkaAutoConfiguration.class))
+        .withUserConfiguration(DatabaseConfiguration.class, TestProducerConfiguration.class,
+            TestConsumerConfiguration.class)
+        .withBean(JsonMapper.class, () -> JSON)
+        .withBean(RawListener.class);
 
     @BeforeAll
     static void startBroker() {
@@ -89,15 +58,14 @@ class OutboxTests {
         broker.destroy();
     }
 
-    // A Boot application converts "PT10S" for @Value itself; the bare runner needs Boot's conversion service
-    private final ApplicationContextRunner runner = new ApplicationContextRunner()
-        .withInitializer(context -> context.getBeanFactory()
-            .setConversionService(ApplicationConversionService.getSharedInstance()))
-        .withConfiguration(AutoConfigurations.of(KafkaAutoConfiguration.class))
-        .withUserConfiguration(DatabaseConfiguration.class, TestProducerConfiguration.class,
-            TestConsumerConfiguration.class)
-        .withBean(JsonMapper.class, () -> JSON)
-        .withBean(RawListener.class);
+    private static ConsumerRecord<String, String> await(RawListener listener, String marker) throws InterruptedException {
+        ConsumerRecord<String, String> record;
+        do {
+            record = listener.received.poll(30, TimeUnit.SECONDS);
+        } while (record != null && !record.value().contains(marker));
+        assertThat(record).as("record with %s", marker).isNotNull();
+        return record;
+    }
 
     private ApplicationContextRunner runner() {
         return runner.withPropertyValues(
@@ -154,12 +122,47 @@ class OutboxTests {
         });
     }
 
-    private static ConsumerRecord<String, String> await(RawListener listener, String marker) throws InterruptedException {
-        ConsumerRecord<String, String> record;
-        do {
-            record = listener.received.poll(30, TimeUnit.SECONDS);
-        } while (record != null && !record.value().contains(marker));
-        assertThat(record).as("record with %s", marker).isNotNull();
-        return record;
+    @Configuration
+    static class TestProducerConfiguration extends AbstractKafkaProducerConfiguration {
+
+    }
+
+    @Configuration
+    static class TestConsumerConfiguration extends AbstractKafkaConsumerConfiguration {
+
+    }
+
+    // H2 lacks partial indexes, so the test schema is the table of db/outbox/outbox_event.sql only
+    @Configuration
+    static class DatabaseConfiguration {
+
+        @Bean
+        DataSource dataSource() {
+            return new EmbeddedDatabaseBuilder()
+                .setType(EmbeddedDatabaseType.H2)
+                .generateUniqueName(true)
+                .addScript("classpath:outbox-test-schema.sql")
+                .build();
+        }
+
+        @Bean
+        JdbcTemplate jdbcTemplate(DataSource dataSource) {
+            return new JdbcTemplate(dataSource);
+        }
+
+        @Bean
+        PlatformTransactionManager transactionManager(DataSource dataSource) {
+            return new DataSourceTransactionManager(dataSource);
+        }
+    }
+
+    static class RawListener {
+
+        final BlockingQueue<ConsumerRecord<String, String>> received = new LinkedBlockingQueue<>();
+
+        @KafkaListener(topics = TOPIC)
+        void on(ConsumerRecord<String, String> record) {
+            received.add(record);
+        }
     }
 }

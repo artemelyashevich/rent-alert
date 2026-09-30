@@ -6,6 +6,7 @@ import lombok.Builder;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LoginResponse(
-        String accessToken, String refreshToken, Long expiresIn
+    String accessToken, String refreshToken, Long expiresIn
 ) {
+
 }

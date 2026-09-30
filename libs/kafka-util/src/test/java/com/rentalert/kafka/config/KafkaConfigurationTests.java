@@ -1,5 +1,7 @@
 package com.rentalert.kafka.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.kafka.NonRetryableEventException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -35,8 +37,6 @@ import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.FixedBackOff;
 import tools.jackson.databind.json.JsonMapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class KafkaConfigurationTests {
 
     private static final String TOPIC = "admin-actions";
@@ -47,56 +47,12 @@ class KafkaConfigurationTests {
     private static final JsonMapper JSON = JsonMapper.builder().build();
 
     private static EmbeddedKafkaKraftBroker broker;
-
-    record TestEvent(UUID idempotencyKey, String name, List<String> params) {
-        TestEvent(String name, List<String> params) {
-            this(UUID.randomUUID(), name, params);
-        }
-    }
-
-    @Configuration
-    static class TestConsumerConfiguration extends AbstractKafkaConsumerConfiguration {
-        @Override
-        protected BackOff backOff() {
-            return new FixedBackOff(0L, 1L);
-        }
-
-        // Only the test that sets the name creates it: Kafka can't shrink a topic created by another test
-        @Bean
-        KafkaAdmin.NewTopics createdTopics(@Value("${test.created-topic:}") String name) {
-            return name.isEmpty() ? new KafkaAdmin.NewTopics() : topicWithDeadLetter(name, Duration.ofDays(1));
-        }
-    }
-
-    @Configuration
-    static class TestProducerConfiguration extends AbstractKafkaProducerConfiguration {
-    }
-
-    static class Listener {
-        final BlockingQueue<TestEvent> received = new LinkedBlockingQueue<>();
-        final AtomicInteger invalidAttempts = new AtomicInteger();
-
-        @KafkaListener(topics = TOPIC)
-        void onEvent(TestEvent event) {
-            if (INVALID.equals(event.name())) {
-                invalidAttempts.incrementAndGet();
-                throw new NonRetryableEventException("invalid event");
-            }
-            if (FAILING.equals(event.name())) {
-                throw new IllegalStateException("listener failure");
-            }
-            received.add(event);
-        }
-    }
-
-    static class DeadLetterListener {
-        final BlockingQueue<ConsumerRecord<String, String>> received = new LinkedBlockingQueue<>();
-
-        @KafkaListener(topics = DLT, groupId = "dlt-reader")
-        void onDeadLetter(ConsumerRecord<String, String> record) {
-            received.add(record);
-        }
-    }
+    private final ApplicationContextRunner runner = new ApplicationContextRunner()
+        .withConfiguration(AutoConfigurations.of(KafkaAutoConfiguration.class))
+        .withUserConfiguration(TestConsumerConfiguration.class, TestProducerConfiguration.class)
+        .withBean(JsonMapper.class, () -> JSON)
+        .withBean(Listener.class)
+        .withBean(DeadLetterListener.class);
 
     @BeforeAll
     static void startBroker() {
@@ -109,12 +65,35 @@ class KafkaConfigurationTests {
         broker.destroy();
     }
 
-    private final ApplicationContextRunner runner = new ApplicationContextRunner()
-        .withConfiguration(AutoConfigurations.of(KafkaAutoConfiguration.class))
-        .withUserConfiguration(TestConsumerConfiguration.class, TestProducerConfiguration.class)
-        .withBean(JsonMapper.class, () -> JSON)
-        .withBean(Listener.class)
-        .withBean(DeadLetterListener.class);
+    @SuppressWarnings("unchecked")
+    private static KafkaTemplate<String, Object> template(org.springframework.context.ApplicationContext context) {
+        return context.getBean("kafkaTemplate", KafkaTemplate.class);
+    }
+
+    // Records of earlier tests stay in the topic, so wait for the one this test sent
+    private static TestEvent awaitEvent(Listener listener, UUID idempotencyKey) throws InterruptedException {
+        TestEvent event;
+        do {
+            event = listener.received.poll(30, TimeUnit.SECONDS);
+        } while (event != null && !idempotencyKey.equals(event.idempotencyKey()));
+        assertThat(event).as("event %s", idempotencyKey).isNotNull();
+        return event;
+    }
+
+    private static ConsumerRecord<String, String> awaitDeadLetter(DeadLetterListener listener, String marker)
+        throws InterruptedException {
+        ConsumerRecord<String, String> record;
+        do {
+            record = listener.received.poll(30, TimeUnit.SECONDS);
+        } while (record != null && !record.value().contains(marker));
+        assertThat(record).as("dead letter containing %s", marker).isNotNull();
+        return record;
+    }
+
+    private static String header(ConsumerRecord<?, ?> record, String name) {
+        Header header = record.headers().lastHeader(name);
+        return header == null ? null : new String(header.value(), StandardCharsets.UTF_8);
+    }
 
     private ApplicationContextRunner runner() {
         return runner.withPropertyValues(
@@ -205,33 +184,58 @@ class KafkaConfigurationTests {
             .containsEntry(ConsumerConfig.GROUP_ID_CONFIG, "test-service"));
     }
 
-    @SuppressWarnings("unchecked")
-    private static KafkaTemplate<String, Object> template(org.springframework.context.ApplicationContext context) {
-        return context.getBean("kafkaTemplate", KafkaTemplate.class);
+    record TestEvent(UUID idempotencyKey, String name, List<String> params) {
+
+        TestEvent(String name, List<String> params) {
+            this(UUID.randomUUID(), name, params);
+        }
     }
 
-    // Records of earlier tests stay in the topic, so wait for the one this test sent
-    private static TestEvent awaitEvent(Listener listener, UUID idempotencyKey) throws InterruptedException {
-        TestEvent event;
-        do {
-            event = listener.received.poll(30, TimeUnit.SECONDS);
-        } while (event != null && !idempotencyKey.equals(event.idempotencyKey()));
-        assertThat(event).as("event %s", idempotencyKey).isNotNull();
-        return event;
+    @Configuration
+    static class TestConsumerConfiguration extends AbstractKafkaConsumerConfiguration {
+
+        @Override
+        protected BackOff backOff() {
+            return new FixedBackOff(0L, 1L);
+        }
+
+        // Only the test that sets the name creates it: Kafka can't shrink a topic created by another test
+        @Bean
+        KafkaAdmin.NewTopics createdTopics(@Value("${test.created-topic:}") String name) {
+            return name.isEmpty() ? new KafkaAdmin.NewTopics() : topicWithDeadLetter(name, Duration.ofDays(1));
+        }
     }
 
-    private static ConsumerRecord<String, String> awaitDeadLetter(DeadLetterListener listener, String marker)
-            throws InterruptedException {
-        ConsumerRecord<String, String> record;
-        do {
-            record = listener.received.poll(30, TimeUnit.SECONDS);
-        } while (record != null && !record.value().contains(marker));
-        assertThat(record).as("dead letter containing %s", marker).isNotNull();
-        return record;
+    @Configuration
+    static class TestProducerConfiguration extends AbstractKafkaProducerConfiguration {
+
     }
 
-    private static String header(ConsumerRecord<?, ?> record, String name) {
-        Header header = record.headers().lastHeader(name);
-        return header == null ? null : new String(header.value(), StandardCharsets.UTF_8);
+    static class Listener {
+
+        final BlockingQueue<TestEvent> received = new LinkedBlockingQueue<>();
+        final AtomicInteger invalidAttempts = new AtomicInteger();
+
+        @KafkaListener(topics = TOPIC)
+        void onEvent(TestEvent event) {
+            if (INVALID.equals(event.name())) {
+                invalidAttempts.incrementAndGet();
+                throw new NonRetryableEventException("invalid event");
+            }
+            if (FAILING.equals(event.name())) {
+                throw new IllegalStateException("listener failure");
+            }
+            received.add(event);
+        }
+    }
+
+    static class DeadLetterListener {
+
+        final BlockingQueue<ConsumerRecord<String, String>> received = new LinkedBlockingQueue<>();
+
+        @KafkaListener(topics = DLT, groupId = "dlt-reader")
+        void onDeadLetter(ConsumerRecord<String, String> record) {
+            received.add(record);
+        }
     }
 }

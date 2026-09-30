@@ -1,7 +1,7 @@
 package com.rentalert.listing_ms.mapper;
 
-import com.rentalert.listing_ms.domain.Listing;
 import com.rentalert.dto.listing.ListingDto;
+import com.rentalert.listing_ms.domain.Listing;
 import java.util.Arrays;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -10,10 +10,11 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(
-        componentModel = MappingConstants.ComponentModel.SPRING,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {com.rentalert.dto.listing.ScheduleProvider.class}
-)public interface ListingMapper {
+    componentModel = MappingConstants.ComponentModel.SPRING,
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    imports = {com.rentalert.dto.listing.ScheduleProvider.class}
+)
+public interface ListingMapper {
 
     @Mapping(target = "photos", expression = "java(toList(entity.getPhotos()))")
     @Mapping(target = "previewPhoto", expression = "java(firstOrNull(entity.getPhotos()))")

@@ -28,8 +28,7 @@ public abstract class AbstractKafkaProducerConfiguration {
         Map<String, Object> props = kafkaProperties.buildProducerProperties();
         props.putIfAbsent(ProducerConfig.ACKS_CONFIG, "all");
         props.putIfAbsent(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-        return new DefaultKafkaProducerFactory<>(props, new StringSerializer(),
-            new JacksonJsonSerializer<>(jsonMapper).noTypeInfo());
+        return new DefaultKafkaProducerFactory<>(props, new StringSerializer(), new JacksonJsonSerializer<>(jsonMapper).noTypeInfo());
     }
 
     @Bean
@@ -45,12 +44,13 @@ public abstract class AbstractKafkaProducerConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "app.kafka.outbox.enabled", matchIfMissing = true)
-    public OutboxRelay outboxRelay(JdbcTemplate jdbcTemplate, PlatformTransactionManager transactionManager,
-                                   KafkaTemplate<String, Object> kafkaTemplate, JsonMapper jsonMapper,
-                                   @Value("${app.kafka.outbox.batch-size:100}") int batchSize,
-                                   @Value("${app.kafka.outbox.send-timeout:PT10S}") Duration sendTimeout,
-                                   @Value("${app.kafka.outbox.retention:P7D}") Duration retention) {
-        return new OutboxRelay(jdbcTemplate, new TransactionTemplate(transactionManager), kafkaTemplate, jsonMapper,
-            batchSize, sendTimeout, retention);
+    public OutboxRelay outboxRelay(
+        JdbcTemplate jdbcTemplate, PlatformTransactionManager transactionManager,
+        KafkaTemplate<String, Object> kafkaTemplate, JsonMapper jsonMapper,
+        @Value("${app.kafka.outbox.batch-size:100}") int batchSize,
+        @Value("${app.kafka.outbox.send-timeout:PT10S}") Duration sendTimeout,
+        @Value("${app.kafka.outbox.retention:P7D}") Duration retention
+    ) {
+        return new OutboxRelay(jdbcTemplate, new TransactionTemplate(transactionManager), kafkaTemplate, jsonMapper, batchSize, sendTimeout, retention);
     }
 }

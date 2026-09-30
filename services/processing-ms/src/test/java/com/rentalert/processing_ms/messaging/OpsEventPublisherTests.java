@@ -1,13 +1,13 @@
 package com.rentalert.processing_ms.messaging;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import com.rentalert.dto.event.JobExecutionEvent;
 import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import org.junit.jupiter.api.Test;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class OpsEventPublisherTests {
 

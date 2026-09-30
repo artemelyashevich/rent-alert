@@ -4,8 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * What happened, as producers see it. How it is delivered (category, channels, mandatory, on/off)
- * is notification's own data: the notification_type_settings table.
+ * What happened, as producers see it. How it is delivered (category, channels, mandatory, on/off) is notification's own data: the notification_type_settings table.
  */
 @Getter
 @RequiredArgsConstructor
@@ -38,8 +37,7 @@ public enum NotificationType {
     ROOMMATE_PROFILE_REJECTED(false);
 
     /**
-     * The user is waiting for it right now (email codes): goes to the priority topic, so a mass mailing
-     * never delays it. Producers route by this, so it lives in code, not in notification's database.
+     * The user is waiting for it right now (email codes): goes to the priority topic, so a mass mailing never delays it. Producers route by this, so it lives in code, not in notification's database.
      */
     private final boolean priority;
 }

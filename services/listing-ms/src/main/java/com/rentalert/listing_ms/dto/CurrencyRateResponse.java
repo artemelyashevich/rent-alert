@@ -24,6 +24,33 @@ public class CurrencyRateResponse {
     @Schema(description = "Список курсов валют")
     private List<CurrencyRateDto> rates;
 
+    public static CurrencyRateResponse fromRates(List<CurrencyRate> currencyRates) {
+        if (currencyRates == null || currencyRates.isEmpty()) {
+            return CurrencyRateResponse.builder()
+                .rateDate(LocalDate.now())
+                .rates(List.of())
+                .build();
+        }
+
+        LocalDate latestDate = currencyRates.stream()
+            .map(CurrencyRate::getRateDate)
+            .max(LocalDate::compareTo)
+            .orElse(LocalDate.now());
+
+        List<CurrencyRateDto> rateDtos = currencyRates.stream()
+            .map(rate -> CurrencyRateDto.builder()
+                .currency(rate.getCurrency())
+                .perCurrency(rate.getPerCurrency())
+                .rate(rate.getRate().setScale(2, RoundingMode.HALF_UP))
+                .build())
+            .toList();
+
+        return CurrencyRateResponse.builder()
+            .rateDate(latestDate)
+            .rates(rateDtos)
+            .build();
+    }
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -39,32 +66,5 @@ public class CurrencyRateResponse {
 
         @Schema(description = "Курс обмена", example = "3.25")
         private BigDecimal rate;
-    }
-
-    public static CurrencyRateResponse fromRates(List<CurrencyRate> currencyRates) {
-        if (currencyRates == null || currencyRates.isEmpty()) {
-            return CurrencyRateResponse.builder()
-                    .rateDate(LocalDate.now())
-                    .rates(List.of())
-                    .build();
-        }
-
-        LocalDate latestDate = currencyRates.stream()
-                .map(CurrencyRate::getRateDate)
-                .max(LocalDate::compareTo)
-                .orElse(LocalDate.now());
-
-        List<CurrencyRateDto> rateDtos = currencyRates.stream()
-                .map(rate -> CurrencyRateDto.builder()
-                        .currency(rate.getCurrency())
-                        .perCurrency(rate.getPerCurrency())
-                        .rate(rate.getRate().setScale(2, RoundingMode.HALF_UP))
-                        .build())
-                .toList();
-
-        return CurrencyRateResponse.builder()
-                .rateDate(latestDate)
-                .rates(rateDtos)
-                .build();
     }
 }

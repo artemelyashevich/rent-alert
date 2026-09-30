@@ -14,6 +14,7 @@ public class ApplicationProperties {
     @Getter
     @Setter
     public static class Telegram {
+
         /** Bot API URL with {@code %s} for the admin bot token. */
         private String url;
         private String botToken;

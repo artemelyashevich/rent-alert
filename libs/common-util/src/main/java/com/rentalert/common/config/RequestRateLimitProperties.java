@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "app.rate-limit")
 public class RequestRateLimitProperties {
+
     private boolean enabled = true;
     private int requestsPerWindow = 60;
     private long windowSeconds = 10;

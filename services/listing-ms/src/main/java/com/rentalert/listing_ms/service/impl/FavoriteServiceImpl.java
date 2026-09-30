@@ -3,6 +3,7 @@ package com.rentalert.listing_ms.service.impl;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.common.exception.UpstreamHttpException;
+import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.listing_ms.domain.Favorite;
 import com.rentalert.listing_ms.domain.FavoriteEmbeddedId;
@@ -19,7 +20,9 @@ import com.rentalert.listing_ms.repository.FavoriteSpecification;
 import com.rentalert.listing_ms.repository.ListingRepository;
 import com.rentalert.listing_ms.service.FavoriteService;
 import com.rentalert.listing_ms.service.ListingStatusService;
-import com.rentalert.dto.event.user.UserEvent;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -29,10 +32,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Objects;
 
 @Slf4j
 @Service
@@ -69,20 +68,20 @@ public class FavoriteServiceImpl implements FavoriteService {
         ensureUserExists(userId);
 
         Listing listing = listingRepository.findById(createDto.listingId())
-                .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_LISTING_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_LISTING_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         ListingStatus listingStatus = listingStatusService.findById(createDto.listingStatusId());
         Instant resolvedViewingDate = resolveViewingDate(listingStatus, createDto.viewingDate());
 
         Favorite favorite = Favorite.builder()
-                .id(FavoriteEmbeddedId.builder()
-                        .userId(userId)
-                        .listingId(createDto.listingId())
-                        .build())
-                .listing(listing)
-                .listingStatus(listingStatus)
-                .viewingDate(resolvedViewingDate)
-                .build();
+            .id(FavoriteEmbeddedId.builder()
+                .userId(userId)
+                .listingId(createDto.listingId())
+                .build())
+            .listing(listing)
+            .listingStatus(listingStatus)
+            .viewingDate(resolvedViewingDate)
+            .build();
 
         Favorite saved;
         try {
@@ -104,10 +103,10 @@ public class FavoriteServiceImpl implements FavoriteService {
         Objects.requireNonNull(pageable, "pageable must not be null");
         log.debug("Fetching favorites for user {} with pagination: page={}, size={}", userId, pageable.getPageNumber(), pageable.getPageSize());
         Specification<Favorite> spec = Specification.where(FavoriteSpecification.hasUserId(userId))
-                .and(FavoriteSpecification.hasStatus(status));
+            .and(FavoriteSpecification.hasStatus(status));
         Page<Favorite> favorites = favoriteRepository.findAll(spec, pageable);
         log.info("Found {} favorites for user {} with status filter: {} on page {}",
-                favorites.getNumberOfElements(), userId, status, pageable.getPageNumber());
+            favorites.getNumberOfElements(), userId, status, pageable.getPageNumber());
         return favorites.map(favoriteMapper::toResponse);
     }
 
@@ -118,12 +117,12 @@ public class FavoriteServiceImpl implements FavoriteService {
         log.debug("Updating status for favorite: user={}, listing={}", userId, listingId);
 
         FavoriteEmbeddedId favoriteEmbeddedId = FavoriteEmbeddedId.builder()
-                .userId(userId)
-                .listingId(listingId)
-                .build();
+            .userId(userId)
+            .listingId(listingId)
+            .build();
 
         Favorite favorite = favoriteRepository.findById(favoriteEmbeddedId)
-                .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_FAVORITE_NOT_FOUND, HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_FAVORITE_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         ListingStatus newStatus = listingStatusService.findById(updateDto.listingStatusId());
 
@@ -144,9 +143,9 @@ public class FavoriteServiceImpl implements FavoriteService {
         log.debug("Removing listing {} from favorites for user {}", listingId, userId);
 
         FavoriteEmbeddedId favoriteEmbeddedId = FavoriteEmbeddedId.builder()
-                .userId(userId)
-                .listingId(listingId)
-                .build();
+            .userId(userId)
+            .listingId(listingId)
+            .build();
 
         if (!favoriteRepository.existsById(favoriteEmbeddedId)) {
             throw new AppException(InternalExceptionCode.EX404_FAVORITE_NOT_FOUND, HttpStatus.NOT_FOUND);

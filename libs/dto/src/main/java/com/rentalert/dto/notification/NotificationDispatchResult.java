@@ -5,4 +5,5 @@ public record NotificationDispatchResult(
     NotificationDispatchStatus status,
     String reason
 ) {
+
 }

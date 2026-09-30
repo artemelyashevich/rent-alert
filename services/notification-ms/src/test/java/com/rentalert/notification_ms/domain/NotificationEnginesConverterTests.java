@@ -1,10 +1,10 @@
 package com.rentalert.notification_ms.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.dto.notification.NotificationEngine;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class NotificationEnginesConverterTests {
 

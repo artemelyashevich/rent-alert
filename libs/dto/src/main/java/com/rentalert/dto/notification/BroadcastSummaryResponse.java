@@ -14,4 +14,5 @@ public record BroadcastSummaryResponse(
     boolean pinned,
     Instant createdAt
 ) {
+
 }

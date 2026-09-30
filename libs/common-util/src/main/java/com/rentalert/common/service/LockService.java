@@ -1,9 +1,8 @@
 package com.rentalert.common.service;
 
-import lombok.NonNull;
-
 import java.time.Duration;
 import java.util.function.Supplier;
+import lombok.NonNull;
 
 public interface LockService {
 

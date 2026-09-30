@@ -1,5 +1,8 @@
 package com.rentalert.internal.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.internal.resilience.CircuitBreakerFailurePredicate;
 import com.rentalert.internal.resilience.RetryableExceptionPredicate;
@@ -13,33 +16,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class AbstractResilientClientTests {
 
     private final RetryRegistry retryRegistry = RetryRegistry.of(RetryConfig.custom()
-            .maxAttempts(3)
-            .waitDuration(Duration.ofMillis(1))
-            .retryOnException(new RetryableExceptionPredicate())
-            .build());
+        .maxAttempts(3)
+        .waitDuration(Duration.ofMillis(1))
+        .retryOnException(new RetryableExceptionPredicate())
+        .build());
 
     private final CircuitBreakerRegistry circuitBreakerRegistry = CircuitBreakerRegistry.of(CircuitBreakerConfig.custom()
-            .slidingWindowSize(2)
-            .minimumNumberOfCalls(2)
-            .failureRateThreshold(50)
-            .recordException(new CircuitBreakerFailurePredicate())
-            .build());
-
-    static class TestClient extends AbstractResilientClient {
-        TestClient(RetryRegistry retry, CircuitBreakerRegistry circuitBreaker) {
-            super("test", retry, circuitBreaker);
-        }
-
-        <T> T call(Supplier<T> supplier) {
-            return execute(supplier);
-        }
-    }
+        .slidingWindowSize(2)
+        .minimumNumberOfCalls(2)
+        .failureRateThreshold(50)
+        .recordException(new CircuitBreakerFailurePredicate())
+        .build());
 
     @Test
     void retriesTransientFailureAndReturnsResult() {
@@ -85,5 +75,16 @@ class AbstractResilientClientTests {
 
         assertThatThrownBy(() -> client.call(failing)).isInstanceOf(CallNotPermittedException.class);
         assertThat(attempts).hasValue(2);
+    }
+
+    static class TestClient extends AbstractResilientClient {
+
+        TestClient(RetryRegistry retry, CircuitBreakerRegistry circuitBreaker) {
+            super("test", retry, circuitBreaker);
+        }
+
+        <T> T call(Supplier<T> supplier) {
+            return execute(supplier);
+        }
     }
 }

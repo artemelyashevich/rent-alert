@@ -1,14 +1,5 @@
 package com.rentalert.config_server;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.config.environment.Environment;
-import org.springframework.cloud.config.environment.PropertySource;
-import org.springframework.cloud.config.environment.PropertyValueDescriptor;
-import org.springframework.cloud.config.server.encryption.EnvironmentEncryptor;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +9,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.config.environment.PropertySource;
+import org.springframework.cloud.config.environment.PropertyValueDescriptor;
+import org.springframework.cloud.config.server.encryption.EnvironmentEncryptor;
+import org.springframework.stereotype.Component;
 
 
 @Slf4j
@@ -37,49 +36,6 @@ public class DotEnvPlaceholderResolver implements EnvironmentEncryptor {
 
     DotEnvPlaceholderResolver(Path envFile) {
         this.values = load(envFile);
-    }
-
-    @Override
-    public Environment decrypt(Environment environment) {
-        if (values.isEmpty()) {
-            return environment;
-        }
-        Environment result = new Environment(environment);
-        for (PropertySource source : environment.getPropertySources()) {
-            Map<Object, Object> map = new LinkedHashMap<>(source.getSource());
-            map.replaceAll((key, value) -> resolveValue(value));
-            result.add(new PropertySource(source.getName(), map));
-        }
-        return result;
-    }
-
-    private Object resolveValue(Object value) {
-        if (value instanceof PropertyValueDescriptor descriptor) {
-            return new PropertyValueDescriptor(resolveValue(descriptor.getValue()), descriptor.getOrigin());
-        }
-        return value instanceof String text ? resolve(text) : value;
-    }
-
-    String resolve(String text) {
-        int start = text.indexOf(PREFIX);
-        if (start < 0) {
-            return text;
-        }
-        int end = findPlaceholderEnd(text, start);
-        if (end < 0) {
-            return text;
-        }
-        String placeholder = text.substring(start + PREFIX.length(), end);
-        int separator = placeholder.indexOf(':');
-        String name = separator < 0 ? placeholder : placeholder.substring(0, separator);
-        String replacement = values.get(name);
-        if (replacement == null) {
-            // Keep the placeholder for the client, but fill the variables inside its default
-            replacement = separator < 0
-                ? PREFIX + placeholder + SUFFIX
-                : PREFIX + name + ":" + resolve(placeholder.substring(separator + 1)) + SUFFIX;
-        }
-        return text.substring(0, start) + replacement + resolve(text.substring(end + SUFFIX.length()));
     }
 
     private static int findPlaceholderEnd(String text, int start) {
@@ -141,5 +97,48 @@ public class DotEnvPlaceholderResolver implements EnvironmentEncryptor {
             }
         }
         return value;
+    }
+
+    @Override
+    public Environment decrypt(Environment environment) {
+        if (values.isEmpty()) {
+            return environment;
+        }
+        Environment result = new Environment(environment);
+        for (PropertySource source : environment.getPropertySources()) {
+            Map<Object, Object> map = new LinkedHashMap<>(source.getSource());
+            map.replaceAll((key, value) -> resolveValue(value));
+            result.add(new PropertySource(source.getName(), map));
+        }
+        return result;
+    }
+
+    private Object resolveValue(Object value) {
+        if (value instanceof PropertyValueDescriptor descriptor) {
+            return new PropertyValueDescriptor(resolveValue(descriptor.getValue()), descriptor.getOrigin());
+        }
+        return value instanceof String text ? resolve(text) : value;
+    }
+
+    String resolve(String text) {
+        int start = text.indexOf(PREFIX);
+        if (start < 0) {
+            return text;
+        }
+        int end = findPlaceholderEnd(text, start);
+        if (end < 0) {
+            return text;
+        }
+        String placeholder = text.substring(start + PREFIX.length(), end);
+        int separator = placeholder.indexOf(':');
+        String name = separator < 0 ? placeholder : placeholder.substring(0, separator);
+        String replacement = values.get(name);
+        if (replacement == null) {
+            // Keep the placeholder for the client, but fill the variables inside its default
+            replacement = separator < 0
+                ? PREFIX + placeholder + SUFFIX
+                : PREFIX + name + ":" + resolve(placeholder.substring(separator + 1)) + SUFFIX;
+        }
+        return text.substring(0, start) + replacement + resolve(text.substring(end + SUFFIX.length()));
     }
 }

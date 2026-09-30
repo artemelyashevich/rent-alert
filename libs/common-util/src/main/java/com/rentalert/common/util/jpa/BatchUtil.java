@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @UtilityClass
 public final class BatchUtil {
 
-   private static final int BATCH_SIZE = 250;
+    private static final int BATCH_SIZE = 250;
 
     public static <T> void deleteInBatches(List<T> keys, Consumer<List<T>> deleteFn) {
         for (int i = 0; i < keys.size(); i += BATCH_SIZE) {

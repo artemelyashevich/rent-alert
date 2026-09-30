@@ -1,5 +1,8 @@
 package com.rentalert.internal.decoder;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.common.exception.UpstreamHttpException;
 import feign.Request;
 import feign.Response;
@@ -8,17 +11,27 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
-
 class InternalErrorDecoderTests {
 
     private final InternalErrorDecoder decoder = new InternalErrorDecoder();
 
+    private static Response response(int status, String body, Map<String, Collection<String>> headers) {
+        Request request = Request.create(Request.HttpMethod.GET, "http://identity-ms/x", Map.of(), null, UTF_8, null);
+        Response.Builder builder = Response.builder()
+            .status(status)
+            .reason("reason")
+            .request(request)
+            .headers(headers);
+        if (body != null) {
+            builder.body(body, UTF_8);
+        }
+        return builder.build();
+    }
+
     @Test
     void takesMessageFromExceptionBody() {
         Exception exception = decoder.decode("IdentityMsClient#getUser(UUID)",
-                response(404, "{\"message\":\"User not found\"}", Map.of()));
+            response(404, "{\"message\":\"User not found\"}", Map.of()));
 
         assertThat(exception).isInstanceOfSatisfying(UpstreamHttpException.class, upstream -> {
             assertThat(upstream.getUpstreamStatus()).isEqualTo(404);
@@ -47,21 +60,8 @@ class InternalErrorDecoderTests {
     @Test
     void ignoresRetryAfterHttpDate() {
         Exception exception = decoder.decode("key",
-                response(503, null, Map.of("Retry-After", List.of("Wed, 21 Oct 2026 07:28:00 GMT"))));
+            response(503, null, Map.of("Retry-After", List.of("Wed, 21 Oct 2026 07:28:00 GMT"))));
 
         assertThat(((UpstreamHttpException) exception).getRetryAfterSeconds()).isNull();
-    }
-
-    private static Response response(int status, String body, Map<String, Collection<String>> headers) {
-        Request request = Request.create(Request.HttpMethod.GET, "http://identity-ms/x", Map.of(), null, UTF_8, null);
-        Response.Builder builder = Response.builder()
-                .status(status)
-                .reason("reason")
-                .request(request)
-                .headers(headers);
-        if (body != null) {
-            builder.body(body, UTF_8);
-        }
-        return builder.build();
     }
 }

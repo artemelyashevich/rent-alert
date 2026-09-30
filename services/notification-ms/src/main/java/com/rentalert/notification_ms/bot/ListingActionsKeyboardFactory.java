@@ -15,9 +15,9 @@ public class ListingActionsKeyboardFactory {
     public InlineKeyboardMarkup build(Long listingId, boolean isFavorite) {
         InlineKeyboardButton favoriteButton = isFavorite
             ? InlineKeyboardButton.builder()
-                .text("💔 Удалить из избранных")
-                .callbackData(UNFAVORITE_CALLBACK_PREFIX + ":" + listingId)
-                .build()
+            .text("💔 Удалить из избранных")
+            .callbackData(UNFAVORITE_CALLBACK_PREFIX + ":" + listingId)
+            .build()
             : InlineKeyboardButton.builder()
                 .text("⭐ Добавить в избранное")
                 .callbackData(FAVORITE_CALLBACK_PREFIX + ":" + listingId)

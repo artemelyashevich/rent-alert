@@ -106,4 +106,4 @@ public enum InternalExceptionCode {
     private final String label;
     private final int code;
 
-    }
+}

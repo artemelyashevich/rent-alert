@@ -20,7 +20,7 @@ public class OutboxPublisher {
         this.jsonMapper = jsonMapper;
     }
 
-     public void publish(String topic, String key, Object payload) {
+    public void publish(String topic, String key, Object payload) {
         if (!TransactionSynchronizationManager.isActualTransactionActive()) {
             throw new IllegalStateException("OutboxPublisher.publish must run inside the business transaction");
         }

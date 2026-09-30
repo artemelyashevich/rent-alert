@@ -1,9 +1,13 @@
 package com.rentalert.common.security;
 
-import com.rentalert.common.common.I18nService;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 import com.rentalert.common.config.InternalAuthProperties;
 import com.rentalert.common.config.IpRateLimitProperties;
 import com.rentalert.common.config.RequestRateLimitProperties;
+import com.rentalert.common.i18n.I18nService;
 import com.rentalert.common.util.JsonHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +27,6 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 
 @Slf4j
@@ -80,7 +80,8 @@ public abstract class AbstractSecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager, IpAccessGuard ipAccessGuard, InternalAuthProperties internalAuthProperties, MessageSource messageSource, HttpServletRequest request) {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager, IpAccessGuard ipAccessGuard, InternalAuthProperties internalAuthProperties,
+        MessageSource messageSource, HttpServletRequest request) {
         RequestMatcher publicUrls = publicUrls();
         RequestMatcher internalUrls = internalUrls();
         I18nService i18nService = new I18nService(messageSource, request);

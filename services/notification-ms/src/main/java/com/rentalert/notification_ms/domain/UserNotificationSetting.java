@@ -16,11 +16,11 @@ import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(
-        name = "user_notification_settings",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_user_engine",
-                columnNames = {"user_id", "engine"}
-        )
+    name = "user_notification_settings",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_user_engine",
+        columnNames = {"user_id", "engine"}
+    )
 )
 @Getter
 @Setter
@@ -38,7 +38,7 @@ public class UserNotificationSetting extends AbstractEntity {
 
     @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled = true;
-    
+
     @Column(name = "is_default", nullable = false)
     private boolean isDefault = false;
 }

@@ -1,124 +1,132 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <artifactId>common-util</artifactId>
 
-	<parent>
-		<groupId>com.rentalert</groupId>
-		<artifactId>rentalert-parent</artifactId>
-		<version>${revision}</version>
-		<relativePath>../../parent/pom.xml</relativePath>
-	</parent>
-
-	<artifactId>common-util</artifactId>
-
-	<dependencies>
+    <dependencies>
 
         <dependency>
-            <groupId>com.rentalert</groupId>
             <artifactId>dto</artifactId>
+            <groupId>com.rentalert</groupId>
         </dependency>
 
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-core</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>tools.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-autoconfigure</artifactId>
-		</dependency>
-
-		<!-- JwtService; versions and runtime scopes come from the parent -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>jakarta.servlet</groupId>
-			<artifactId>jakarta.servlet-api</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>jakarta.persistence</groupId>
-			<artifactId>jakarta.persistence-api</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-jpa</artifactId>
-			<optional>true</optional>
-		</dependency>
+        <dependency>
+            <artifactId>slf4j-api</artifactId>
+            <groupId>org.slf4j</groupId>
+        </dependency>
 
         <dependency>
+            <artifactId>spring-web</artifactId>
+            <groupId>org.springframework</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-tx</artifactId>
+            <groupId>org.springframework</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-security-core</artifactId>
             <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-redis</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.datatype</groupId>
-			<artifactId>jackson-datatype-jsr310</artifactId>
-		</dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-		<!-- MetricService; services bring it with spring-boot-starter-actuator -->
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-core</artifactId>
-			<optional>true</optional>
-		</dependency>
         <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
+            <artifactId>jackson-databind</artifactId>
+            <groupId>tools.jackson.core</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
+
+        <!-- JwtService; versions and runtime scopes come from the parent -->
+        <dependency>
+            <artifactId>jjwt-api</artifactId>
+            <groupId>io.jsonwebtoken</groupId>
         </dependency>
         <dependency>
-            <groupId>org.jboss.logging</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <groupId>io.jsonwebtoken</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>jjwt-jackson</artifactId>
+            <groupId>io.jsonwebtoken</groupId>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-webmvc</artifactId>
+            <groupId>org.springframework</groupId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <groupId>jakarta.persistence</groupId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-data-jpa</artifactId>
+            <groupId>org.springframework.data</groupId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <artifactId>spring-security-web</artifactId>
+            <groupId>org.springframework.security</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>spring-data-redis</artifactId>
+            <groupId>org.springframework.data</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>resilience4j-retry</artifactId>
+            <groupId>io.github.resilience4j</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>resilience4j-circuitbreaker</artifactId>
+            <groupId>io.github.resilience4j</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
+
+        <!-- MetricService; services bring it with spring-boot-starter-actuator -->
+        <dependency>
+            <artifactId>micrometer-core</artifactId>
+            <groupId>io.micrometer</groupId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <artifactId>micrometer-core</artifactId>
+            <groupId>io.micrometer</groupId>
+        </dependency>
+        <dependency>
             <artifactId>jboss-logging</artifactId>
+            <groupId>org.jboss.logging</groupId>
         </dependency>
 
     </dependencies>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>rentalert-parent</artifactId>
+        <groupId>com.rentalert</groupId>
+        <relativePath>../../parent/pom.xml</relativePath>
+        <version>${revision}</version>
+    </parent>
 
 </project>

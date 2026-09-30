@@ -1,5 +1,12 @@
 package com.rentalert.ops_ms.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.dto.event.JobExecutionEvent;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.dto.event.job.JobStatus;
@@ -8,13 +15,6 @@ import com.rentalert.ops_ms.mapper.JobSettingMapper;
 import com.rentalert.ops_ms.repository.JobSettingRepository;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class JobSettingServiceImplTests {
 

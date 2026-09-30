@@ -1,5 +1,15 @@
 package com.rentalert.notification_ms.messaging;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.kafka.NonRetryableEventException;
@@ -11,22 +21,16 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.within;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 class NotificationRequestListenerTests {
 
     private static final Duration GRACE = Duration.ofSeconds(30);
 
     private final NotificationService notificationService = mock(NotificationService.class);
     private final NotificationRequestListener listener = new NotificationRequestListener(notificationService, GRACE);
+
+    private static NotificationRequest request(NotificationType type, Instant expiresAt) {
+        return NotificationRequest.builder().userId(42L).type(type).expiresAt(expiresAt).build();
+    }
 
     @Test
     void queuesRequestForImmediateDispatcherPickup() {
@@ -110,9 +114,5 @@ class NotificationRequestListenerTests {
         ArgumentCaptor<Instant> sendAt = ArgumentCaptor.forClass(Instant.class);
         verify(notificationService).enqueue(eq(request), sendAt.capture());
         return sendAt.getValue();
-    }
-
-    private static NotificationRequest request(NotificationType type, Instant expiresAt) {
-        return NotificationRequest.builder().userId(42L).type(type).expiresAt(expiresAt).build();
     }
 }

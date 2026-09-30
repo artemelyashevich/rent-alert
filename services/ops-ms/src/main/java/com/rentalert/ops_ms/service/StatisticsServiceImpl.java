@@ -15,7 +15,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final ZoneId zone;
 
     public StatisticsServiceImpl(UserStatisticsRepository userStatisticsRepository,
-                                 @Value("${app.bot.timezone:Europe/Minsk}") ZoneId zone) {
+        @Value("${app.bot.timezone:Europe/Minsk}") ZoneId zone) {
         this.userStatisticsRepository = userStatisticsRepository;
         this.zone = zone;
     }

@@ -4,11 +4,10 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.springframework.data.jpa.domain.Specification;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
 public final class SpecificationUtil {
 
@@ -89,7 +88,7 @@ public final class SpecificationUtil {
             }
 
             if (predicates.isEmpty()) {
-                return cb.disjunction(); 
+                return cb.disjunction();
             }
             return cb.or(predicates.toArray(new Predicate[0]));
         };

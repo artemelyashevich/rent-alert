@@ -1,5 +1,7 @@
 package com.rentalert.internal.interceptor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.dto.GlobalConstants;
 import com.rentalert.internal.annotation.IgnoreInterceptRequest;
 import feign.Contract;
@@ -16,29 +18,19 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class HeaderPropagationInterceptorTests {
 
     private final HeaderPropagationInterceptor interceptor = new HeaderPropagationInterceptor();
 
-    interface PlainClient {
-        @RequestLine("GET /propagated")
-        void propagated();
-
-        @IgnoreInterceptRequest
-        @RequestLine("GET /ignoreAll")
-        void ignoreAll();
-
-        @IgnoreInterceptRequest(headers = "authorization")
-        @RequestLine("GET /ignoreAuth")
-        void ignoreAuth();
-    }
-
-    @IgnoreInterceptRequest
-    interface IgnoredClient {
-        @RequestLine("GET /x")
-        void call();
+    private static RequestTemplate template(Class<?> type, String methodName) {
+        MethodMetadata metadata = new Contract.Default().parseAndValidateMetadata(type).stream()
+            .filter(md -> md.method().getName().equals(methodName))
+            .findFirst()
+            .orElseThrow();
+        RequestTemplate template = new RequestTemplate();
+        template.methodMetadata(metadata);
+        template.feignTarget(new Target.HardCodedTarget<>(type, "http://identity-ms"));
+        return template;
     }
 
     @BeforeEach
@@ -127,14 +119,24 @@ class HeaderPropagationInterceptorTests {
         assertThat(template.headers()).isEmpty();
     }
 
-    private static RequestTemplate template(Class<?> type, String methodName) {
-        MethodMetadata metadata = new Contract.Default().parseAndValidateMetadata(type).stream()
-                .filter(md -> md.method().getName().equals(methodName))
-                .findFirst()
-                .orElseThrow();
-        RequestTemplate template = new RequestTemplate();
-        template.methodMetadata(metadata);
-        template.feignTarget(new Target.HardCodedTarget<>(type, "http://identity-ms"));
-        return template;
+    interface PlainClient {
+
+        @RequestLine("GET /propagated")
+        void propagated();
+
+        @IgnoreInterceptRequest
+        @RequestLine("GET /ignoreAll")
+        void ignoreAll();
+
+        @IgnoreInterceptRequest(headers = "authorization")
+        @RequestLine("GET /ignoreAuth")
+        void ignoreAuth();
+    }
+
+    @IgnoreInterceptRequest
+    interface IgnoredClient {
+
+        @RequestLine("GET /x")
+        void call();
     }
 }

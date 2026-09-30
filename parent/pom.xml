@@ -1,221 +1,231 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <artifactId>rentalert-parent</artifactId>
 
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.1</version>
-		<relativePath/>
-	</parent>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <artifactId>lombok</artifactId>
+                                <groupId>org.projectlombok</groupId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                    <groupId>org.springframework.boot</groupId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <configuration>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <id>flatten-clean</id>
+                        <phase>clean</phase>
+                    </execution>
+                </executions>
+                <groupId>org.codehaus.mojo</groupId>
+                <version>${flatten-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <artifactId>lombok</artifactId>
+                            <groupId>org.projectlombok</groupId>
+                        </path>
+                        <path>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <groupId>org.projectlombok</groupId>
+                        </path>
+                        <path>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <groupId>org.mapstruct</groupId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+            </plugin>
+        </plugins>
+    </build>
 
-	<groupId>com.rentalert</groupId>
-	<artifactId>rentalert-parent</artifactId>
-	<version>${revision}</version>
-	<packaging>pom</packaging>
+    <dependencies>
 
-	<modules>
-		<module>../libs/common-util</module>
-		<module>../libs/redis-util</module>
-		<module>../libs/dto</module>
-		<module>../libs/internal-integration</module>
-		<module>../libs/kafka-util</module>
-		<module>../services</module>
-		<module>../services/config-server</module>
-		<module>../services/discovery</module>
-		<module>../services/gateway</module>
-		<module>../services/identity-ms</module>
-		<module>../services/notification-ms</module>
-		<module>../services/ops-ms</module>
-		<module>../services/listing-ms</module>
-		<module>../services/processing-ms</module>
-	</modules>
+        <dependency>
+            <artifactId>lombok</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <optional>true</optional>
+        </dependency>
 
-	<properties>
-		<revision>0.0.1-SNAPSHOT</revision>
-		<java.version>21</java.version>
-		<spring-cloud.version>2025.1.3</spring-cloud.version>
-		<flatten-maven-plugin.version>1.8.0</flatten-maven-plugin.version>
-        <springdoc.version>3.1.1</springdoc.version>
-		<org.mapstruct.version>1.6.3</org.mapstruct.version>
-        <jwt.version>0.11.5</jwt.version>
-		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-		<resilience4j.version>2.4.0</resilience4j.version>
-	</properties>
+        <dependency>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <scope>test</scope>
+        </dependency>
 
-	<dependencies>
+    </dependencies>
+    <dependencyManagement>
+        <dependencies>
 
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
             <dependency>
-                <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
+                <groupId>io.jsonwebtoken</groupId>
                 <version>${jwt.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-impl</artifactId>
-                <version>${jwt.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>io.jsonwebtoken</groupId>
-                <artifactId>jjwt-jackson</artifactId>
-                <version>${jwt.version}</version>
                 <scope>runtime</scope>
+                <version>${jwt.version}</version>
             </dependency>
 
             <dependency>
-				<groupId>com.rentalert</groupId>
-				<artifactId>common-util</artifactId>
-				<version>${revision}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.rentalert</groupId>
-				<artifactId>redis-util</artifactId>
-				<version>${revision}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.rentalert</groupId>
-				<artifactId>dto</artifactId>
-				<version>${revision}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.rentalert</groupId>
-				<artifactId>internal-integration</artifactId>
-				<version>${revision}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.rentalert</groupId>
-				<artifactId>kafka-util</artifactId>
-				<version>${revision}</version>
-			</dependency>
+                <artifactId>jjwt-jackson</artifactId>
+                <groupId>io.jsonwebtoken</groupId>
+                <scope>runtime</scope>
+                <version>${jwt.version}</version>
+            </dependency>
+
             <dependency>
-                <groupId>org.springdoc</groupId>
+                <artifactId>common-util</artifactId>
+                <groupId>com.rentalert</groupId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>redis-util</artifactId>
+                <groupId>com.rentalert</groupId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>dto</artifactId>
+                <groupId>com.rentalert</groupId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>internal-integration</artifactId>
+                <groupId>com.rentalert</groupId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>kafka-util</artifactId>
+                <groupId>com.rentalert</groupId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <groupId>org.springdoc</groupId>
                 <version>${springdoc.version}</version>
             </dependency>
-			<dependency>
-				<groupId>org.mapstruct</groupId>
-				<artifactId>mapstruct</artifactId>
-				<version>${org.mapstruct.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.mapstruct</groupId>
-				<artifactId>mapstruct-processor</artifactId>
-				<version>${org.mapstruct.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.projectlombok</groupId>
-				<artifactId>lombok-mapstruct-binding</artifactId>
-				<version>${lombok-mapstruct-binding.version}</version>
-			</dependency>
-			<!-- Must precede spring-cloud-dependencies: the first imported BOM wins -->
-			<dependency>
-				<groupId>io.github.resilience4j</groupId>
-				<artifactId>resilience4j-bom</artifactId>
-				<version>${resilience4j.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<!-- Not listed in resilience4j-bom -->
-			<dependency>
-				<groupId>io.github.resilience4j</groupId>
-				<artifactId>resilience4j-spring-boot4</artifactId>
-				<version>${resilience4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>flatten-maven-plugin</artifactId>
-				<version>${flatten-maven-plugin.version}</version>
-				<configuration>
-					<updatePomFile>true</updatePomFile>
-					<flattenMode>resolveCiFriendliesOnly</flattenMode>
-				</configuration>
-				<executions>
-					<execution>
-						<id>flatten</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>flatten</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>flatten-clean</id>
-						<phase>clean</phase>
-						<goals>
-							<goal>clean</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<!-- Order matters: Lombok generates accessors/builders before MapStruct reads them -->
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok-mapstruct-binding</artifactId>
-						</path>
-						<path>
-							<groupId>org.mapstruct</groupId>
-							<artifactId>mapstruct-processor</artifactId>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<configuration>
-						<excludes>
-							<exclude>
-								<groupId>org.projectlombok</groupId>
-								<artifactId>lombok</artifactId>
-							</exclude>
-						</excludes>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+            <dependency>
+                <artifactId>mapstruct</artifactId>
+                <groupId>org.mapstruct</groupId>
+                <version>${org.mapstruct.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>mapstruct-processor</artifactId>
+                <groupId>org.mapstruct</groupId>
+                <version>${org.mapstruct.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <groupId>org.projectlombok</groupId>
+                <version>${lombok-mapstruct-binding.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>resilience4j-bom</artifactId>
+                <groupId>io.github.resilience4j</groupId>
+                <scope>import</scope>
+                <type>pom</type>
+                <version>${resilience4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>resilience4j-spring-boot4</artifactId>
+                <groupId>io.github.resilience4j</groupId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <groupId>org.springframework.cloud</groupId>
+                <scope>import</scope>
+                <type>pom</type>
+                <version>${spring-cloud.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+    <groupId>com.rentalert</groupId>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>../libs/common-util</module>
+        <module>../libs/redis-util</module>
+        <module>../libs/dto</module>
+        <module>../libs/internal-integration</module>
+        <module>../libs/kafka-util</module>
+        <module>../services</module>
+        <module>../services/config-server</module>
+        <module>../services/discovery</module>
+        <module>../services/gateway</module>
+        <module>../services/identity-ms</module>
+        <module>../services/notification-ms</module>
+        <module>../services/ops-ms</module>
+        <module>../services/listing-ms</module>
+        <module>../services/processing-ms</module>
+    </modules>
+
+    <packaging>pom</packaging>
+
+    <parent>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <relativePath/>
+        <version>4.1.1</version>
+    </parent>
+
+    <properties>
+        <flatten-maven-plugin.version>1.8.0</flatten-maven-plugin.version>
+        <java.version>21</java.version>
+        <jwt.version>0.11.5</jwt.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <org.mapstruct.version>1.6.3</org.mapstruct.version>
+        <resilience4j.version>2.4.0</resilience4j.version>
+        <revision>0.0.1-SNAPSHOT</revision>
+        <spring-cloud.version>2025.1.3</spring-cloud.version>
+        <springdoc.version>3.1.1</springdoc.version>
+    </properties>
+
+    <version>${revision}</version>
 
 </project>

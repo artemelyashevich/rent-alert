@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "app.ip-rate-limit")
 public class IpRateLimitProperties {
+
     private boolean enabled = true;
     private int maxRequestsWithoutToken = 30;
     private long windowSeconds = 60;

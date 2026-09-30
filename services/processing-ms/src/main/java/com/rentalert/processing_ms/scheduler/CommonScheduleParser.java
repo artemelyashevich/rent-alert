@@ -1,23 +1,22 @@
 package com.rentalert.processing_ms.scheduler;
 
 import com.rentalert.common.service.LockService;
-import com.rentalert.processing_ms.service.SchedulerSettingsService;
 import com.rentalert.dto.GlobalConstants;
 import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.dto.listing.SchedulerSettingsResponse;
-import java.util.concurrent.ScheduledExecutorService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
+import com.rentalert.processing_ms.service.SchedulerSettingsService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Profile("!local")

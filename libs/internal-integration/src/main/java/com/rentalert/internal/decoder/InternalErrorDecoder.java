@@ -18,12 +18,6 @@ import org.springframework.http.HttpHeaders;
 @Slf4j
 public class InternalErrorDecoder implements ErrorDecoder {
 
-    @Override
-    public Exception decode(String methodKey, Response response) {
-        String message = "%s returned %d: %s".formatted(methodKey, response.status(), readMessage(response));
-        return new UpstreamHttpException(message, response.status(), parseRetryAfter(response));
-    }
-
     private static String readMessage(Response response) {
         if (response.body() == null) {
             return response.reason();
@@ -31,7 +25,7 @@ public class InternalErrorDecoder implements ErrorDecoder {
         try (InputStream body = response.body().asInputStream()) {
             String raw = Util.toString(new InputStreamReader(body, StandardCharsets.UTF_8));
             if (JsonHelper.fromJson(raw, ExceptionBody.class) instanceof ExceptionBody exceptionBody
-                    && exceptionBody.getMessage() != null) {
+                && exceptionBody.getMessage() != null) {
                 return exceptionBody.getMessage();
             }
             return raw;
@@ -51,5 +45,11 @@ public class InternalErrorDecoder implements ErrorDecoder {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    @Override
+    public Exception decode(String methodKey, Response response) {
+        String message = "%s returned %d: %s".formatted(methodKey, response.status(), readMessage(response));
+        return new UpstreamHttpException(message, response.status(), parseRetryAfter(response));
     }
 }

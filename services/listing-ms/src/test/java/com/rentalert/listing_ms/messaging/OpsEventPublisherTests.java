@@ -1,5 +1,10 @@
 package com.rentalert.listing_ms.messaging;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import com.rentalert.dto.event.EventStatus;
 import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.UserActionEvent;
@@ -7,11 +12,6 @@ import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class OpsEventPublisherTests {
 

@@ -1,10 +1,8 @@
 package com.rentalert.processing_ms.config;
 
 import com.rentalert.common.interceptor.OutgoingRequestLoggingInterceptor;
-import com.rentalert.common.service.LockService;
 import com.rentalert.common.service.MetricService;
 import com.rentalert.common.service.RestService;
-import com.rentalert.common.service.impl.RedisLockServiceImpl;
 import com.rentalert.common.service.impl.RestServiceImpl;
 import com.rentalert.dto.GlobalConstants;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -16,7 +14,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestClient;
@@ -55,11 +52,6 @@ public class BeanConfiguration {
             .requestFactory(requestFactory)
             .requestInterceptor(new OutgoingRequestLoggingInterceptor())
             .build());
-    }
-
-    @Bean
-    public LockService lockService(StringRedisTemplate stringRedisTemplate) {
-        return new RedisLockServiceImpl(stringRedisTemplate);
     }
 
     @Bean

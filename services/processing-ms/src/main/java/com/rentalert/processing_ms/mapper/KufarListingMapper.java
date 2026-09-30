@@ -1,10 +1,10 @@
 package com.rentalert.processing_ms.mapper;
 
+import com.rentalert.dto.GlobalConstants;
+import com.rentalert.dto.currency.Currency;
 import com.rentalert.processing_ms.domain.Listing;
 import com.rentalert.processing_ms.dto.KufarAdsResponseDto;
 import com.rentalert.processing_ms.dto.KufarAdsResponseDto.ImageDto;
-import com.rentalert.dto.GlobalConstants;
-import com.rentalert.dto.currency.Currency;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -22,9 +22,9 @@ import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(
-        componentModel = MappingConstants.ComponentModel.SPRING,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        imports = {com.rentalert.dto.listing.ScheduleProvider.class}
+    componentModel = MappingConstants.ComponentModel.SPRING,
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    imports = {com.rentalert.dto.listing.ScheduleProvider.class}
 )
 public interface KufarListingMapper {
 
@@ -64,20 +64,20 @@ public interface KufarListingMapper {
     }
 
     default String getParameterValue(
-            List<KufarAdsResponseDto.ParameterDto> params,
-            String code
+        List<KufarAdsResponseDto.ParameterDto> params,
+        String code
     ) {
         if (params == null) {
             return null;
         }
 
         return params.stream()
-                .filter(p -> code.equalsIgnoreCase(p.getP()))
-                .map(KufarAdsResponseDto.ParameterDto::getV)
-                .filter(Objects::nonNull)
-                .map(this::extractValue)
-                .findFirst()
-                .orElse(null);
+            .filter(p -> code.equalsIgnoreCase(p.getP()))
+            .map(KufarAdsResponseDto.ParameterDto::getV)
+            .filter(Objects::nonNull)
+            .map(this::extractValue)
+            .findFirst()
+            .orElse(null);
     }
 
     default String extractValue(Object value) {
@@ -132,10 +132,10 @@ public interface KufarListingMapper {
         }
 
         Object value = params.stream()
-                .filter(p -> "size".equalsIgnoreCase(p.getP()))
-                .map(KufarAdsResponseDto.ParameterDto::getV)
-                .findFirst()
-                .orElse(null);
+            .filter(p -> "size".equalsIgnoreCase(p.getP()))
+            .map(KufarAdsResponseDto.ParameterDto::getV)
+            .findFirst()
+            .orElse(null);
 
         return parseFloatSafe(value);
     }
@@ -148,13 +148,13 @@ public interface KufarListingMapper {
         }
 
         Object value = params.stream()
-                .filter(p -> "size_living_space".equalsIgnoreCase(p.getP()) ||
-                        "room_size".equalsIgnoreCase(p.getP()) || "komn_size".equalsIgnoreCase(p.getP()) ||
-                        "living_area".equalsIgnoreCase(p.getP()) || "room_area".equalsIgnoreCase(p.getP()) ||
-                        "s_komn".equalsIgnoreCase(p.getP()) || "living_space".equalsIgnoreCase(p.getP()))
-                .map(KufarAdsResponseDto.ParameterDto::getV)
-                .findFirst()
-                .orElse(null);
+            .filter(p -> "size_living_space".equalsIgnoreCase(p.getP()) ||
+                "room_size".equalsIgnoreCase(p.getP()) || "komn_size".equalsIgnoreCase(p.getP()) ||
+                "living_area".equalsIgnoreCase(p.getP()) || "room_area".equalsIgnoreCase(p.getP()) ||
+                "s_komn".equalsIgnoreCase(p.getP()) || "living_space".equalsIgnoreCase(p.getP()))
+            .map(KufarAdsResponseDto.ParameterDto::getV)
+            .findFirst()
+            .orElse(null);
 
         return parseFloatSafe(value);
     }
@@ -180,8 +180,8 @@ public interface KufarListingMapper {
     }
 
     default Integer getIntegerParameter(
-            List<KufarAdsResponseDto.ParameterDto> params,
-            String code
+        List<KufarAdsResponseDto.ParameterDto> params,
+        String code
     ) {
         Object value = getParameter(params, code);
 
@@ -206,9 +206,9 @@ public interface KufarListingMapper {
         }
 
         String str = value.toString()
-                .replace("[", "")
-                .replace("]", "")
-                .trim();
+            .replace("[", "")
+            .replace("]", "")
+            .trim();
 
         if (str.isEmpty()) {
             return null;
@@ -226,14 +226,18 @@ public interface KufarListingMapper {
     }
 
     private Float parseFloatSafe(Object value) {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
 
         String str = value.toString()
-                .replace("[", "")
-                .replace("]", "")
-                .trim();
+            .replace("[", "")
+            .replace("]", "")
+            .trim();
 
-        if (str.isEmpty()) return null;
+        if (str.isEmpty()) {
+            return null;
+        }
 
         try {
             return Float.valueOf(str);
@@ -243,18 +247,18 @@ public interface KufarListingMapper {
     }
 
     default Object getParameter(
-            List<KufarAdsResponseDto.ParameterDto> params,
-            String code
+        List<KufarAdsResponseDto.ParameterDto> params,
+        String code
     ) {
         if (params == null) {
             return null;
         }
 
         return params.stream()
-                .filter(p -> code.equalsIgnoreCase(p.getP()))
-                .map(KufarAdsResponseDto.ParameterDto::getVl)
-                .findFirst()
-                .orElse(null);
+            .filter(p -> code.equalsIgnoreCase(p.getP()))
+            .map(KufarAdsResponseDto.ParameterDto::getVl)
+            .findFirst()
+            .orElse(null);
     }
 
     @Named("toInstant")

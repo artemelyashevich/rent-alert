@@ -12,4 +12,5 @@ public record UserProfileResponse(
     String email, String phoneNumber, ColorTheme colorTheme, SupportedLanguage language,
     List<UserFilterResponse> activeFilters, List<FeedbackResponse> recentFeedbacks
 ) {
+
 }

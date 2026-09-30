@@ -19,6 +19,7 @@ public class OnlinerAdsResponseDto {
     @Setter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ApartmentDto {
+
         private Long id;
         private Price price;
         @JsonProperty("rent_type")
@@ -43,6 +44,7 @@ public class OnlinerAdsResponseDto {
     @Setter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Price {
+
         private BigDecimal amount;
         private String currency;
         private Converted converted;
@@ -76,6 +78,7 @@ public class OnlinerAdsResponseDto {
     @Setter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Converted {
+
         @JsonProperty("BYN")
         private Amount byn;
         @JsonProperty("USD")
@@ -86,6 +89,7 @@ public class OnlinerAdsResponseDto {
     @Setter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Amount {
+
         private BigDecimal amount;
         private String currency;
     }
@@ -94,6 +98,7 @@ public class OnlinerAdsResponseDto {
     @Setter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Location {
+
         private String address;
         @JsonProperty("user_address")
         private String userAddress;
@@ -105,6 +110,7 @@ public class OnlinerAdsResponseDto {
     @Setter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Contact {
+
         private Boolean owner;
     }
 }

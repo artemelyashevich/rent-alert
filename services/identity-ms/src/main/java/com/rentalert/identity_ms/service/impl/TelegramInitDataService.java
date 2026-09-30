@@ -1,21 +1,20 @@
 package com.rentalert.identity_ms.service.impl;
 
-import tools.jackson.databind.ObjectMapper;
 import com.rentalert.common.exception.AuthException;
-import com.rentalert.identity_ms.config.ApplicationProperties;
 import com.rentalert.dto.profile.TelegramUser;
+import com.rentalert.identity_ms.config.ApplicationProperties;
 import com.rentalert.identity_ms.service.TelegramInitDataParser;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 
 @Service
@@ -50,7 +49,9 @@ public class TelegramInitDataService implements TelegramInitDataParser {
         String[] pairs = initData.split("&");
         for (String pair : pairs) {
             int eq = pair.indexOf('=');
-            if (eq < 0) continue;
+            if (eq < 0) {
+                continue;
+            }
             String key = URLDecoder.decode(pair.substring(0, eq), StandardCharsets.UTF_8);
             String value = URLDecoder.decode(pair.substring(eq + 1), StandardCharsets.UTF_8);
             params.put(key, value);
@@ -68,16 +69,16 @@ public class TelegramInitDataService implements TelegramInitDataParser {
 
     private String buildDataCheckString(Map<String, String> params) {
         return params.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .reduce((a, b) -> a + "\n" + b)
-                .orElseThrow(() -> new AuthException("initData has no verifiable fields"));
+            .sorted(Map.Entry.comparingByKey())
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .reduce((a, b) -> a + "\n" + b)
+            .orElseThrow(() -> new AuthException("initData has no verifiable fields"));
     }
 
     private String calculateHash(String dataCheckString) {
         try {
             byte[] botTokenBytes = appProperties.getTelegram().getBotToken()
-                    .getBytes(StandardCharsets.UTF_8);
+                .getBytes(StandardCharsets.UTF_8);
             byte[] secretKey = hmac(botTokenBytes, WEBAPP_DATA.getBytes(StandardCharsets.UTF_8));
             byte[] hashBytes = hmac(dataCheckString.getBytes(StandardCharsets.UTF_8), secretKey);
             return HexFormat.of().formatHex(hashBytes);
@@ -93,7 +94,9 @@ public class TelegramInitDataService implements TelegramInitDataParser {
     }
 
     private boolean constantTimeEquals(String a, String b) {
-        if (a.length() != b.length()) return false;
+        if (a.length() != b.length()) {
+            return false;
+        }
         int result = 0;
         for (int i = 0; i < a.length(); i++) {
             result |= a.charAt(i) ^ b.charAt(i);
@@ -116,7 +119,7 @@ public class TelegramInitDataService implements TelegramInitDataParser {
         long ttl = appProperties.getTelegram().getAuthDateTtlSeconds();
         if (age > ttl) {
             throw new AuthException(
-                    "initData is expired (age=" + age + "s, ttl=" + ttl + "s)");
+                "initData is expired (age=" + age + "s, ttl=" + ttl + "s)");
         }
     }
 

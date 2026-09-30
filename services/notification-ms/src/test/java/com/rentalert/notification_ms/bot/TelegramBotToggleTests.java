@@ -1,11 +1,11 @@
 package com.rentalert.notification_ms.bot;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.notification_ms.config.TelegramBotConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class TelegramBotToggleTests {
 

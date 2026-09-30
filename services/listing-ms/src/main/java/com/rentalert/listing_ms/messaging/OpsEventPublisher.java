@@ -12,8 +12,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Sends user actions to ops-ms through the transactional outbox: the event is stored in the same transaction
- * as the business change, so it is delivered only if that change is committed.
+ * Sends user actions to ops-ms through the transactional outbox: the event is stored in the same transaction as the business change, so it is delivered only if that change is committed.
  */
 @Component
 @RequiredArgsConstructor

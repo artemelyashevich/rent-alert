@@ -12,6 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TelegramCreateMessage {
+
     private String chatId;
 
     private String telegramId;

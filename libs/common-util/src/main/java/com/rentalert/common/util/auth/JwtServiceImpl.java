@@ -22,11 +22,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JwtServiceImpl implements JwtService {
 
+    private static final long MINIMUM_TOKEN_LIFETIME_SECONDS = 5 * 60;
     private final AuthProperties authProperties;
     private final SecretKey accessSecretKey;
     private final SecretKey refreshSecretKey;
-
-    private static final long MINIMUM_TOKEN_LIFETIME_SECONDS = 5 * 60;
 
     public JwtServiceImpl(AuthProperties authProperties) {
         this.authProperties = authProperties;

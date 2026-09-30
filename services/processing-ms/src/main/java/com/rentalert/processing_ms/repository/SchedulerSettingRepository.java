@@ -1,11 +1,10 @@
 package com.rentalert.processing_ms.repository;
 
-import com.rentalert.processing_ms.domain.SchedulerSettings;
 import com.rentalert.dto.listing.ScheduleProvider;
+import com.rentalert.processing_ms.domain.SchedulerSettings;
+import java.util.Optional;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.Optional;
 
 public interface SchedulerSettingRepository extends JpaRepository<@NonNull SchedulerSettings, @NonNull Long> {
 

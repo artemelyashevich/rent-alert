@@ -1,9 +1,8 @@
 package com.rentalert.notification_ms.domain;
 
-import com.rentalert.dto.notification.ReminderStatus;
-
 import com.rentalert.common.util.jpa.AbstractEntity;
 import com.rentalert.dto.notification.ReminderIntervalType;
+import com.rentalert.dto.notification.ReminderStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -25,6 +24,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "reminders")
 public class Reminder extends AbstractEntity {
+
     private Long userId;
 
     private Long listingId;

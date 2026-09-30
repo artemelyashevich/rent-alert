@@ -27,35 +27,35 @@ public interface UserFilterRepository extends JpaRepository<@NonNull UserFilter,
 
     @EntityGraph(attributePaths = {"userProfile", "userProfile.settings"})
     @Query("""
-            select uf
-            from UserFilter uf
-            where uf.active = true
-              and uf.currency = :currency
-              and (
-                  (uf.priceFrom is null and uf.priceTo is null)
-                  or cast(:price as Integer) is null
-                  or (
-                      (uf.priceFrom is null or uf.priceFrom <= :price)
-                      and (uf.priceTo is null or uf.priceTo >= :price)
-                  )
+        select uf
+        from UserFilter uf
+        where uf.active = true
+          and uf.currency = :currency
+          and (
+              (uf.priceFrom is null and uf.priceTo is null)
+              or cast(:price as Integer) is null
+              or (
+                  (uf.priceFrom is null or uf.priceFrom <= :price)
+                  and (uf.priceTo is null or uf.priceTo >= :price)
               )
-              and (
-                  (uf.roomsFrom is null and uf.roomsTo is null)
-                  or cast(:rooms as Integer) is null
-                  or (
-                      (uf.roomsFrom is null or uf.roomsFrom <= :rooms)
-                      and (uf.roomsTo is null or uf.roomsTo >= :rooms)
-                  )
+          )
+          and (
+              (uf.roomsFrom is null and uf.roomsTo is null)
+              or cast(:rooms as Integer) is null
+              or (
+                  (uf.roomsFrom is null or uf.roomsFrom <= :rooms)
+                  and (uf.roomsTo is null or uf.roomsTo >= :rooms)
               )
-              and (
-                  (uf.areaFrom is null and uf.areaTo is null)
-                  or cast(:area as Float) is null
-                  or (
-                      (uf.areaFrom is null or uf.areaFrom <= :area)
-                      and (uf.areaTo is null or uf.areaTo >= :area)
-                  )
+          )
+          and (
+              (uf.areaFrom is null and uf.areaTo is null)
+              or cast(:area as Float) is null
+              or (
+                  (uf.areaFrom is null or uf.areaFrom <= :area)
+                  and (uf.areaTo is null or uf.areaTo >= :area)
               )
-            """)
+          )
+        """)
     List<UserFilter> findMatchingFilters(
         @Param("price") Integer price,
         @Param("rooms") Integer rooms,
@@ -64,29 +64,29 @@ public interface UserFilterRepository extends JpaRepository<@NonNull UserFilter,
 
     @EntityGraph(attributePaths = {"userProfile", "userProfile.settings"})
     @Query("""
-            select uf
-            from UserFilter uf
-            where uf.active = true
-              and uf.userProfile is not null
-              and (uf.category is null or uf.category = :category)
-              and (cast(:city as String) is null or lower(uf.city) = lower(:city))
-              and (
-                  (uf.roomsFrom is null and uf.roomsTo is null)
-                  or cast(:rooms as Integer) is null
-                  or (
-                      (uf.roomsFrom is null or uf.roomsFrom <= :rooms)
-                      and (uf.roomsTo is null or uf.roomsTo >= :rooms)
-                  )
+        select uf
+        from UserFilter uf
+        where uf.active = true
+          and uf.userProfile is not null
+          and (uf.category is null or uf.category = :category)
+          and (cast(:city as String) is null or lower(uf.city) = lower(:city))
+          and (
+              (uf.roomsFrom is null and uf.roomsTo is null)
+              or cast(:rooms as Integer) is null
+              or (
+                  (uf.roomsFrom is null or uf.roomsFrom <= :rooms)
+                  and (uf.roomsTo is null or uf.roomsTo >= :rooms)
               )
-              and (
-                  (uf.areaFrom is null and uf.areaTo is null)
-                  or cast(:area as Float) is null
-                  or (
-                      (uf.areaFrom is null or uf.areaFrom <= :area)
-                      and (uf.areaTo is null or uf.areaTo >= :area)
-                  )
+          )
+          and (
+              (uf.areaFrom is null and uf.areaTo is null)
+              or cast(:area as Float) is null
+              or (
+                  (uf.areaFrom is null or uf.areaFrom <= :area)
+                  and (uf.areaTo is null or uf.areaTo >= :area)
               )
-            """)
+          )
+        """)
     List<UserFilter> findActiveFiltersByRoomsAndArea(
         @Param("rooms") Integer rooms,
         @Param("area") Float area,

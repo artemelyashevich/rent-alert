@@ -17,6 +17,18 @@ import org.mapstruct.ReportingPolicy;
 )
 public interface AuditLogMapper {
 
+    // A producer sending fewer params than the template expects must not lose the audit entry
+    private static String describe(String template, List<String> params) {
+        if (params == null || params.isEmpty()) {
+            return template;
+        }
+        try {
+            return template.formatted(params.toArray());
+        } catch (IllegalFormatException e) {
+            return template + " " + params;
+        }
+    }
+
     AuditLogResponse toResponse(AuditLog auditLog);
 
     default AuditLog toEntity(AdminActionEvent event) {
@@ -44,17 +56,5 @@ public interface AuditLogMapper {
             .eventInitiator(event.getEventType())
             .eventStatus(event.getEventStatus() == null ? EventStatus.SUCCESS : event.getEventStatus())
             .build();
-    }
-
-    // A producer sending fewer params than the template expects must not lose the audit entry
-    private static String describe(String template, List<String> params) {
-        if (params == null || params.isEmpty()) {
-            return template;
-        }
-        try {
-            return template.formatted(params.toArray());
-        } catch (IllegalFormatException e) {
-            return template + " " + params;
-        }
     }
 }

@@ -1,23 +1,5 @@
 package com.rentalert.listing_ms.service;
 
-import com.rentalert.dto.event.listing.ListingCreatedEvent;
-import com.rentalert.dto.listing.ScheduleProvider;
-import com.rentalert.listing_ms.domain.Listing;
-import com.rentalert.listing_ms.mapper.ListingEventMapper;
-import com.rentalert.listing_ms.mapper.ListingMapper;
-import com.rentalert.listing_ms.repository.ListingRepository;
-import com.rentalert.listing_ms.service.impl.ListingServiceImpl;
-import com.rentalert.redis.service.UserSessionService;
-import com.rentalert.common.exception.NoActiveFiltersException;
-import com.rentalert.dto.user.UserSession;
-import com.rentalert.internal.client.service.IdentityMsService;
-import java.util.Optional;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import java.util.List;
-import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +8,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.rentalert.common.exception.NoActiveFiltersException;
+import com.rentalert.dto.event.listing.ListingCreatedEvent;
+import com.rentalert.dto.listing.ScheduleProvider;
+import com.rentalert.dto.user.UserSession;
+import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.listing_ms.domain.Listing;
+import com.rentalert.listing_ms.mapper.ListingEventMapper;
+import com.rentalert.listing_ms.mapper.ListingMapper;
+import com.rentalert.listing_ms.repository.ListingRepository;
+import com.rentalert.listing_ms.service.impl.ListingServiceImpl;
+import com.rentalert.redis.service.UserSessionService;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 class ListingServiceImplTests {
 

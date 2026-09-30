@@ -3,13 +3,6 @@ package com.rentalert.listing_ms.service.impl;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.common.exception.NoActiveFiltersException;
-import com.rentalert.listing_ms.domain.Listing;
-import com.rentalert.listing_ms.mapper.ListingEventMapper;
-import com.rentalert.listing_ms.mapper.ListingMapper;
-import com.rentalert.listing_ms.repository.ListingRepository;
-import com.rentalert.listing_ms.repository.ListingSpecification;
-import com.rentalert.listing_ms.service.CurrencyRateService;
-import com.rentalert.listing_ms.service.ListingService;
 import com.rentalert.dto.event.listing.ListingCreatedEvent;
 import com.rentalert.dto.listing.ListingCategory;
 import com.rentalert.dto.listing.ListingDto;
@@ -17,7 +10,18 @@ import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.dto.user.UserSession;
 import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.listing_ms.domain.Listing;
+import com.rentalert.listing_ms.mapper.ListingEventMapper;
+import com.rentalert.listing_ms.mapper.ListingMapper;
+import com.rentalert.listing_ms.repository.ListingRepository;
+import com.rentalert.listing_ms.repository.ListingSpecification;
+import com.rentalert.listing_ms.service.CurrencyRateService;
+import com.rentalert.listing_ms.service.ListingService;
 import com.rentalert.redis.service.UserSessionService;
+import java.time.Instant;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,11 +31,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -61,8 +60,8 @@ public class ListingServiceImpl implements ListingService {
 
         if (sources != null && !sources.isEmpty()) {
             providers = sources.stream()
-                    .map(ScheduleProvider::getScheduleProvider)
-                    .collect(Collectors.toSet());
+                .map(ScheduleProvider::getScheduleProvider)
+                .collect(Collectors.toSet());
         }
 
         Specification<Listing> spec = Specification.where(ListingSpecification.hasSources(providers))

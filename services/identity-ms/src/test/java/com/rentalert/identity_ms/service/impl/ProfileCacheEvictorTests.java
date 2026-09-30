@@ -1,5 +1,10 @@
 package com.rentalert.identity_ms.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
 import java.time.Duration;
@@ -7,11 +12,6 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.scheduling.TaskScheduler;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class ProfileCacheEvictorTests {
 

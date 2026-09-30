@@ -1,20 +1,5 @@
 package com.rentalert.notification_ms.service.strategy;
 
-import com.rentalert.common.exception.AppException;
-import com.rentalert.common.exception.AppRateLimitException;
-import com.rentalert.dto.notification.NotificationDto;
-import com.rentalert.notification_ms.config.ApplicationProperties;
-import com.rentalert.notification_ms.messaging.UserEventPublisher;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClient;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.allOf;
@@ -30,12 +15,38 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import com.rentalert.common.exception.AppException;
+import com.rentalert.common.exception.AppRateLimitException;
+import com.rentalert.dto.notification.NotificationDto;
+import com.rentalert.notification_ms.config.ApplicationProperties;
+import com.rentalert.notification_ms.service.BotBlockedService;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
+
 class TelegramNotificationStrategiesTests {
 
+    private final BotBlockedService botBlockedService = mock(BotBlockedService.class);
     private MockRestServiceServer server;
     private TelegramAdminNotificationStrategy adminStrategy;
     private TelegramBotNotificationStrategy botStrategy;
-    private final UserEventPublisher userEventPublisher = mock(UserEventPublisher.class);
+
+    private static NotificationDto dto(String content, String receiver) {
+        NotificationDto dto = new NotificationDto();
+        dto.setContent(content);
+        dto.setReceiver(receiver);
+        return dto;
+    }
+
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
 
     @BeforeEach
     void setUp() {
@@ -48,7 +59,7 @@ class TelegramNotificationStrategiesTests {
         server = MockRestServiceServer.bindTo(builder).build();
         TelegramSendMessageClient client = new TelegramSendMessageClient(properties, builder.build());
         adminStrategy = new TelegramAdminNotificationStrategy(properties, client);
-        botStrategy = new TelegramBotNotificationStrategy(properties, client, userEventPublisher);
+        botStrategy = new TelegramBotNotificationStrategy(properties, client, botBlockedService);
     }
 
     @Test
@@ -91,7 +102,7 @@ class TelegramNotificationStrategiesTests {
         assertThatThrownBy(() -> botStrategy.sendNotification(dto))
             .isInstanceOfSatisfying(AppException.class,
                 e -> assertThat(e.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN));
-        verify(userEventPublisher).publishBotBlocked(42L);
+        verify(botBlockedService).handle(42L);
     }
 
     @Test
@@ -104,17 +115,6 @@ class TelegramNotificationStrategiesTests {
         assertThatThrownBy(() -> botStrategy.sendNotification(dto("New listing", "12345")))
             .isInstanceOfSatisfying(AppRateLimitException.class,
                 e -> assertThat(e.getRetryAfterSeconds()).isEqualTo(17L));
-        verify(userEventPublisher, never()).publishBotBlocked(any());
-    }
-
-    private static NotificationDto dto(String content, String receiver) {
-        NotificationDto dto = new NotificationDto();
-        dto.setContent(content);
-        dto.setReceiver(receiver);
-        return dto;
-    }
-
-    private static String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        verify(botBlockedService, never()).handle(any());
     }
 }

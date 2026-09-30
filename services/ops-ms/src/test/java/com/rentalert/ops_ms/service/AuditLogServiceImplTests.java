@@ -1,5 +1,12 @@
 package com.rentalert.ops_ms.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.dto.event.AdminActionEvent;
 import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.admin.AdminEvent;
@@ -9,13 +16,6 @@ import com.rentalert.ops_ms.mapper.AuditLogMapper;
 import com.rentalert.ops_ms.repository.AuditLogRepository;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class AuditLogServiceImplTests {
 

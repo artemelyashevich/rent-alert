@@ -8,4 +8,5 @@ public record FrankfurterRateResponse(
     String quote,
     BigDecimal rate
 ) {
+
 }

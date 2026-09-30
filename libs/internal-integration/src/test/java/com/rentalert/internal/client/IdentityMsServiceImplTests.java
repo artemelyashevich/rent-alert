@@ -1,20 +1,5 @@
 package com.rentalert.internal.client;
 
-import com.rentalert.common.exception.UpstreamHttpException;
-import com.rentalert.dto.profile.UserProfileResponse;
-import com.rentalert.dto.profile.filter.UserFilterResponse;
-import com.rentalert.redis.dto.CacheType;
-import com.rentalert.redis.service.CacheService;
-import java.util.Optional;
-import com.rentalert.internal.client.service.IdentityMsService;
-import com.rentalert.internal.client.service.IdentityMsServiceImpl;
-import com.rentalert.internal.resilience.RetryableExceptionPredicate;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.retry.RetryConfig;
-import io.github.resilience4j.retry.RetryRegistry;
-import java.time.Duration;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +9,21 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.rentalert.common.exception.UpstreamHttpException;
+import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.filter.UserFilterResponse;
+import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.internal.client.service.impl.IdentityMsServiceImpl;
+import com.rentalert.internal.resilience.RetryableExceptionPredicate;
+import com.rentalert.redis.dto.CacheType;
+import com.rentalert.redis.service.CacheService;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
+import java.time.Duration;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 
 class IdentityMsServiceImplTests {
 

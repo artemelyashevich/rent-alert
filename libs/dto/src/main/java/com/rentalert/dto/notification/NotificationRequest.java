@@ -7,13 +7,13 @@ import java.util.UUID;
 import lombok.Builder;
 
 /**
- * A request to notify a user, sent to {@link KafkaTopics#notificationRequests(NotificationType)} with key = userId.
- * Notification picks the channels, renders the template for {@code type} and delivers.
+ * A request to notify a user, sent to {@link KafkaTopics#notificationRequests(NotificationType)} with key = userId. Notification picks the channels, renders the template for {@code type} and
+ * delivers.
  *
- * @param requestId        idempotency of the Kafka delivery: a redelivered request is ignored
+ * @param requestId idempotency of the Kafka delivery: a redelivered request is ignored
  * @param deduplicationKey business deduplication, e.g. {@code listing:123:user:42}: sent once per channel
- * @param expiresAt        a request still undelivered after this moment is dropped (email codes)
- * @param sendAt           not delivered before this moment (the user's quiet hours); null sends right away
+ * @param expiresAt a request still undelivered after this moment is dropped (email codes)
+ * @param sendAt not delivered before this moment (the user's quiet hours); null sends right away
  */
 @Builder
 public record NotificationRequest(
@@ -36,9 +36,9 @@ public record NotificationRequest(
     }
 
     /**
-     * Addresses at the time of the request, encrypted with the shared {@code app.crypto.aes-key}.
-     * Not needed for admin notifications: the admin chat comes from notification's own settings.
+     * Addresses at the time of the request, encrypted with the shared {@code app.crypto.aes-key}. Not needed for admin notifications: the admin chat comes from notification's own settings.
      */
     public record Receiver(String telegramIdEnc, String emailEnc) {
+
     }
 }

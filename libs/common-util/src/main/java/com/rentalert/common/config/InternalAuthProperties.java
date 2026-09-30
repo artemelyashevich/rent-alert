@@ -9,6 +9,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.internal")
 public class InternalAuthProperties {
 
-    /** Shared secret of service-to-service calls. When empty, every internal request is rejected. */
     private String token;
 }

@@ -1,13 +1,13 @@
 package com.rentalert.identity_ms.messaging;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
 import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.identity_ms.service.BotStatusService;
 import org.junit.jupiter.api.Test;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 class UserEventListenerTests {
 

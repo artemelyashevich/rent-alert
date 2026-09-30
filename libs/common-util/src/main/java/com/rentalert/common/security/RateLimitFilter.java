@@ -1,7 +1,7 @@
 package com.rentalert.common.security;
 
-import com.rentalert.common.common.I18nService;
 import com.rentalert.common.exception.ExceptionBody;
+import com.rentalert.common.i18n.I18nService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,11 +34,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String ip = resolveClientIp(request);
         if (ipAccessGuard.isRateLimited(ip)) {
             log.debug("[RATE LIMIT] Rejected {} {} from {}", request.getMethod(), request.getRequestURI(), ip);
@@ -59,9 +55,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private void writeTooManyRequestsResponse(HttpServletResponse response) throws IOException {
         String message = i18nService.getErrorMessage("ERROR_RATE_LIMITED");
         ExceptionBody body = ExceptionBody.builder()
-                .message(message)
-                .details(Map.of("errorCode", "RATE_LIMITED"))
-                .build();
+            .message(message)
+            .details(Map.of("errorCode", "RATE_LIMITED"))
+            .build();
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

@@ -24,18 +24,18 @@ public class HttpClientConfiguration {
 
     @Bean
     public PoolingHttpClientConnectionManager poolingConnectionManager(
-            HttpClientProperties properties
+        HttpClientProperties properties
     ) {
         SocketConfig socketConfig = SocketConfig.custom()
-                .setSoTimeout(Timeout.ofMilliseconds(properties.getReadTimeoutMs()))
-                .build();
+            .setSoTimeout(Timeout.ofMilliseconds(properties.getReadTimeoutMs()))
+            .build();
         return PoolingHttpClientConnectionManagerBuilder.create()
-                .setMaxConnTotal(properties.getMaxConnections())
-                .setMaxConnPerRoute(properties.getMaxConnectionsPerRoute())
-                .setConnectionTimeToLive(TimeValue.ofMinutes(properties.getConnectionTtlMinutes()))
-                .setValidateAfterInactivity(TimeValue.ofSeconds(properties.getValidateAfterInactivitySeconds()))
-                .setDefaultSocketConfig(socketConfig)
-                .build();
+            .setMaxConnTotal(properties.getMaxConnections())
+            .setMaxConnPerRoute(properties.getMaxConnectionsPerRoute())
+            .setConnectionTimeToLive(TimeValue.ofMinutes(properties.getConnectionTtlMinutes()))
+            .setValidateAfterInactivity(TimeValue.ofSeconds(properties.getValidateAfterInactivitySeconds()))
+            .setDefaultSocketConfig(socketConfig)
+            .build();
     }
 
     @Bean
@@ -48,7 +48,7 @@ public class HttpClientConfiguration {
                 if ("timeout".equalsIgnoreCase(element.getName()) && element.getValue() != null) {
                     try {
                         return TimeValue.ofSeconds(
-                                Long.parseLong(element.getValue())
+                            Long.parseLong(element.getValue())
                         );
                     } catch (NumberFormatException ignored) {
                     }
@@ -60,65 +60,65 @@ public class HttpClientConfiguration {
 
     @Bean
     public CloseableHttpClient apacheHttpClient(
-            PoolingHttpClientConnectionManager connectionManager,
-            ConnectionKeepAliveStrategy keepAliveStrategy,
-            HttpClientProperties properties
+        PoolingHttpClientConnectionManager connectionManager,
+        ConnectionKeepAliveStrategy keepAliveStrategy,
+        HttpClientProperties properties
     ) {
 
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectionRequestTimeout(Timeout.ofMilliseconds(properties.getConnectionRequestTimeoutMs()))
-                .setConnectTimeout(Timeout.ofMilliseconds(properties.getConnectTimeoutMs()))
-                .setResponseTimeout(Timeout.ofMilliseconds(properties.getReadTimeoutMs()))
-                .build();
+            .setConnectionRequestTimeout(Timeout.ofMilliseconds(properties.getConnectionRequestTimeoutMs()))
+            .setConnectTimeout(Timeout.ofMilliseconds(properties.getConnectTimeoutMs()))
+            .setResponseTimeout(Timeout.ofMilliseconds(properties.getReadTimeoutMs()))
+            .build();
 
         return HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .setDefaultRequestConfig(requestConfig)
-                .setKeepAliveStrategy(keepAliveStrategy)
-                .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofSeconds(properties.getIdleEvictSeconds()))
-                .disableConnectionState()
-                .build();
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .setKeepAliveStrategy(keepAliveStrategy)
+            .evictExpiredConnections()
+            .evictIdleConnections(TimeValue.ofSeconds(properties.getIdleEvictSeconds()))
+            .disableConnectionState()
+            .build();
     }
 
     @Bean
     public RestClient restClient(CloseableHttpClient httpClient) {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         return RestClient.builder()
-                .requestFactory(factory)
-                .requestInterceptor(new OutgoingRequestLoggingInterceptor())
-                .build();
+            .requestFactory(factory)
+            .requestInterceptor(new OutgoingRequestLoggingInterceptor())
+            .build();
     }
 
     @Bean("frankfurterRestClient")
     public RestClient frankfurterRestClient() {
         SocketConfig socketConfig = SocketConfig.custom()
-                .setSoTimeout(Timeout.ofMilliseconds(30000))
-                .build();
+            .setSoTimeout(Timeout.ofMilliseconds(30000))
+            .build();
         PoolingHttpClientConnectionManager connManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setMaxConnTotal(10)
-                .setMaxConnPerRoute(5)
-                .setDefaultSocketConfig(socketConfig)
-                .build();
+            .setMaxConnTotal(10)
+            .setMaxConnPerRoute(5)
+            .setDefaultSocketConfig(socketConfig)
+            .build();
 
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectionRequestTimeout(Timeout.ofMilliseconds(10000))
-                .setConnectTimeout(Timeout.ofMilliseconds(10000))
-                .setResponseTimeout(Timeout.ofMilliseconds(30000))
-                .build();
+            .setConnectionRequestTimeout(Timeout.ofMilliseconds(10000))
+            .setConnectTimeout(Timeout.ofMilliseconds(10000))
+            .setResponseTimeout(Timeout.ofMilliseconds(30000))
+            .build();
 
         CloseableHttpClient httpClient = HttpClients.custom()
-                .setConnectionManager(connManager)
-                .setDefaultRequestConfig(requestConfig)
-                .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofSeconds(30))
-                .disableConnectionState()
-                .build();
+            .setConnectionManager(connManager)
+            .setDefaultRequestConfig(requestConfig)
+            .evictExpiredConnections()
+            .evictIdleConnections(TimeValue.ofSeconds(30))
+            .disableConnectionState()
+            .build();
 
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         return RestClient.builder()
-                .requestFactory(factory)
-                .requestInterceptor(new OutgoingRequestLoggingInterceptor())
-                .build();
+            .requestFactory(factory)
+            .requestInterceptor(new OutgoingRequestLoggingInterceptor())
+            .build();
     }
 }

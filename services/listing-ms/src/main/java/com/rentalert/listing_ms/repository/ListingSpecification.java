@@ -1,19 +1,19 @@
 package com.rentalert.listing_ms.repository;
 
-import com.rentalert.listing_ms.domain.HiddenListing;
-import com.rentalert.listing_ms.domain.Listing;
-import com.rentalert.listing_ms.service.CurrencyRateService;
 import com.rentalert.dto.currency.Currency;
 import com.rentalert.dto.listing.ListingCategory;
 import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
+import com.rentalert.listing_ms.domain.HiddenListing;
+import com.rentalert.listing_ms.domain.Listing;
+import com.rentalert.listing_ms.service.CurrencyRateService;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Subquery;
-import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
 public final class ListingSpecification {
 
@@ -166,9 +166,8 @@ public final class ListingSpecification {
     }
 
     /**
-     * Ищет по ключевым атрибутам объявления: description, street, price, currency, title.
-     * Текстовые поля ищутся по подстроке (регистронезависимо), price и currency —
-     * по точному совпадению, если строка фильтра приводится к соответствующему типу.
+     * Ищет по ключевым атрибутам объявления: description, street, price, currency, title. Текстовые поля ищутся по подстроке (регистронезависимо), price и currency — по точному совпадению, если
+     * строка фильтра приводится к соответствующему типу.
      */
     public static Specification<Listing> matchesKeyword(String keyword) {
         return (root, query, cb) -> {

@@ -1,12 +1,12 @@
 package com.rentalert.kafka;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.dto.GlobalConstants;
 import java.nio.charset.StandardCharsets;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class TraceIdRecordInterceptorTests {
 

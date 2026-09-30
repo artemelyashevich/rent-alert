@@ -7,8 +7,8 @@ public enum ScheduleProvider {
 
     public static ScheduleProvider getScheduleProvider(String provider) {
         return Arrays.stream(values())
-                .filter(p -> p.name().equalsIgnoreCase(provider))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Invalid scheduler provider value"));
+            .filter(p -> p.name().equalsIgnoreCase(provider))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Invalid scheduler provider value"));
     }
 }

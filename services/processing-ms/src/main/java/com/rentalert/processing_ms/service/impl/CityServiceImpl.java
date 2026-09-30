@@ -1,18 +1,17 @@
 package com.rentalert.processing_ms.service.impl;
 
+import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.processing_ms.domain.City;
 import com.rentalert.processing_ms.repository.CityRepository;
 import com.rentalert.processing_ms.service.CityService;
-import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service

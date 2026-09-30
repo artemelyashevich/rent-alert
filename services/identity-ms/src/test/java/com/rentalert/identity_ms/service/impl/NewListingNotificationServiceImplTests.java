@@ -1,5 +1,14 @@
 package com.rentalert.identity_ms.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.dto.currency.Currency;
 import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.UserActionEvent;
@@ -26,15 +35,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class NewListingNotificationServiceImplTests {
 
@@ -49,6 +49,38 @@ class NewListingNotificationServiceImplTests {
 
     @InjectMocks
     private NewListingNotificationServiceImpl service;
+
+    private static ListingCreatedEvent listing(ListingCategory category) {
+        return ListingCreatedEvent.builder()
+            .listingId(7L)
+            .category(category)
+            .city("Минск")
+            .rooms(2)
+            .areaTotal(50f)
+            .roomArea(15f)
+            .priceUsd(new BigDecimal("300"))
+            .priceByn(new BigDecimal("990"))
+            .message("new flat")
+            .build();
+    }
+
+    private static UserProfile user(Long id) {
+        UserProfile profile = UserProfile.builder().telegramId("enc-" + id).build();
+        profile.setId(id);
+        UserSettings settings = UserSettings.builder().userProfile(profile).build();
+        profile.setSettings(settings);
+        return profile;
+    }
+
+    private static UserFilter filter(UserProfile user, Currency currency, Integer priceFrom, Integer priceTo) {
+        return UserFilter.builder()
+            .userProfile(user)
+            .currency(currency)
+            .priceFrom(priceFrom)
+            .priceTo(priceTo)
+            .active(true)
+            .build();
+    }
 
     @Test
     void publishesMatchedNotificationForEligibleUser() {
@@ -172,37 +204,5 @@ class NewListingNotificationServiceImplTests {
         service.notifyMatchingUsers(withoutMessage);
 
         verifyNoInteractions(userFilterRepository, outboxPublisher);
-    }
-
-    private static ListingCreatedEvent listing(ListingCategory category) {
-        return ListingCreatedEvent.builder()
-            .listingId(7L)
-            .category(category)
-            .city("Минск")
-            .rooms(2)
-            .areaTotal(50f)
-            .roomArea(15f)
-            .priceUsd(new BigDecimal("300"))
-            .priceByn(new BigDecimal("990"))
-            .message("new flat")
-            .build();
-    }
-
-    private static UserProfile user(Long id) {
-        UserProfile profile = UserProfile.builder().telegramId("enc-" + id).build();
-        profile.setId(id);
-        UserSettings settings = UserSettings.builder().userProfile(profile).build();
-        profile.setSettings(settings);
-        return profile;
-    }
-
-    private static UserFilter filter(UserProfile user, Currency currency, Integer priceFrom, Integer priceTo) {
-        return UserFilter.builder()
-            .userProfile(user)
-            .currency(currency)
-            .priceFrom(priceFrom)
-            .priceTo(priceTo)
-            .active(true)
-            .build();
     }
 }

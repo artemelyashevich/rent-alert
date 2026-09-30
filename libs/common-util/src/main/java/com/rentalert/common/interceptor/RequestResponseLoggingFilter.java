@@ -19,10 +19,10 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
     private static final int MAX_PAYLOAD_LENGTH = 10_000;
 
     private static final List<String> EXCLUDED_PATTERNS = List.of(
-            "/api/v1/auth/**",
-            "/api/login",
-            "/api/register",
-            "/api/token/refresh"
+        "/api/v1/auth/**",
+        "/api/login",
+        "/api/register",
+        "/api/token/refresh"
     );
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -34,17 +34,13 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
         }
         String path = request.getRequestURI();
         return EXCLUDED_PATTERNS.stream()
-                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+            .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request, MAX_PAYLOAD_LENGTH);
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
-
         try {
             filterChain.doFilter(wrappedRequest, wrappedResponse);
         } finally {

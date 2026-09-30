@@ -1,13 +1,13 @@
 package com.rentalert.identity_ms.mapper;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
-import com.rentalert.identity_ms.domain.DetailedUserProfileView;
 import com.rentalert.dto.profile.FeedbackResponse;
-import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.filter.UserFilterResponse;
+import com.rentalert.identity_ms.domain.DetailedUserProfileView;
 import java.util.List;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class DetailedUserProfileMapper {

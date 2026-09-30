@@ -27,34 +27,34 @@ public class SchedulerSettings extends AbstractEntity {
 
     @Column(name = "scheduler_enabled", nullable = false)
     private Boolean schedulerEnabled = false;
-    
+
     @Column(name = "notifications_enabled", nullable = false)
     private Boolean notificationsEnabled = false;
-    
+
     @Column(name = "fixed_rate_ms", nullable = false)
     private Long fixedRateMs = 60000L;
-    
+
     @Column(name = "page_size", nullable = false)
     private Integer pageSize = 50;
-    
+
     @Column(name = "price_from")
     private Integer priceFrom;
-    
+
     @Column(name = "price_to")
     private Integer priceTo;
-    
+
     @Column(name = "price_currency", length = 10)
     private String priceCurrency = "BYN";
-    
+
     @Column(name = "region_id", nullable = false, length = 255)
     private String regionId = "0";
-    
+
     @Column(name = "sort_by", nullable = false, length = 50)
     private String sortBy = "lst.d";
-    
+
     @Column(name = "sort_order", nullable = false, length = 10)
     private String sortOrder = "DESC";
-    
+
     @Column(name = "category_id", nullable = false)
     private Integer categoryId = 2;
 

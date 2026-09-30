@@ -6,7 +6,6 @@ import com.rentalert.dto.currency.CurrencyRateDto;
 import com.rentalert.processing_ms.config.ApplicationProperties;
 import com.rentalert.processing_ms.domain.CurrencyRate;
 import com.rentalert.processing_ms.dto.FrankfurterRateResponse;
-import com.rentalert.processing_ms.messaging.ListingEventPublisher;
 import com.rentalert.processing_ms.repository.CurrencyRateRepository;
 import com.rentalert.processing_ms.service.CurrencyRateService;
 import com.rentalert.redis.dto.CacheType;
@@ -19,7 +18,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
@@ -33,8 +31,19 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
     private final CurrencyRateRepository currencyRateRepository;
     private final ApplicationProperties applicationProperties;
     private final CacheService cacheService;
-    private final ListingEventPublisher listingEventPublisher;
-    private final TransactionTemplate transactionTemplate;
+
+    private static CurrencyRateDto toDto(CurrencyRate rate) {
+        return new CurrencyRateDto(rate.getRateDate(), rate.getCurrency(), rate.getPerCurrency(), rate.getRate());
+    }
+
+    private static CurrencyRate toEntity(CurrencyRateDto dto) {
+        return CurrencyRate.builder()
+            .rateDate(dto.rateDate())
+            .currency(dto.currency())
+            .perCurrency(dto.perCurrency())
+            .rate(dto.rate())
+            .build();
+    }
 
     @Override
     public long syncCurrencyRates() {
@@ -62,10 +71,7 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
                     .rate(resp.rate())
                     .build();
 
-                transactionTemplate.executeWithoutResult(status -> {
-                    currencyRateRepository.save(rate);
-                    listingEventPublisher.publishCurrencyRate(pair, toDto(rate));
-                });
+                currencyRateRepository.save(rate);
                 log.info("Saved currency rate: {} 1{} = {} {}", resp.base(), resp.quote(), resp.rate(), today);
                 cacheService.put(CacheType.DAILY_CURRENCY_RATE, pair, toDto(rate), RATE_CACHE_TTL);
                 count++;
@@ -98,18 +104,5 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
             .pathSegment("v2", "rate", from, to)
             .queryParam("date", date.toString())
             .toUriString();
-    }
-
-    private static CurrencyRateDto toDto(CurrencyRate rate) {
-        return new CurrencyRateDto(rate.getRateDate(), rate.getCurrency(), rate.getPerCurrency(), rate.getRate());
-    }
-
-    private static CurrencyRate toEntity(CurrencyRateDto dto) {
-        return CurrencyRate.builder()
-            .rateDate(dto.rateDate())
-            .currency(dto.currency())
-            .perCurrency(dto.perCurrency())
-            .rate(dto.rate())
-            .build();
     }
 }

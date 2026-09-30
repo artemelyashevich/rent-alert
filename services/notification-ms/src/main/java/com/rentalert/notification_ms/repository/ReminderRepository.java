@@ -1,8 +1,8 @@
 package com.rentalert.notification_ms.repository;
 
 import com.rentalert.dto.notification.ReminderIntervalType;
-import com.rentalert.notification_ms.domain.Reminder;
 import com.rentalert.dto.notification.ReminderStatus;
+import com.rentalert.notification_ms.domain.Reminder;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -13,22 +13,22 @@ import org.springframework.data.repository.query.Param;
 public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 
     @Query(nativeQuery = true, value = """
-            SELECT *
-            FROM reminders
-            WHERE status = :status
-              AND remind_at <= :now
-            ORDER BY remind_at
-            LIMIT :limit
-            FOR UPDATE SKIP LOCKED
-            """)
+        SELECT *
+        FROM reminders
+        WHERE status = :status
+          AND remind_at <= :now
+        ORDER BY remind_at
+        LIMIT :limit
+        FOR UPDATE SKIP LOCKED
+        """)
     List<Reminder> findBatchToRemind(
-            @Param("status") String status,
-            @Param("now") Instant now,
-            @Param("limit") int limit
+        @Param("status") String status,
+        @Param("now") Instant now,
+        @Param("limit") int limit
     );
 
     boolean existsByUserIdAndListingIdAndIntervalTypeAndStatusIn(
-            Long userId, Long listingId, ReminderIntervalType intervalType, List<ReminderStatus> statuses
+        Long userId, Long listingId, ReminderIntervalType intervalType, List<ReminderStatus> statuses
     );
 
     List<Reminder> findAllByUserIdOrderByRemindAtAsc(Long userId);

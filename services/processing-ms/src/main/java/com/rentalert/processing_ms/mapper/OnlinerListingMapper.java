@@ -1,9 +1,9 @@
 package com.rentalert.processing_ms.mapper;
 
+import com.rentalert.dto.currency.Currency;
 import com.rentalert.processing_ms.domain.Listing;
 import com.rentalert.processing_ms.dto.OnlinerAdsResponseDto.ApartmentDto;
 import com.rentalert.processing_ms.util.OnlinerParserSupport;
-import com.rentalert.dto.currency.Currency;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;

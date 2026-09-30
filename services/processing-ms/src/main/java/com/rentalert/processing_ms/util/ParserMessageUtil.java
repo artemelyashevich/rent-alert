@@ -16,8 +16,8 @@ public class ParserMessageUtil {
     public static String buildMessage(ParserResponseDto dto) {
         List<String> header = new ArrayList<>();
         String headline = joinWith(" // ",
-                dto.getLink() != null ? "<b>" + escape(dto.getSource().name()) + "</b>" : null,
-                escape(dto.getAddress())
+            dto.getLink() != null ? "<b>" + escape(dto.getSource().name()) + "</b>" : null,
+            escape(dto.getAddress())
         );
         if (!headline.isEmpty()) {
             header.add(headline);
@@ -25,18 +25,18 @@ public class ParserMessageUtil {
 
         List<String> details = new ArrayList<>();
         String infoLine = joinWith(SEPARATOR,
-                dto.getRooms() != null ? dto.getRooms() + "-комнатная" : null,
-                dto.getArea() != null ? dto.getArea() + " м²" : null,
-                (dto.getFloor() != null && dto.getTotalFloors() != null)
-                        ? dto.getFloor() + "/" + dto.getTotalFloors() + " эт." : null
+            dto.getRooms() != null ? dto.getRooms() + "-комнатная" : null,
+            dto.getArea() != null ? dto.getArea() + " м²" : null,
+            (dto.getFloor() != null && dto.getTotalFloors() != null)
+                ? dto.getFloor() + "/" + dto.getTotalFloors() + " эт." : null
         );
         if (!infoLine.isEmpty()) {
             details.add("• " + infoLine);
         }
 
         String featuresLine = joinWith(SEPARATOR,
-                escape(dto.getHouseType()),
-                Boolean.TRUE.equals(dto.getFurnished()) ? "Мебель" : null
+            escape(dto.getHouseType()),
+            Boolean.TRUE.equals(dto.getFurnished()) ? "Мебель" : null
         );
         if (!featuresLine.isEmpty()) {
             details.add("• " + featuresLine);
@@ -44,8 +44,8 @@ public class ParserMessageUtil {
 
         List<String> summary = new ArrayList<>();
         String priceLine = joinWith(SEPARATOR,
-                dto.getPriceUsd() != null ? dto.getPriceUsd().setScale(2, RoundingMode.HALF_UP) + " $" : null,
-                dto.getPriceByn() != null ? dto.getPriceByn().setScale(2, RoundingMode.HALF_UP) + " BYN" : null
+            dto.getPriceUsd() != null ? dto.getPriceUsd().setScale(2, RoundingMode.HALF_UP) + " $" : null,
+            dto.getPriceByn() != null ? dto.getPriceByn().setScale(2, RoundingMode.HALF_UP) + " BYN" : null
         );
         if (!priceLine.isEmpty()) {
             summary.add("<b>" + priceLine + "</b>");
@@ -85,9 +85,9 @@ public class ParserMessageUtil {
             return null;
         }
         return value
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;");
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;");
     }
 
     private static String escapeAttribute(String value) {

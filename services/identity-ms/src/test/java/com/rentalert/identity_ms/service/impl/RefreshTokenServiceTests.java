@@ -1,5 +1,13 @@
 package com.rentalert.identity_ms.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.common.config.AuthProperties;
 import com.rentalert.common.exception.AuthException;
 import com.rentalert.common.exception.UserBlockedException;
@@ -15,14 +23,6 @@ import com.rentalert.identity_ms.service.UserProfileService;
 import com.rentalert.redis.service.UserSessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class RefreshTokenServiceTests {
 

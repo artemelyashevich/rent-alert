@@ -1,11 +1,11 @@
 package com.rentalert.processing_ms.mapper;
 
+import com.rentalert.dto.currency.Currency;
+import com.rentalert.dto.currency.CurrencyPair;
 import com.rentalert.processing_ms.domain.CurrencyRate;
 import com.rentalert.processing_ms.domain.Listing;
 import com.rentalert.processing_ms.dto.ParserResponseDto;
 import com.rentalert.processing_ms.service.CurrencyRateService;
-import com.rentalert.dto.currency.Currency;
-import com.rentalert.dto.currency.CurrencyPair;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,12 +25,12 @@ public abstract class ParserResponseMapper {
     @Mapping(target = "area", expression = "java(toBigDecimal(listing.getAreaTotal()))")
     @Mapping(target = "totalFloors", source = "floorsTotal")
     @Mapping(target = "priceUsd", qualifiedByName = "getPriceUSD", source = "listing")
-    @Mapping(target = "priceByn", qualifiedByName = "getPriceBYN",  source = "listing")
+    @Mapping(target = "priceByn", qualifiedByName = "getPriceBYN", source = "listing")
     @Mapping(target = "furnished", source = "furniture")
     @Mapping(target = "metro", source = "metroStation")
     @Mapping(target = "link", source = "sourceUrl")
     @Mapping(target = "images",
-            expression = "java(listing.getPhotos() == null ? Collections.emptyList() : Arrays.asList(listing.getPhotos()))")
+        expression = "java(listing.getPhotos() == null ? Collections.emptyList() : Arrays.asList(listing.getPhotos()))")
     @Mapping(target = "houseType", ignore = true)
     @Mapping(target = "contactName", ignore = true)
     public abstract ParserResponseDto toDto(Listing listing);

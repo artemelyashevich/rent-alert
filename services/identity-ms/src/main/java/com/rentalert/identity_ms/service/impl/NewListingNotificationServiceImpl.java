@@ -38,6 +38,31 @@ public class NewListingNotificationServiceImpl implements NewListingNotification
     private final OutboxPublisher outboxPublisher;
     private final QuietHoursPolicy quietHoursPolicy;
 
+    private static boolean matchesPrice(UserFilter filter, ListingCreatedEvent listing) {
+        if (filter.getPriceFrom() == null && filter.getPriceTo() == null) {
+            return true;
+        }
+        BigDecimal price = filter.getCurrency() == null ? null : switch (filter.getCurrency()) {
+            case USD -> listing.priceUsd();
+            case BYN -> listing.priceByn();
+            // processing-ms converts only between USD and BYN
+            case EUR -> null;
+        };
+        if (price == null) {
+            log.debug("No {} price for listing {}, filter {} skipped", filter.getCurrency(), listing.listingId(),
+                filter.getId());
+            return false;
+        }
+        return (filter.getPriceFrom() == null || price.compareTo(BigDecimal.valueOf(filter.getPriceFrom())) >= 0)
+            && (filter.getPriceTo() == null || price.compareTo(BigDecimal.valueOf(filter.getPriceTo())) <= 0);
+    }
+
+    private static boolean isEligible(UserProfile profile) {
+        return StringUtils.hasText(profile.getTelegramId())
+            && profile.getSettings().getRoleName() != UserRole.BLOCKED
+            && profile.getSettings().getBotStatus() == BotStatus.ACTIVE;
+    }
+
     @Override
     @Transactional
     public void notifyMatchingUsers(ListingCreatedEvent listing) {
@@ -75,31 +100,6 @@ public class NewListingNotificationServiceImpl implements NewListingNotification
         event.setInitiatorId(profile.getId());
         event.setEventStatus(EventStatus.SUCCESS);
         outboxPublisher.publish(KafkaTopics.USER_EVENTS, String.valueOf(profile.getId()), event);
-    }
-
-    private static boolean matchesPrice(UserFilter filter, ListingCreatedEvent listing) {
-        if (filter.getPriceFrom() == null && filter.getPriceTo() == null) {
-            return true;
-        }
-        BigDecimal price = filter.getCurrency() == null ? null : switch (filter.getCurrency()) {
-            case USD -> listing.priceUsd();
-            case BYN -> listing.priceByn();
-            // processing-ms converts only between USD and BYN
-            case EUR -> null;
-        };
-        if (price == null) {
-            log.debug("No {} price for listing {}, filter {} skipped", filter.getCurrency(), listing.listingId(),
-                filter.getId());
-            return false;
-        }
-        return (filter.getPriceFrom() == null || price.compareTo(BigDecimal.valueOf(filter.getPriceFrom())) >= 0)
-            && (filter.getPriceTo() == null || price.compareTo(BigDecimal.valueOf(filter.getPriceTo())) <= 0);
-    }
-
-    private static boolean isEligible(UserProfile profile) {
-        return StringUtils.hasText(profile.getTelegramId())
-            && profile.getSettings().getRoleName() != UserRole.BLOCKED
-            && profile.getSettings().getBotStatus() == BotStatus.ACTIVE;
     }
 
     private NotificationRequest buildRequest(UserProfile profile, ListingCreatedEvent listing, Instant now) {

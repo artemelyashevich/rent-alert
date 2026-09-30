@@ -48,12 +48,12 @@ public class GlobalExceptionController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<@NonNull ExceptionBody> handleValidation(MethodArgumentNotValidException exception, HttpServletRequest request) {
         Map<String, String> errors = exception.getBindingResult()
-                .getFieldErrors().stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        fieldError -> fieldError.getDefaultMessage() == null ? "Invalid value" : fieldError.getDefaultMessage(),
-                        (exist, newMessage) -> exist + " " + newMessage
-                ));
+            .getFieldErrors().stream()
+            .collect(Collectors.toMap(
+                FieldError::getField,
+                fieldError -> fieldError.getDefaultMessage() == null ? "Invalid value" : fieldError.getDefaultMessage(),
+                (exist, newMessage) -> exist + " " + newMessage
+            ));
         ExceptionBody body = buildBody(exception, InternalExceptionCode.EX400, request, HttpStatus.BAD_REQUEST, false);
         body.setDetails(errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
@@ -114,7 +114,7 @@ public class GlobalExceptionController {
     }
 
     private ExceptionBody buildBody(Exception exception, InternalExceptionCode defaultErrorCode, HttpServletRequest request,
-                                    HttpStatus status, boolean forceDefaultMessage) {
+        HttpStatus status, boolean forceDefaultMessage) {
 
         Locale locale = resolveLocale(request);
 
@@ -143,14 +143,14 @@ public class GlobalExceptionController {
         }
 
         Map<String, String> details = Map.of(
-                "errorId", errorId.toString(),
-                "errorCode", String.valueOf(errorCode.getCode())
+            "errorId", errorId.toString(),
+            "errorCode", String.valueOf(errorCode.getCode())
         );
 
         return ExceptionBody.builder()
-                .message(localizedMessage)
-                .details(details)
-                .build();
+            .message(localizedMessage)
+            .details(details)
+            .build();
     }
 
     private Locale resolveLocale(HttpServletRequest request) {

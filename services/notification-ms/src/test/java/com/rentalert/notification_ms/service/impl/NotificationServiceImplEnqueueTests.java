@@ -1,5 +1,17 @@
 package com.rentalert.notification_ms.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.common.util.auth.CryptoService;
 import com.rentalert.common.util.auth.HmacBlindIndexService;
 import com.rentalert.dto.notification.NotificationEngine;
@@ -21,18 +33,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 class NotificationServiceImplEnqueueTests {
 
     private final NotificationRepository notifications = mock(NotificationRepository.class);
@@ -46,6 +46,17 @@ class NotificationServiceImplEnqueueTests {
         typeSettings);
 
     private final Instant sendAt = Instant.parse("2026-09-29T10:00:00Z");
+
+    private static NotificationRequest listingMatched(NotificationRequest.Receiver receiver) {
+        return NotificationRequest.builder()
+            .userId(42L)
+            .type(NotificationType.NEW_LISTING_MATCHED)
+            .templateParams(Map.of("city", "Минск"))
+            .deduplicationKey("listing:1:user:42")
+            .listingId(1L)
+            .receiver(receiver)
+            .build();
+    }
 
     @BeforeEach
     void setUp() {
@@ -135,16 +146,5 @@ class NotificationServiceImplEnqueueTests {
 
         assertThat(service.enqueue(request, sendAt)).singleElement()
             .satisfies(n -> assertThat(n.getReceiver()).isEqualTo("[internal]"));
-    }
-
-    private static NotificationRequest listingMatched(NotificationRequest.Receiver receiver) {
-        return NotificationRequest.builder()
-            .userId(42L)
-            .type(NotificationType.NEW_LISTING_MATCHED)
-            .templateParams(Map.of("city", "Минск"))
-            .deduplicationKey("listing:1:user:42")
-            .listingId(1L)
-            .receiver(receiver)
-            .build();
     }
 }

@@ -3,8 +3,7 @@ package com.rentalert.redis.service;
 import com.rentalert.dto.user.UserSession;
 
 /**
- * Sessions of authenticated users, shared by all services through Redis.
- * A session is keyed by the access token taken from the request's Authorization header.
+ * Sessions of authenticated users, shared by all services through Redis. A session is keyed by the access token taken from the request's Authorization header.
  */
 public interface UserSessionService {
 

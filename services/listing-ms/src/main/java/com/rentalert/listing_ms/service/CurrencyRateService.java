@@ -2,7 +2,6 @@ package com.rentalert.listing_ms.service;
 
 import com.rentalert.dto.currency.Currency;
 import com.rentalert.dto.currency.CurrencyPair;
-import com.rentalert.dto.currency.CurrencyRateDto;
 import com.rentalert.listing_ms.domain.CurrencyRate;
 import com.rentalert.listing_ms.dto.CurrencyRateResponse;
 
@@ -10,9 +9,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 public interface CurrencyRateService {
-
-    /** Сохраняет курс, полученный от processing-ms; повторная доставка игнорируется. */
-    void saveRate(CurrencyRateDto rate);
 
     CurrencyRate getLatestRate(CurrencyPair pair);
 

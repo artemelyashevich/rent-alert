@@ -1,8 +1,8 @@
 package com.rentalert.common.security;
 
-import lombok.experimental.UtilityClass;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.experimental.UtilityClass;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,8 +28,7 @@ public class InternalAuth {
     public static Authentication withInternalAuthority(Authentication userAuthentication) {
         List<GrantedAuthority> authorities = new ArrayList<>(userAuthentication.getAuthorities());
         authorities.add(new SimpleGrantedAuthority(AUTHORITY));
-        UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
-            userAuthentication.getPrincipal(), userAuthentication.getCredentials(), authorities);
+        UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(userAuthentication.getPrincipal(), userAuthentication.getCredentials(), authorities);
         authentication.setDetails(userAuthentication.getDetails());
         return authentication;
     }

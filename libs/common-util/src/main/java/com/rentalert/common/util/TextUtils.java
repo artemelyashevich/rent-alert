@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public final class TextUtils {
+
     public static String cleanText(String input) {
         if (input == null || input.isBlank()) {
             return "";

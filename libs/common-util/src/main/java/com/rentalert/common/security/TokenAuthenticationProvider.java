@@ -13,17 +13,12 @@ public class TokenAuthenticationProvider extends AbstractUserDetailsAuthenticati
     private final AuthenticationService authenticationService;
 
     @Override
-    protected void additionalAuthenticationChecks(
-            @NonNull UserDetails userDetails,
-            @NonNull UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+    protected void additionalAuthenticationChecks(@NonNull UserDetails userDetails, @NonNull UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
     }
 
     @NonNull
     @Override
-    protected UserDetails retrieveUser(
-            @NonNull String username,
-            @NonNull UsernamePasswordAuthenticationToken authentication
-    ) throws AuthenticationException {
+    protected UserDetails retrieveUser(@NonNull String username, @NonNull UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         return authenticationService.findUserByToken(String.valueOf(authentication.getCredentials()));
     }
 }

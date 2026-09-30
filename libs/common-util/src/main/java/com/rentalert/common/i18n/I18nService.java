@@ -1,4 +1,4 @@
-package com.rentalert.common.common;
+package com.rentalert.common.i18n;
 
 import com.rentalert.common.util.auth.HeaderUtil;
 import jakarta.servlet.http.HttpServletRequest;

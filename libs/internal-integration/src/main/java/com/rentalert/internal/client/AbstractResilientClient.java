@@ -12,7 +12,7 @@ public abstract class AbstractResilientClient {
     private final CircuitBreaker circuitBreaker;
 
     protected AbstractResilientClient(String instanceName, RetryRegistry retryRegistry,
-                                      CircuitBreakerRegistry circuitBreakerRegistry) {
+        CircuitBreakerRegistry circuitBreakerRegistry) {
         this.retry = retryRegistry.retry(instanceName);
         this.circuitBreaker = circuitBreakerRegistry.circuitBreaker(instanceName);
     }

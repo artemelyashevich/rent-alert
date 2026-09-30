@@ -1,7 +1,9 @@
 package com.rentalert.redis.config;
 
+import com.rentalert.common.service.LockService;
 import com.rentalert.redis.service.CacheService;
 import com.rentalert.redis.service.impl.RedisCacheServiceImpl;
+import com.rentalert.redis.service.impl.RedisLockServiceImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -35,6 +37,12 @@ public class RedisUtilAutoConfiguration {
 	@ConditionalOnMissingBean
 	public CacheService cacheService(StringRedisTemplate stringRedisTemplate) {
 		return new RedisCacheServiceImpl(stringRedisTemplate);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public LockService lockService(StringRedisTemplate stringRedisTemplate) {
+		return new RedisLockServiceImpl(stringRedisTemplate);
 	}
 
 	static GenericJacksonJsonRedisSerializer jsonRedisSerializer() {

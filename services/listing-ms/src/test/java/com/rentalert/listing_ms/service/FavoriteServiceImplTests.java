@@ -1,5 +1,12 @@
 package com.rentalert.listing_ms.service;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.common.exception.UpstreamHttpException;
@@ -11,13 +18,6 @@ import com.rentalert.listing_ms.repository.FavoriteRepository;
 import com.rentalert.listing_ms.repository.ListingRepository;
 import com.rentalert.listing_ms.service.impl.FavoriteServiceImpl;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class FavoriteServiceImplTests {
 

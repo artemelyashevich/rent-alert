@@ -9,7 +9,6 @@ import com.rentalert.identity_ms.domain.Feedback;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.mapper.FeedbackMapper;
 import com.rentalert.identity_ms.repository.FeedbackRepository;
-import com.rentalert.identity_ms.repository.UserProfileRepository;
 import com.rentalert.identity_ms.service.FeedbackService;
 import com.rentalert.identity_ms.service.UserProfileService;
 import lombok.RequiredArgsConstructor;

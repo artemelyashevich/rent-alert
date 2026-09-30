@@ -1,16 +1,16 @@
 package com.rentalert.identity_ms.service.impl;
 
-import com.rentalert.common.util.auth.CryptoService;
-import com.rentalert.common.util.auth.HmacBlindIndexService;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.AppNotFoundException;
-import com.rentalert.dto.user.UserSession;
-import com.rentalert.identity_ms.domain.UserProfile;
-import com.rentalert.identity_ms.domain.UserSettings;
+import com.rentalert.common.util.auth.CryptoService;
+import com.rentalert.common.util.auth.HmacBlindIndexService;
 import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.dto.profile.UserProfileCreateDto;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.UserProfileUpdateDto;
+import com.rentalert.dto.user.UserSession;
+import com.rentalert.identity_ms.domain.UserProfile;
+import com.rentalert.identity_ms.domain.UserSettings;
 import com.rentalert.identity_ms.mapper.DetailedUserProfileMapper;
 import com.rentalert.identity_ms.mapper.UserProfileMapper;
 import com.rentalert.identity_ms.repository.DetailedUserProfileViewRepository;
@@ -157,10 +157,10 @@ public class UserProfileServiceImpl implements UserProfileService {
             .username(telegramUser.getUsername())
             .photoUrl(telegramUser.getPhotoUrl())
             .build();
-         return create(createDto);
+        return create(createDto);
     }
 
-     @Override
+    @Override
     public void evictCachedProfile(Long userId) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             profileCacheEvictor.evict(userId);

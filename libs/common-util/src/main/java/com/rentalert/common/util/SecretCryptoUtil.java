@@ -46,9 +46,9 @@ public class SecretCryptoUtil {
         rsaCipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] encryptedAesKey = rsaCipher.doFinal(aesKey.getEncoded());
         return new EncryptedPayload(
-                Base64.getEncoder().encodeToString(encryptedAesKey),
-                Base64.getEncoder().encodeToString(iv),
-                Base64.getEncoder().encodeToString(encryptedData)
+            Base64.getEncoder().encodeToString(encryptedAesKey),
+            Base64.getEncoder().encodeToString(iv),
+            Base64.getEncoder().encodeToString(encryptedData)
         );
     }
 
@@ -67,9 +67,10 @@ public class SecretCryptoUtil {
     }
 
     public record EncryptedPayload(
-            String encryptedKey,
-            String iv,
-            String encryptedData
+        String encryptedKey,
+        String iv,
+        String encryptedData
     ) {
+
     }
 }

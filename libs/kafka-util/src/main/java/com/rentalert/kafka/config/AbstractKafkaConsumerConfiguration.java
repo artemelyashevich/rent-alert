@@ -5,8 +5,8 @@ import com.rentalert.kafka.TraceIdRecordInterceptor;
 import java.time.Duration;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -54,7 +54,7 @@ public abstract class AbstractKafkaConsumerConfiguration implements DisposableBe
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory(KafkaProperties kafkaProperties,
-                                                           @Value("${spring.application.name}") String applicationName) {
+        @Value("${spring.application.name}") String applicationName) {
         Map<String, Object> props = kafkaProperties.buildConsumerProperties();
         props.putIfAbsent(ConsumerConfig.GROUP_ID_CONFIG, applicationName);
         props.putIfAbsent(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -65,8 +65,8 @@ public abstract class AbstractKafkaConsumerConfiguration implements DisposableBe
     @Bean
     @SuppressWarnings({"rawtypes", "unchecked"})
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
-            ConcurrentKafkaListenerContainerFactoryConfigurer configurer, KafkaProperties kafkaProperties,
-            ConsumerFactory<String, String> consumerFactory, JsonMapper jsonMapper) {
+        ConcurrentKafkaListenerContainerFactoryConfigurer configurer, KafkaProperties kafkaProperties,
+        ConsumerFactory<String, String> consumerFactory, JsonMapper jsonMapper) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         configurer.configure((ConcurrentKafkaListenerContainerFactory) factory, (ConsumerFactory) consumerFactory);
         factory.setRecordMessageConverter(new JacksonJsonMessageConverter(jsonMapper));
@@ -86,11 +86,9 @@ public abstract class AbstractKafkaConsumerConfiguration implements DisposableBe
     }
 
     protected ConsumerRecordRecoverer recoverer(KafkaProperties kafkaProperties) {
-        deadLetterProducerFactory = new DefaultKafkaProducerFactory<>(
-            kafkaProperties.buildProducerProperties(), new StringSerializer(), new StringSerializer());
+        deadLetterProducerFactory = new DefaultKafkaProducerFactory<>(kafkaProperties.buildProducerProperties(), new StringSerializer(), new StringSerializer());
         return new DeadLetterPublishingRecoverer(new KafkaTemplate<>(deadLetterProducerFactory), (record, exception) -> {
-            log.error("Sending Kafka record topic={}, partition={}, offset={} to {}{}: {}",
-                record.topic(), record.partition(), record.offset(), record.topic(), DLT_SUFFIX, exception.getMessage());
+            log.error("Sending Kafka record topic={}, partition={}, offset={} to {}{}: {}", record.topic(), record.partition(), record.offset(), record.topic(), DLT_SUFFIX, exception.getMessage());
             return new TopicPartition(record.topic() + DLT_SUFFIX, -1);
         });
     }

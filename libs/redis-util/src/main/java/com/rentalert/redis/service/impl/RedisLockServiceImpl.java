@@ -1,6 +1,10 @@
-package com.rentalert.common.service.impl;
+package com.rentalert.redis.service.impl;
 
 import com.rentalert.common.service.LockService;
+import java.time.Duration;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,15 +12,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 
-import java.time.Duration;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.Supplier;
-
-/**
- * Распределённый лок на Redis: {@code SET key token NX PX lease}, снятие — Lua-скриптом только своим токеном,
- * чтобы не снять лок, перехваченный другим инстансом после истечения lease.
- */
 @Slf4j
 @RequiredArgsConstructor
 public class RedisLockServiceImpl implements LockService {

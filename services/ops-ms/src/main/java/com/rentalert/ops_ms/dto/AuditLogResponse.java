@@ -17,4 +17,6 @@ public record AuditLogResponse(
     String eventStatus,
 
     Instant createdAt
-) {}
+) {
+
+}

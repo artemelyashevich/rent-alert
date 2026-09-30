@@ -19,9 +19,6 @@ public class KafkaTopics {
     /** {@code ListingCreatedEvent} from processing-ms, key = listingId. */
     public static final String LISTINGS = "processing.listings.v1";
 
-    /** {@code CurrencyRateDto} from processing-ms, key = currency pair. */
-    public static final String CURRENCY_RATES = "processing.currency-rates.v1";
-
     public static String notificationRequests(NotificationType type) {
         return type.isPriority()
             ? NOTIFICATION_REQUESTS_PRIORITY

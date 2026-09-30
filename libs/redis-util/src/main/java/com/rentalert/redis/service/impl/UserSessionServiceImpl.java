@@ -1,30 +1,28 @@
 package com.rentalert.redis.service.impl;
 
+import com.rentalert.common.exception.AuthException;
 import com.rentalert.common.util.auth.HeaderUtil;
 import com.rentalert.common.util.auth.JwtService;
 import com.rentalert.common.util.auth.JwtType;
-import com.rentalert.common.exception.AuthException;
 import com.rentalert.dto.user.UserSession;
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
 import com.rentalert.redis.service.UserSessionService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
 public class UserSessionServiceImpl implements UserSessionService {
 
+    private static final long MINIMUM_TTL_SECONDS = 60;
     private final CacheService cacheService;
     private final HttpServletRequest httpServletRequest;
     private final JwtService jwtService;
-
-    private static final long MINIMUM_TTL_SECONDS = 60;
 
     @Override
     public UserSession getCurrentUser() {

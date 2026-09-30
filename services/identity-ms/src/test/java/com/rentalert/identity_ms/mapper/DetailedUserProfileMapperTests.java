@@ -1,12 +1,12 @@
 package com.rentalert.identity_ms.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.identity_ms.domain.DetailedUserProfileView;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class DetailedUserProfileMapperTests {
 

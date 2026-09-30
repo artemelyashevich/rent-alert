@@ -65,26 +65,27 @@ public class KufarAdsResponseDto {
         }
 
         private String findParameterValue(
-                List<ParameterDto> parameters,
-                String parameterName
+            List<ParameterDto> parameters,
+            String parameterName
         ) {
             if (parameters == null) {
                 return null;
             }
 
             return parameters.stream()
-                    .filter(parameter -> parameterName.equals(parameter.getP()))
-                    .map(ParameterDto::getV)
-                    .filter(Objects::nonNull)
-                    .map(Object::toString)
-                    .findFirst()
-                    .orElse(null);
+                .filter(parameter -> parameterName.equals(parameter.getP()))
+                .map(ParameterDto::getV)
+                .filter(Objects::nonNull)
+                .map(Object::toString)
+                .findFirst()
+                .orElse(null);
         }
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ImageDto {
+
         private String path;
     }
 

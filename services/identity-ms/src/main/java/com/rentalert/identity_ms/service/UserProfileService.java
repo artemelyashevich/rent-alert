@@ -1,12 +1,13 @@
 package com.rentalert.identity_ms.service;
 
-import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.dto.profile.UserProfileCreateDto;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.UserProfileUpdateDto;
+import com.rentalert.identity_ms.domain.UserProfile;
 
 public interface UserProfileService {
+
     UserProfile create(UserProfileCreateDto createDto);
 
     UserProfile update(Long id, UserProfileUpdateDto updateDto);

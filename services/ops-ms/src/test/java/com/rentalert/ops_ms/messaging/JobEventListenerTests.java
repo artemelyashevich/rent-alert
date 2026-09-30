@@ -1,17 +1,17 @@
 package com.rentalert.ops_ms.messaging;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import com.rentalert.dto.event.JobExecutionEvent;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.dto.event.job.JobStatus;
 import com.rentalert.kafka.NonRetryableEventException;
 import com.rentalert.ops_ms.service.JobSettingService;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 class JobEventListenerTests {
 

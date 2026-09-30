@@ -19,10 +19,10 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(
-        name = "scheduled_task_records",
-              indexes = {
-                @Index(name = "idx_task_records_processed_at", columnList = "processed_at")
-        }
+    name = "scheduled_task_records",
+    indexes = {
+        @Index(name = "idx_task_records_processed_at", columnList = "processed_at")
+    }
 )
 @NoArgsConstructor
 @AllArgsConstructor

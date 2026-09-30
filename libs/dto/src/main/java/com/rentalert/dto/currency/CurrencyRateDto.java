@@ -12,4 +12,5 @@ public record CurrencyRateDto(
     String perCurrency,
     BigDecimal rate
 ) {
+
 }

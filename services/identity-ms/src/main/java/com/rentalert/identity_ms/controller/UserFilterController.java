@@ -42,22 +42,22 @@ public class UserFilterController {
     private final UserFilterService userFilterService;
 
     @Operation(
-            summary = "Получить все фильтры профиля",
-            description = "Возвращает список всех фильтров для указанного профиля пользователя"
+        summary = "Получить все фильтры профиля",
+        description = "Возвращает список всех фильтров для указанного профиля пользователя"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Список фильтров успешно получен",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = UserFilterResponse.class))
-                    )
-            ),
-            @ApiResponse(responseCode = "401", description = "Не авторизован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "404", description = "Профиль пользователя не найден",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Список фильтров успешно получен",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                array = @ArraySchema(schema = @Schema(implementation = UserFilterResponse.class))
+            )
+        ),
+        @ApiResponse(responseCode = "401", description = "Не авторизован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "404", description = "Профиль пользователя не найден",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @GetMapping
     public ResponseEntity<@NonNull List<UserFilterResponse>> findAll() {
@@ -65,145 +65,145 @@ public class UserFilterController {
     }
 
     @Operation(
-            summary = "Получить фильтр по идентификатору",
-            description = "Возвращает фильтр пользователя по его идентификатору"
+        summary = "Получить фильтр по идентификатору",
+        description = "Возвращает фильтр пользователя по его идентификатору"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Фильтр успешно найден",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserFilterResponse.class)
-                    )
-            ),
-            @ApiResponse(responseCode = "401", description = "Не авторизован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Фильтр успешно найден",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = UserFilterResponse.class)
+            )
+        ),
+        @ApiResponse(responseCode = "401", description = "Не авторизован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @GetMapping("/{filterId}")
     public ResponseEntity<@NonNull UserFilterResponse> findById(
-            @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
-            @PathVariable Long filterId
+        @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
+        @PathVariable Long filterId
     ) {
         return ResponseEntity.ok(userFilterService.findById(filterId));
     }
 
     @Operation(
-            summary = "Создать фильтр",
-            description = "Создаёт новый фильтр для профиля пользователя. " +
-                    "Максимальное количество фильтров на профиль — 5. " +
-                    "Возвращает URI созданного ресурса в заголовке Location."
+        summary = "Создать фильтр",
+        description = "Создаёт новый фильтр для профиля пользователя. " +
+            "Максимальное количество фильтров на профиль — 5. " +
+            "Возвращает URI созданного ресурса в заголовке Location."
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Фильтр успешно создан",
-                    headers = @Header(
-                            name = "Location",
-                            description = "URI созданного ресурса",
-                            schema = @Schema(type = "string", example = "/api/v1/user-profiles/1/filters/3")
-                    ),
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserFilterResponse.class)
-                    )
+        @ApiResponse(
+            responseCode = "201",
+            description = "Фильтр успешно создан",
+            headers = @Header(
+                name = "Location",
+                description = "URI созданного ресурса",
+                schema = @Schema(type = "string", example = "/api/v1/user-profiles/1/filters/3")
             ),
-            @ApiResponse(responseCode = "400", description = "Некорректные данные запроса или превышен лимит фильтров",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "401", description = "Не авторизован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "404", description = "Профиль пользователя не найден",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = UserFilterResponse.class)
+            )
+        ),
+        @ApiResponse(responseCode = "400", description = "Некорректные данные запроса или превышен лимит фильтров",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "401", description = "Не авторизован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "404", description = "Профиль пользователя не найден",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PostMapping
     public ResponseEntity<@NonNull UserFilterResponse> create(
-            @Valid @RequestBody UserFilterRequest request,
-            UriComponentsBuilder uriComponentsBuilder
+        @Valid @RequestBody UserFilterRequest request,
+        UriComponentsBuilder uriComponentsBuilder
     ) {
         UserFilterResponse response = userFilterService.create(request);
         return ResponseEntity.created(
-                uriComponentsBuilder
-                        .replacePath("/api/v1/user-profiles/filters/{filterId}")
-                        .build(Map.of("filterId", response.getId()))
+            uriComponentsBuilder
+                .replacePath("/api/v1/user-profiles/filters/{filterId}")
+                .build(Map.of("filterId", response.getId()))
         ).body(response);
     }
 
     @Operation(
-            summary = "Обновить фильтр",
-            description = "Обновляет параметры существующего фильтра пользователя"
+        summary = "Обновить фильтр",
+        description = "Обновляет параметры существующего фильтра пользователя"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Фильтр успешно обновлён",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserFilterResponse.class)
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "Некорректные данные запроса",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "401", description = "Не авторизован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Фильтр успешно обновлён",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = UserFilterResponse.class)
+            )
+        ),
+        @ApiResponse(responseCode = "400", description = "Некорректные данные запроса",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "401", description = "Не авторизован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PutMapping("/{filterId}")
     public ResponseEntity<@NonNull UserFilterResponse> update(
-            @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
-            @PathVariable Long filterId,
-            @Valid @RequestBody UserFilterRequest request
+        @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
+        @PathVariable Long filterId,
+        @Valid @RequestBody UserFilterRequest request
     ) {
         return ResponseEntity.ok(userFilterService.update(filterId, request));
     }
 
     @Operation(
-            summary = "Установить состояние активации фильтра",
-            description = "Устанавливает состояние активации фильтра. При активации (active=true) ранее активный фильтр профиля деактивируется автоматически"
+        summary = "Установить состояние активации фильтра",
+        description = "Устанавливает состояние активации фильтра. При активации (active=true) ранее активный фильтр профиля деактивируется автоматически"
     )
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Состояние активации фильтра успешно установлено",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserFilterResponse.class)
-                    )
-            ),
-            @ApiResponse(responseCode = "401", description = "Не авторизован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+        @ApiResponse(
+            responseCode = "200",
+            description = "Состояние активации фильтра успешно установлено",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = UserFilterResponse.class)
+            )
+        ),
+        @ApiResponse(responseCode = "401", description = "Не авторизован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PatchMapping("/{filterId}/activation/{active}")
     public ResponseEntity<@NonNull UserFilterResponse> setActivation(
-            @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
-            @PathVariable Long filterId,
-            @Parameter(description = "Состояние активации", example = "true", required = true)
-            @PathVariable Boolean active
+        @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
+        @PathVariable Long filterId,
+        @Parameter(description = "Состояние активации", example = "true", required = true)
+        @PathVariable Boolean active
     ) {
         return ResponseEntity.ok(userFilterService.setActivation(filterId, active));
     }
 
     @Operation(
-            summary = "Удалить фильтр",
-            description = "Удаляет фильтр пользователя по его идентификатору. Активный фильтр не может быть удалён - его необходимо сначала деактивировать"
+        summary = "Удалить фильтр",
+        description = "Удаляет фильтр пользователя по его идентификатору. Активный фильтр не может быть удалён - его необходимо сначала деактивировать"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Фильтр успешно удалён"),
-            @ApiResponse(responseCode = "400", description = "Попытка удалить активный фильтр",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "401", description = "Не авторизован",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+        @ApiResponse(responseCode = "204", description = "Фильтр успешно удалён"),
+        @ApiResponse(responseCode = "400", description = "Попытка удалить активный фильтр",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "401", description = "Не авторизован",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(responseCode = "404", description = "Фильтр или профиль не найден",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @DeleteMapping("/{filterId}")
     public ResponseEntity<Void> delete(
-            @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
-            @PathVariable Long filterId
+        @Parameter(description = "Идентификатор фильтра", example = "3", required = true)
+        @PathVariable Long filterId
     ) {
         userFilterService.delete(filterId);
         return ResponseEntity.noContent().build();

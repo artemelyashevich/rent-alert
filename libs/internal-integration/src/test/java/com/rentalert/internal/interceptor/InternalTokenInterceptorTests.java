@@ -1,10 +1,10 @@
 package com.rentalert.internal.interceptor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.rentalert.common.security.InternalAuth;
 import feign.RequestTemplate;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class InternalTokenInterceptorTests {
 

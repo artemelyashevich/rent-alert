@@ -32,7 +32,7 @@ public class RefreshTokenService implements LoginService<RefreshTokenRequest> {
         // Only the token stored at the last login is accepted, so an older leaked one can't be replayed
         String storedToken = userProfileService.getDecryptedRefreshToken(profile);
         if (storedToken == null || !MessageDigest.isEqual(
-                storedToken.getBytes(StandardCharsets.UTF_8), refreshToken.getBytes(StandardCharsets.UTF_8))) {
+            storedToken.getBytes(StandardCharsets.UTF_8), refreshToken.getBytes(StandardCharsets.UTF_8))) {
             throw new AuthException("Refresh token has been revoked");
         }
 

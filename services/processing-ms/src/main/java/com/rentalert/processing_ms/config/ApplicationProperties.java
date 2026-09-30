@@ -17,24 +17,28 @@ public class ApplicationProperties {
     @Getter
     @Setter
     public static class KufarProvider {
+
         private String url;
     }
 
     @Getter
     @Setter
     public static class Realt {
+
         private String url;
     }
 
     @Getter
     @Setter
     public static class Onliner {
+
         private String url;
     }
 
     @Getter
     @Setter
     public static class Currency {
+
         private String frankfurterUrl;
     }
 }

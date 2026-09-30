@@ -2,6 +2,8 @@ package com.rentalert.listing_ms.service.impl;
 
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
+import com.rentalert.dto.event.user.UserEvent;
+import com.rentalert.dto.listing.ListingDto;
 import com.rentalert.listing_ms.domain.HiddenListing;
 import com.rentalert.listing_ms.domain.HiddenListingEmbeddedId;
 import com.rentalert.listing_ms.mapper.ListingMapper;
@@ -9,8 +11,6 @@ import com.rentalert.listing_ms.messaging.OpsEventPublisher;
 import com.rentalert.listing_ms.repository.HiddenListingRepository;
 import com.rentalert.listing_ms.repository.ListingRepository;
 import com.rentalert.listing_ms.service.HiddenListingService;
-import com.rentalert.dto.event.user.UserEvent;
-import com.rentalert.dto.listing.ListingDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -44,9 +44,9 @@ public class HiddenListingServiceImpl implements HiddenListingService {
         }
 
         HiddenListing hiddenListing = HiddenListing.builder()
-                .id(HiddenListingEmbeddedId.builder().userId(userId).listingId(listingId).build())
-                .listing(listingRepository.getReferenceById(listingId))
-                .build();
+            .id(HiddenListingEmbeddedId.builder().userId(userId).listingId(listingId).build())
+            .listing(listingRepository.getReferenceById(listingId))
+            .build();
 
         try {
             hiddenListingRepository.save(hiddenListing);
@@ -71,9 +71,9 @@ public class HiddenListingServiceImpl implements HiddenListingService {
         log.debug("Removing listing {} from hidden for user {}", listingId, userId);
 
         HiddenListingEmbeddedId hiddenListingEmbeddedId = HiddenListingEmbeddedId.builder()
-                .userId(userId)
-                .listingId(listingId)
-                .build();
+            .userId(userId)
+            .listingId(listingId)
+            .build();
 
         if (!hiddenListingRepository.existsById(hiddenListingEmbeddedId)) {
             throw new AppException(InternalExceptionCode.EX404_HIDDEN_LISTING_NOT_FOUND, HttpStatus.NOT_FOUND);

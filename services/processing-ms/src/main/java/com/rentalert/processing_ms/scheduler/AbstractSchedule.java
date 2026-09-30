@@ -1,46 +1,41 @@
 package com.rentalert.processing_ms.scheduler;
 
 import com.rentalert.common.service.MetricService;
-import com.rentalert.processing_ms.config.ApplicationProperties;
 import com.rentalert.dto.GlobalConstants;
+import com.rentalert.processing_ms.config.ApplicationProperties;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import java.time.Duration;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.time.Duration;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 @Slf4j
 @Profile("!integration-test")
 @ConditionalOnProperty(
-        value = "app.schedulers.enabled",
-        havingValue = "true",
-        matchIfMissing = true
+    value = "app.schedulers.enabled",
+    havingValue = "true",
+    matchIfMissing = true
 )
 public abstract class AbstractSchedule {
 
-    @Autowired
-    private MetricService metricService;
-
+    private final AtomicBoolean active = new AtomicBoolean(true);
+    private final RateLimiter rateLimiter = RateLimiter.of("scheduler-rate-limiter", RateLimiterConfig.custom()
+        .limitForPeriod(2)
+        .limitRefreshPeriod(Duration.ofSeconds(1))
+        .timeoutDuration(Duration.ofDays(1))
+        .build());
     @Autowired
     public ApplicationProperties applicationProperties;
-
-    private final AtomicBoolean active = new AtomicBoolean(true);
-
+    @Autowired
+    private MetricService metricService;
     private ThreadPoolTaskExecutor executor;
-
-    private final RateLimiter rateLimiter = RateLimiter.of("scheduler-rate-limiter", RateLimiterConfig.custom()
-            .limitForPeriod(2)
-            .limitRefreshPeriod(Duration.ofSeconds(1))
-            .timeoutDuration(Duration.ofDays(1))
-            .build());
 
     @PostConstruct
     public void init() {
@@ -87,19 +82,19 @@ public abstract class AbstractSchedule {
         String scheduler = getSchedulerName();
 
         metricService.gauge(
-                "scheduler.executor.active",
-                threadPool.getActiveCount(),
-                metricService.tag(GlobalConstants.SCHEDULER, scheduler)
+            "scheduler.executor.active",
+            threadPool.getActiveCount(),
+            metricService.tag(GlobalConstants.SCHEDULER, scheduler)
         );
         metricService.gauge(
-                "scheduler.executor.queue",
-                threadPool.getQueue().size(),
-                metricService.tag(GlobalConstants.SCHEDULER, scheduler)
+            "scheduler.executor.queue",
+            threadPool.getQueue().size(),
+            metricService.tag(GlobalConstants.SCHEDULER, scheduler)
         );
         metricService.gauge(
-                "scheduler.executor.pool",
-                threadPool.getPoolSize(),
-                metricService.tag(GlobalConstants.SCHEDULER, scheduler)
+            "scheduler.executor.pool",
+            threadPool.getPoolSize(),
+            metricService.tag(GlobalConstants.SCHEDULER, scheduler)
         );
     }
 

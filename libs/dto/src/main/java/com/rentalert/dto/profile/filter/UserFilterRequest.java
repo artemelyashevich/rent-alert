@@ -52,19 +52,25 @@ public class UserFilterRequest extends AbstractDto {
 
     @AssertTrue(message = "priceTo must be greater than priceFrom")
     private boolean isPriceToGreaterThanPriceFrom() {
-        if (priceFrom == null || priceTo == null) return true;
+        if (priceFrom == null || priceTo == null) {
+            return true;
+        }
         return priceTo > priceFrom;
     }
 
     @AssertTrue(message = "roomsTo must be greater than roomsFrom")
     private boolean isRoomsToGreaterThanRoomsFrom() {
-        if (roomsFrom == null || roomsTo == null) return true;
+        if (roomsFrom == null || roomsTo == null) {
+            return true;
+        }
         return roomsTo >= roomsFrom;
     }
 
     @AssertTrue(message = "areaTo must be greater than areaFrom")
     private boolean isAreaToGreaterThanAreaFrom() {
-        if (areaFrom == null || areaTo == null) return true;
+        if (areaFrom == null || areaTo == null) {
+            return true;
+        }
         return areaTo > areaFrom;
     }
 }

@@ -18,6 +18,26 @@ public class HeaderPropagationInterceptor implements RequestInterceptor {
 
     private static final List<String> PROPAGATED_HEADERS = List.of(HttpHeaders.AUTHORIZATION, HttpHeaders.ACCEPT_LANGUAGE);
 
+    private static Optional<IgnoreInterceptRequest> findIgnoreAnnotation(RequestTemplate template) {
+        if (template.methodMetadata() != null && template.methodMetadata().method() != null) {
+            IgnoreInterceptRequest onMethod = template.methodMetadata().method().getAnnotation(IgnoreInterceptRequest.class);
+            if (onMethod != null) {
+                return Optional.of(onMethod);
+            }
+        }
+        if (template.feignTarget() != null) {
+            return Optional.ofNullable(template.feignTarget().type().getAnnotation(IgnoreInterceptRequest.class));
+        }
+        return Optional.empty();
+    }
+
+    private static boolean isIgnored(Optional<IgnoreInterceptRequest> ignore, String header) {
+        return ignore
+            .map(annotation -> annotation.headers().length == 0
+                || Arrays.stream(annotation.headers()).anyMatch(header::equalsIgnoreCase))
+            .orElse(false);
+    }
+
     @Override
     public void apply(RequestTemplate template) {
         String traceId = MDC.get(GlobalConstants.TRACE_ID);
@@ -39,25 +59,5 @@ public class HeaderPropagationInterceptor implements RequestInterceptor {
                 template.header(header, value);
             }
         }
-    }
-
-    private static Optional<IgnoreInterceptRequest> findIgnoreAnnotation(RequestTemplate template) {
-        if (template.methodMetadata() != null && template.methodMetadata().method() != null) {
-            IgnoreInterceptRequest onMethod = template.methodMetadata().method().getAnnotation(IgnoreInterceptRequest.class);
-            if (onMethod != null) {
-                return Optional.of(onMethod);
-            }
-        }
-        if (template.feignTarget() != null) {
-            return Optional.ofNullable(template.feignTarget().type().getAnnotation(IgnoreInterceptRequest.class));
-        }
-        return Optional.empty();
-    }
-
-    private static boolean isIgnored(Optional<IgnoreInterceptRequest> ignore, String header) {
-        return ignore
-            .map(annotation -> annotation.headers().length == 0
-                || Arrays.stream(annotation.headers()).anyMatch(header::equalsIgnoreCase))
-            .orElse(false);
     }
 }

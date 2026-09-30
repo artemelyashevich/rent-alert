@@ -1,11 +1,10 @@
 package com.rentalert.listing_ms.service.impl;
 
+import static com.rentalert.common.exception.InternalExceptionCode.EX400;
+
 import com.rentalert.common.exception.AppException;
 import com.rentalert.listing_ms.dto.CalendarEventDto;
 import com.rentalert.listing_ms.service.CalendarExportService;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -13,8 +12,8 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-
-import static com.rentalert.common.exception.InternalExceptionCode.EX400;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 
 @Service
 public class CalendarExportServiceImpl implements CalendarExportService {
@@ -33,7 +32,7 @@ public class CalendarExportServiceImpl implements CalendarExportService {
     @Override
     public byte[] toIcs(List<CalendarEventDto> events) {
         if (events == null || events.isEmpty()) {
-            throw new AppException(EX400,  HttpStatus.BAD_REQUEST);
+            throw new AppException(EX400, HttpStatus.BAD_REQUEST);
         }
         events.forEach(this::validateHasViewingDate);
         StringBuilder vevents = new StringBuilder();
@@ -46,19 +45,19 @@ public class CalendarExportServiceImpl implements CalendarExportService {
 
     private void validateHasViewingDate(CalendarEventDto event) {
         if (event.viewingDate() == null) {
-            throw new AppException(EX400,  HttpStatus.BAD_REQUEST);
+            throw new AppException(EX400, HttpStatus.BAD_REQUEST);
         }
     }
 
     private String wrapCalendar(String vevents) {
         return """
-                BEGIN:VCALENDAR
-                VERSION:1.0
-                PRODID:-//RentAlert//Viewing Export//RU
-                CALSCALE:GREGORIAN
-                METHOD:PUBLISH
-                %sEND:VCALENDAR
-                """.formatted(vevents);
+            BEGIN:VCALENDAR
+            VERSION:1.0
+            PRODID:-//RentAlert//Viewing Export//RU
+            CALSCALE:GREGORIAN
+            METHOD:PUBLISH
+            %sEND:VCALENDAR
+            """.formatted(vevents);
     }
 
     private String buildVEvent(CalendarEventDto event) {
@@ -66,23 +65,23 @@ public class CalendarExportServiceImpl implements CalendarExportService {
         Instant end = start.plus(DEFAULT_VIEWING_DURATION);
 
         return """
-                BEGIN:VEVENT
-                UID:favorite-%s@renalert
-                DTSTAMP:%s
-                DTSTART:%s
-                DTEND:%s
-                SUMMARY:%s
-                LOCATION:%s
-                DESCRIPTION:%s
-                END:VEVENT
-                """.formatted(
-                event.listingId(),
-                ICS_INSTANT_FORMAT.format(Instant.now()),
-                ICS_INSTANT_FORMAT.format(start),
-                ICS_INSTANT_FORMAT.format(end),
-                escape(event.title()),
-                escape(event.address()),
-                escape(buildDescription(event))
+            BEGIN:VEVENT
+            UID:favorite-%s@renalert
+            DTSTAMP:%s
+            DTSTART:%s
+            DTEND:%s
+            SUMMARY:%s
+            LOCATION:%s
+            DESCRIPTION:%s
+            END:VEVENT
+            """.formatted(
+            event.listingId(),
+            ICS_INSTANT_FORMAT.format(Instant.now()),
+            ICS_INSTANT_FORMAT.format(start),
+            ICS_INSTANT_FORMAT.format(end),
+            escape(event.title()),
+            escape(event.address()),
+            escape(buildDescription(event))
         );
     }
 
@@ -98,9 +97,9 @@ public class CalendarExportServiceImpl implements CalendarExportService {
             return "";
         }
         return value
-                .replace("\\", "\\\\")
-                .replace(",", "\\,")
-                .replace(";", "\\;")
-                .replace("\n", "\\n");
+            .replace("\\", "\\\\")
+            .replace(",", "\\,")
+            .replace(";", "\\;")
+            .replace("\n", "\\n");
     }
 }

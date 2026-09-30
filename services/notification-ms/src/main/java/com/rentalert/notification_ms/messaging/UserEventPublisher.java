@@ -16,7 +16,7 @@ public class UserEventPublisher {
 
     private final OutboxPublisher outboxPublisher;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.MANDATORY)
     public void publishBotBlocked(Long userId) {
         UserActionEvent event = UserActionEvent.builder().event(UserEvent.BOT_BLOCKED).build();
         event.setInitiatorId(userId);

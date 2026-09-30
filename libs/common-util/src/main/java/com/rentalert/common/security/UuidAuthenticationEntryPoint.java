@@ -12,11 +12,7 @@ import org.springframework.stereotype.Component;
 public class UuidAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
-    public void commence(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
-        @NonNull AuthenticationException authException
-    ) throws IOException {
+    public void commence(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull AuthenticationException authException) throws IOException {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
     }
 }

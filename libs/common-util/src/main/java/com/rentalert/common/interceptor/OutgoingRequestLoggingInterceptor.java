@@ -14,23 +14,6 @@ public class OutgoingRequestLoggingInterceptor implements ClientHttpRequestInter
 
     private static final Pattern BOT_TOKEN = Pattern.compile("/bot[^/]+");
 
-    @Override
-    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
-            throws IOException {
-        String target = describe(request.getURI());
-        long startedAt = System.nanoTime();
-        try {
-            ClientHttpResponse response = execution.execute(request, body);
-            log.info("[OUTGOING] {} {} -> status={} time={}ms", request.getMethod(), target,
-                response.getStatusCode().value(), elapsedMs(startedAt));
-            return response;
-        } catch (IOException | RuntimeException e) {
-            log.warn("[OUTGOING-FAILED] {} {} -> time={}ms error={}", request.getMethod(), target,
-                elapsedMs(startedAt), e.toString());
-            throw e;
-        }
-    }
-
     static String describe(URI uri) {
         String path = uri.getRawPath() == null ? "" : BOT_TOKEN.matcher(uri.getRawPath()).replaceFirst("/bot***");
         return uri.getHost() + path;
@@ -38,5 +21,19 @@ public class OutgoingRequestLoggingInterceptor implements ClientHttpRequestInter
 
     private static long elapsedMs(long startedAt) {
         return (System.nanoTime() - startedAt) / 1_000_000;
+    }
+
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        String target = describe(request.getURI());
+        long startedAt = System.nanoTime();
+        try {
+            ClientHttpResponse response = execution.execute(request, body);
+            log.info("[OUTGOING] {} {} -> status={} time={}ms", request.getMethod(), target, response.getStatusCode().value(), elapsedMs(startedAt));
+            return response;
+        } catch (IOException | RuntimeException e) {
+            log.warn("[OUTGOING-FAILED] {} {} -> time={}ms error={}", request.getMethod(), target, elapsedMs(startedAt), e.toString());
+            throw e;
+        }
     }
 }

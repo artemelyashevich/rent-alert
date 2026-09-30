@@ -1,6 +1,8 @@
 package com.rentalert.listing_ms.repository;
 
 import com.rentalert.listing_ms.domain.Listing;
+import java.time.Instant;
+import java.util.List;
 import lombok.NonNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,11 +11,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
-import java.util.List;
-
 public interface ListingRepository extends JpaRepository<@NonNull Listing, @NonNull Long>,
-                                           JpaSpecificationExecutor<Listing> {
+    JpaSpecificationExecutor<Listing> {
 
     @Query("""
         select l.id from Listing l

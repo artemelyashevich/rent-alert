@@ -1,8 +1,11 @@
 package com.rentalert.internal.configuration;
 
 import com.rentalert.internal.client.IdentityMsClient;
+import com.rentalert.internal.client.ProcessingMsClient;
 import com.rentalert.internal.client.service.IdentityMsService;
-import com.rentalert.internal.client.service.IdentityMsServiceImpl;
+import com.rentalert.internal.client.service.ProcessingMsService;
+import com.rentalert.internal.client.service.impl.IdentityMsServiceImpl;
+import com.rentalert.internal.client.service.impl.ProcessingMsServiceImpl;
 import com.rentalert.internal.decoder.InternalErrorDecoder;
 import com.rentalert.internal.interceptor.HeaderPropagationInterceptor;
 import com.rentalert.internal.interceptor.InternalTokenInterceptor;
@@ -11,9 +14,9 @@ import feign.Logger;
 import feign.codec.ErrorDecoder;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryRegistry;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
@@ -50,7 +53,15 @@ public class CommonFeignConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IdentityMsService identityMsService(@Lazy IdentityMsClient identityMsClient, @Lazy CacheService cacheService,
-                                               RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
+        RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
         return new IdentityMsServiceImpl(identityMsClient, cacheService, retryRegistry, circuitBreakerRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ProcessingMsService processingMsService(@Lazy ProcessingMsClient processingMsClient,
+        @Lazy CacheService cacheService, RetryRegistry retryRegistry,
+        CircuitBreakerRegistry circuitBreakerRegistry) {
+        return new ProcessingMsServiceImpl(processingMsClient, cacheService, retryRegistry, circuitBreakerRegistry);
     }
 }

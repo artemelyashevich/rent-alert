@@ -4,7 +4,7 @@ import com.rentalert.common.exception.AppException;
 import com.rentalert.dto.notification.NotificationDto;
 import com.rentalert.dto.notification.NotificationEngine;
 import com.rentalert.notification_ms.config.ApplicationProperties;
-import com.rentalert.notification_ms.messaging.UserEventPublisher;
+import com.rentalert.notification_ms.service.BotBlockedService;
 import com.rentalert.notification_ms.service.NotificationStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,7 +16,7 @@ public class TelegramBotNotificationStrategy implements NotificationStrategy {
 
     private final ApplicationProperties applicationProperties;
     private final TelegramSendMessageClient telegramSendMessageClient;
-    private final UserEventPublisher userEventPublisher;
+    private final BotBlockedService botBlockedService;
 
     @Override
     public void sendNotification(NotificationDto notificationDto) {
@@ -25,7 +25,7 @@ public class TelegramBotNotificationStrategy implements NotificationStrategy {
                 notificationDto.getReceiver(), notificationDto.getContent());
         } catch (AppException e) {
             if (e.getHttpStatus() == HttpStatus.FORBIDDEN && notificationDto.getUserId() != null) {
-                userEventPublisher.publishBotBlocked(notificationDto.getUserId());
+                botBlockedService.handle(notificationDto.getUserId());
             }
             throw e;
         }
