@@ -1,5 +1,6 @@
 package com.rentalert.notification_ms.service.impl;
 
+import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.AppRateLimitException;
 import com.rentalert.common.util.JsonHelper;
 import com.rentalert.common.util.auth.CryptoService;
@@ -30,6 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -164,7 +166,11 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception e) {
             log.error("Failed to send notification to {} via {}. Error: {}",
                 dto.getReceiver(), engine, e.getMessage());
-            persistRetryableFailure(dto, e);
+            if (isPermanentFailure(e)) {
+                persistNonRetryableFailure(dto, e.getMessage());
+            } else {
+                persistRetryableFailure(dto, e);
+            }
             return new NotificationDispatchResult(engine, NotificationDispatchStatus.FAILED, e.getMessage());
         }
     }
@@ -400,7 +406,7 @@ public class NotificationServiceImpl implements NotificationService {
             log.info("Retry succeeded. id={}, attempt={}", notification.getId(), notification.getAttempt());
         } catch (Exception e) {
             notification.setErrorMessage(e.getMessage());
-            if (notification.getAttempt() >= MAX_ATTEMPT) {
+            if (notification.getAttempt() >= MAX_ATTEMPT || isPermanentFailure(e)) {
                 notification.setStatus(NotificationStatus.EXHAUSTED);
                 log.warn("Retry exhausted after {} attempts. id={}", notification.getAttempt(), notification.getId());
             } else {
@@ -426,6 +432,10 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         return new TemplateResponse(text, template.getTemplateName());
+    }
+
+    private static boolean isPermanentFailure(Exception e) {
+        return e instanceof AppException appException && appException.getHttpStatus() == HttpStatus.FORBIDDEN;
     }
 
     private Instant calculateNextRetry(int attempt, Long overrideDelaySeconds) {

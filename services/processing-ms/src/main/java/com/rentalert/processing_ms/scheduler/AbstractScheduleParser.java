@@ -417,7 +417,6 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
 
     protected void afterSuccessExecute(T task, City city) {
         log.info("Received new listing: {}, {}", getSchedulerProvider(), city.getName());
-        // TODO: уведомления о новых объявлениях — notification-ms должен подписаться на KafkaTopics.LISTINGS
     }
 
     protected void onError(T task, Exception e) {

@@ -8,6 +8,7 @@ import com.rentalert.notification_ms.service.NotificationService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -29,16 +30,22 @@ public class NotificationRequestListener {
     @KafkaListener(topics = KafkaTopics.NOTIFICATION_REQUESTS, groupId = "notification.requests", concurrency = "${app.notification.requests-concurrency:3}")
     public void onRequest(NotificationRequest request) {
         if (isAcceptable(request)) {
-            enqueue(request, Instant.now());
+            enqueue(request, deferredUntil(request).orElse(Instant.now()));
         }
     }
 
     @KafkaListener(topics = KafkaTopics.NOTIFICATION_REQUESTS_PRIORITY, groupId = "notification.requests.priority", concurrency = "${app.notification.priority-requests-concurrency:1}")
     public void onPriorityRequest(NotificationRequest request) {
-        if (isAcceptable(request)) {
-            List<Notification> queued = enqueue(request, Instant.now().plus(priorityDispatchGrace));
-            notificationService.dispatch(queued);
+        if (!isAcceptable(request)) {
+            return;
         }
+        Optional<Instant> deferredUntil = deferredUntil(request);
+        if (deferredUntil.isPresent()) {
+            enqueue(request, deferredUntil.get());
+            return;
+        }
+        List<Notification> queued = enqueue(request, Instant.now().plus(priorityDispatchGrace));
+        notificationService.dispatch(queued);
     }
 
     private boolean isAcceptable(NotificationRequest request) {
@@ -51,6 +58,10 @@ public class NotificationRequestListener {
             return false;
         }
         return true;
+    }
+
+    private static Optional<Instant> deferredUntil(NotificationRequest request) {
+        return Optional.ofNullable(request.sendAt()).filter(sendAt -> sendAt.isAfter(Instant.now()));
     }
 
     private List<Notification> enqueue(NotificationRequest request, Instant sendAt) {

@@ -13,6 +13,7 @@ import lombok.Builder;
  * @param requestId        idempotency of the Kafka delivery: a redelivered request is ignored
  * @param deduplicationKey business deduplication, e.g. {@code listing:123:user:42}: sent once per channel
  * @param expiresAt        a request still undelivered after this moment is dropped (email codes)
+ * @param sendAt           not delivered before this moment (the user's quiet hours); null sends right away
  */
 @Builder
 public record NotificationRequest(
@@ -25,7 +26,8 @@ public record NotificationRequest(
     String deduplicationKey,
     Receiver receiver,
     Long listingId,
-    Instant expiresAt
+    Instant expiresAt,
+    Instant sendAt
 ) {
 
     public NotificationRequest {

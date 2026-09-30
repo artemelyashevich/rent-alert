@@ -46,11 +46,12 @@ public abstract class ParserResponseMapper {
     }
 
     protected BigDecimal getPrice(Listing listing, Currency currency, CurrencyPair pair) {
-        if (currency.equals(listing.getCurrency())) {
+        if (listing.getPrice() == null || currency.equals(listing.getCurrency())) {
             return listing.getPrice();
         }
         CurrencyRate latestRate = currencyRateService.getLatestRate(pair);
-        return listing.getPrice().multiply(latestRate.getRate());
+        // No rate loaded yet: leave the converted price out rather than fail
+        return latestRate == null ? null : listing.getPrice().multiply(latestRate.getRate());
     }
 
     protected BigDecimal toBigDecimal(Float value) {

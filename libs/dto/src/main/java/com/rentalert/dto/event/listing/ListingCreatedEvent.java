@@ -12,6 +12,8 @@ import lombok.Builder;
 /**
  * A new listing parsed by processing-ms, sent to {@link KafkaTopics#LISTINGS} with key = listingId.
  * {@code listingId} is the id assigned by processing-ms; consumers keep it, so the id is the same in every service.
+ * {@code priceUsd}, {@code priceByn} and {@code message} (the ready notification text) are null when processing-ms
+ * couldn't build them, e.g. without an exchange rate.
  */
 @Builder
 public record ListingCreatedEvent(
@@ -37,6 +39,9 @@ public record ListingCreatedEvent(
     boolean furniture,
     List<String> photos,
     Instant parsedAt,
-    Instant updatedAtProvider
+    Instant updatedAtProvider,
+    BigDecimal priceUsd,
+    BigDecimal priceByn,
+    String message
 ) {
 }

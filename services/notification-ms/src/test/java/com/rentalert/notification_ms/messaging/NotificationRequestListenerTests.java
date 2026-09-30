@@ -51,6 +51,40 @@ class NotificationRequestListenerTests {
     }
 
     @Test
+    void requestForQuietHoursIsQueuedUntilItsSendTime() {
+        Instant sendAt = Instant.now().plus(Duration.ofHours(8));
+        NotificationRequest request = NotificationRequest.builder()
+            .userId(42L).type(NotificationType.NEW_LISTING_MATCHED).sendAt(sendAt).build();
+
+        listener.onRequest(request);
+
+        assertThat(capturedSendAt(request)).isEqualTo(sendAt);
+        verify(notificationService, never()).dispatch(any());
+    }
+
+    @Test
+    void deferredPriorityRequestIsNotSentRightAway() {
+        Instant sendAt = Instant.now().plus(Duration.ofHours(8));
+        NotificationRequest request = NotificationRequest.builder()
+            .userId(42L).type(NotificationType.EMAIL_ACTIVATION).sendAt(sendAt).build();
+
+        listener.onPriorityRequest(request);
+
+        assertThat(capturedSendAt(request)).isEqualTo(sendAt);
+        verify(notificationService, never()).dispatch(any());
+    }
+
+    @Test
+    void sendTimeInThePastIsSentRightAway() {
+        NotificationRequest request = NotificationRequest.builder()
+            .userId(42L).type(NotificationType.NEW_LISTING_MATCHED).sendAt(Instant.now().minusSeconds(60)).build();
+
+        listener.onRequest(request);
+
+        assertThat(capturedSendAt(request)).isCloseTo(Instant.now(), within(Duration.ofSeconds(5)));
+    }
+
+    @Test
     void expiredRequestIsDropped() {
         listener.onPriorityRequest(request(NotificationType.EMAIL_ACTIVATION, Instant.now().minusSeconds(1)));
 
