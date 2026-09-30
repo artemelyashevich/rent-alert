@@ -1,7 +1,10 @@
 package com.rentalert.identity_ms.service.impl;
 
+import com.rentalert.dto.event.EventStatus;
 import com.rentalert.dto.event.KafkaTopics;
+import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.listing.ListingCreatedEvent;
+import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.listing.ListingCategory;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
@@ -51,14 +54,27 @@ public class NewListingNotificationServiceImpl implements NewListingNotification
         Instant now = Instant.now();
         for (UserFilter filter : candidates) {
             UserProfile profile = filter.getUserProfile();
-            if (!matchesPrice(filter, listing) || !isEligible(profile) || !notifiedUsers.add(profile.getId())) {
+            if (!matchesPrice(filter, listing) || !isEligible(profile)) {
                 continue;
             }
-            outboxPublisher.publish(KafkaTopics.NOTIFICATION_REQUESTS, String.valueOf(profile.getId()),
-                buildRequest(profile, listing, now));
+            publishListingReceived(profile, filter);
+            if (notifiedUsers.add(profile.getId())) {
+                outboxPublisher.publish(KafkaTopics.NOTIFICATION_REQUESTS, String.valueOf(profile.getId()),
+                    buildRequest(profile, listing, now));
+            }
         }
         log.info("Listing {} matched {} filters, {} users notified", listing.listingId(), candidates.size(),
             notifiedUsers.size());
+    }
+
+    private void publishListingReceived(UserProfile profile, UserFilter filter) {
+        UserActionEvent event = UserActionEvent.builder()
+            .event(UserEvent.LISTING_RECEIVED)
+            .filterId(filter.getId())
+            .build();
+        event.setInitiatorId(profile.getId());
+        event.setEventStatus(EventStatus.SUCCESS);
+        outboxPublisher.publish(KafkaTopics.USER_EVENTS, String.valueOf(profile.getId()), event);
     }
 
     private static boolean matchesPrice(UserFilter filter, ListingCreatedEvent listing) {

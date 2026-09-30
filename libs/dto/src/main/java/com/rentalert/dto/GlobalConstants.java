@@ -24,4 +24,6 @@ public class GlobalConstants {
     public static final String OTP_CACHE = "otp";
     public static final String LOGIN_TYPE = "type";
     public static final String ROOMMATE_SCORE_CACHE = "roommate-score";
+    public static final String TRACE_ID = "traceId";
+    public static final String TRACE_ID_HEADER = "X-Trace-Id";
 }

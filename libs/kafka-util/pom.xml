@@ -24,6 +24,11 @@
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.rentalert</groupId>
+			<artifactId>dto</artifactId>
+		</dependency>
+
 		<!-- Outbox: the service's own DataSource and transactions -->
 		<dependency>
 			<groupId>org.springframework</groupId>

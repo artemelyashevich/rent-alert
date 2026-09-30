@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS outbox_event (
     published_at timestamptz  NULL,
     attempts     int4         DEFAULT 0 NOT NULL,
     last_error   text         NULL,
+    trace_id     varchar(64)  NULL,
     CONSTRAINT outbox_event_pkey PRIMARY KEY (id)
 );
 -- The relay only reads unpublished rows

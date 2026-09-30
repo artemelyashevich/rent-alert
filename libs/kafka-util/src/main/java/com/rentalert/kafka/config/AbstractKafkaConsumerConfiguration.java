@@ -1,6 +1,7 @@
 package com.rentalert.kafka.config;
 
 import com.rentalert.kafka.NonRetryableEventException;
+import com.rentalert.kafka.TraceIdRecordInterceptor;
 import java.time.Duration;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,7 @@ public abstract class AbstractKafkaConsumerConfiguration implements DisposableBe
         configurer.configure((ConcurrentKafkaListenerContainerFactory) factory, (ConsumerFactory) consumerFactory);
         factory.setRecordMessageConverter(new JacksonJsonMessageConverter(jsonMapper));
         factory.setCommonErrorHandler(errorHandler(kafkaProperties));
+        factory.setRecordInterceptor(new TraceIdRecordInterceptor());
         return factory;
     }
 

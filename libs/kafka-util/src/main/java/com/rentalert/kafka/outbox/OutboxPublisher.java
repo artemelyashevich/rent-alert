@@ -1,5 +1,7 @@
 package com.rentalert.kafka.outbox;
 
+import com.rentalert.dto.GlobalConstants;
+import org.slf4j.MDC;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.json.JsonMapper;
@@ -7,7 +9,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 public class OutboxPublisher {
 
-    private static final String INSERT = "INSERT INTO outbox_event (topic, message_key, payload) VALUES (?, ?, ?)";
+    private static final String INSERT =
+        "INSERT INTO outbox_event (topic, message_key, payload, trace_id) VALUES (?, ?, ?, ?)";
 
     private final JdbcTemplate jdbcTemplate;
     private final JsonMapper jsonMapper;
@@ -21,6 +24,6 @@ public class OutboxPublisher {
         if (!TransactionSynchronizationManager.isActualTransactionActive()) {
             throw new IllegalStateException("OutboxPublisher.publish must run inside the business transaction");
         }
-        jdbcTemplate.update(INSERT, topic, key, jsonMapper.writeValueAsString(payload));
+        jdbcTemplate.update(INSERT, topic, key, jsonMapper.writeValueAsString(payload), MDC.get(GlobalConstants.TRACE_ID));
     }
 }

@@ -1,5 +1,6 @@
 package com.rentalert.processing_ms.config;
 
+import com.rentalert.common.interceptor.OutgoingRequestLoggingInterceptor;
 import com.rentalert.common.service.LockService;
 import com.rentalert.common.service.MetricService;
 import com.rentalert.common.service.RestService;
@@ -50,7 +51,10 @@ public class BeanConfiguration {
             .build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(READ_TIMEOUT);
-        return new RestServiceImpl(RestClient.builder().requestFactory(requestFactory).build());
+        return new RestServiceImpl(RestClient.builder()
+            .requestFactory(requestFactory)
+            .requestInterceptor(new OutgoingRequestLoggingInterceptor())
+            .build());
     }
 
     @Bean

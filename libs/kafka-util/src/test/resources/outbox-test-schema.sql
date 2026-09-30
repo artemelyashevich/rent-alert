@@ -6,5 +6,6 @@ CREATE TABLE outbox_event (
     created_at   timestamp with time zone DEFAULT now() NOT NULL,
     published_at timestamp with time zone NULL,
     attempts     int          DEFAULT 0 NOT NULL,
-    last_error   text         NULL
+    last_error   text         NULL,
+    trace_id     varchar(64)  NULL
 );

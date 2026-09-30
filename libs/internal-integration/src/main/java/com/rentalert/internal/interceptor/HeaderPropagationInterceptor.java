@@ -1,5 +1,6 @@
 package com.rentalert.internal.interceptor;
 
+import com.rentalert.dto.GlobalConstants;
 import com.rentalert.internal.annotation.IgnoreInterceptRequest;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
@@ -7,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -18,6 +20,10 @@ public class HeaderPropagationInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate template) {
+        String traceId = MDC.get(GlobalConstants.TRACE_ID);
+        if (traceId != null && !template.headers().containsKey(GlobalConstants.TRACE_ID_HEADER)) {
+            template.header(GlobalConstants.TRACE_ID_HEADER, traceId);
+        }
         if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
             return;
         }

@@ -1,5 +1,6 @@
 package com.rentalert.notification_ms.config;
 
+import com.rentalert.common.interceptor.OutgoingRequestLoggingInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -85,6 +86,7 @@ public class HttpClientConfiguration {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         return RestClient.builder()
                 .requestFactory(factory)
+                .requestInterceptor(new OutgoingRequestLoggingInterceptor())
                 .build();
     }
 
@@ -116,6 +118,7 @@ public class HttpClientConfiguration {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         return RestClient.builder()
                 .requestFactory(factory)
+                .requestInterceptor(new OutgoingRequestLoggingInterceptor())
                 .build();
     }
 }

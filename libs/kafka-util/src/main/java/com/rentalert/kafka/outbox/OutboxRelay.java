@@ -1,5 +1,7 @@
 package com.rentalert.kafka.outbox;
 
+import com.rentalert.dto.GlobalConstants;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
@@ -17,7 +19,7 @@ import tools.jackson.databind.json.JsonMapper;
 public class OutboxRelay {
 
     private static final String SELECT_BATCH = """
-        SELECT id, topic, message_key, payload FROM outbox_event
+        SELECT id, topic, message_key, payload, trace_id FROM outbox_event
         WHERE published_at IS NULL
         ORDER BY id
         LIMIT ?
@@ -67,12 +69,12 @@ public class OutboxRelay {
     // Stops at the first failure: sending later rows would reorder messages of the same key
     private int relayBatch() {
         List<OutboxRow> rows = jdbcTemplate.query(SELECT_BATCH, (rs, i) -> new OutboxRow(
-            rs.getLong("id"), rs.getString("topic"), rs.getString("message_key"), rs.getString("payload")), batchSize);
+            rs.getLong("id"), rs.getString("topic"), rs.getString("message_key"), rs.getString("payload"),
+            rs.getString("trace_id")), batchSize);
         int sent = 0;
         for (OutboxRow row : rows) {
             try {
-                kafkaTemplate.send(new ProducerRecord<>(row.topic(), row.key(), jsonMapper.readTree(row.payload())))
-                    .get(sendTimeout.toMillis(), TimeUnit.MILLISECONDS);
+                kafkaTemplate.send(toRecord(row)).get(sendTimeout.toMillis(), TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 if (e instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
@@ -87,6 +89,15 @@ public class OutboxRelay {
         return sent;
     }
 
-    private record OutboxRow(long id, String topic, String key, String payload) {
+    private ProducerRecord<String, Object> toRecord(OutboxRow row) {
+        ProducerRecord<String, Object> record =
+            new ProducerRecord<>(row.topic(), row.key(), jsonMapper.readTree(row.payload()));
+        if (row.traceId() != null) {
+            record.headers().add(GlobalConstants.TRACE_ID_HEADER, row.traceId().getBytes(StandardCharsets.UTF_8));
+        }
+        return record;
+    }
+
+    private record OutboxRow(long id, String topic, String key, String payload, String traceId) {
     }
 }

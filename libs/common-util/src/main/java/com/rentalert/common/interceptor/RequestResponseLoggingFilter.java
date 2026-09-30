@@ -8,17 +8,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 @Slf4j
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestResponseLoggingFilter extends OncePerRequestFilter {
 
     private static final int MAX_PAYLOAD_LENGTH = 10_000;
@@ -34,6 +29,9 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        if (!log.isDebugEnabled()) {
+            return true;
+        }
         String path = request.getRequestURI();
         return EXCLUDED_PATTERNS.stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
@@ -44,7 +42,7 @@ public class RequestResponseLoggingFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request, 5);
+        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request, MAX_PAYLOAD_LENGTH);
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
 
         try {

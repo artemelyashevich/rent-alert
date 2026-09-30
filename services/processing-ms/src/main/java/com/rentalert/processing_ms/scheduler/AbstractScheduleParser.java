@@ -32,7 +32,9 @@ import org.springframework.web.client.ResourceAccessException;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import org.slf4j.MDC;
 
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -313,6 +315,7 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
     }
 
     private void executeSafely(T task, String key, City city) {
+        MDC.put(GlobalConstants.TRACE_ID, UUID.randomUUID().toString());
         acquireRateLimit();
 
         final String schedulerName = getSchedulerProvider().name();
@@ -350,6 +353,7 @@ public abstract class AbstractScheduleParser<T> extends AbstractSchedule {
         } finally {
             getMetricService().stopLongTask(longTask);
             cacheService.evict(CacheType.SCHEDULER_IN_FLIGHT, key);
+            MDC.remove(GlobalConstants.TRACE_ID);
         }
     }
 

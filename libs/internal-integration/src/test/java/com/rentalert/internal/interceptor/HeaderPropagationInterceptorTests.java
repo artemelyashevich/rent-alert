@@ -1,5 +1,6 @@
 package com.rentalert.internal.interceptor;
 
+import com.rentalert.dto.GlobalConstants;
 import com.rentalert.internal.annotation.IgnoreInterceptRequest;
 import feign.Contract;
 import feign.MethodMetadata;
@@ -9,6 +10,7 @@ import feign.Target;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -60,6 +62,21 @@ class HeaderPropagationInterceptorTests {
 
         assertThat(template.headers().get(HttpHeaders.AUTHORIZATION)).containsExactly("Bearer token");
         assertThat(template.headers().get(HttpHeaders.ACCEPT_LANGUAGE)).containsExactly("en");
+    }
+
+    @Test
+    void propagatesTraceIdFromMdcEvenWithoutRequest() {
+        RequestContextHolder.resetRequestAttributes();
+        MDC.put(GlobalConstants.TRACE_ID, "abc-123");
+        try {
+            RequestTemplate template = template(PlainClient.class, "propagated");
+
+            interceptor.apply(template);
+
+            assertThat(template.headers().get(GlobalConstants.TRACE_ID_HEADER)).containsExactly("abc-123");
+        } finally {
+            MDC.remove(GlobalConstants.TRACE_ID);
+        }
     }
 
     @Test

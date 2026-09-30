@@ -4,6 +4,7 @@ import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.kafka.NonRetryableEventException;
 import com.rentalert.ops_ms.service.AuditLogService;
+import com.rentalert.ops_ms.service.StatisticsService;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -15,7 +16,8 @@ import static org.mockito.Mockito.verify;
 class UserEventListenerTests {
 
     private final AuditLogService auditLogService = mock(AuditLogService.class);
-    private final UserEventListener listener = new UserEventListener(auditLogService);
+    private final StatisticsService statisticsService = mock(StatisticsService.class);
+    private final UserEventListener listener = new UserEventListener(auditLogService, statisticsService);
 
     @Test
     void recordsValidEvent() {
@@ -24,13 +26,17 @@ class UserEventListenerTests {
         listener.onUserAction(event);
 
         verify(auditLogService).recordUserAction(event);
+        verify(statisticsService).record(event);
     }
 
     @Test
-    void skipsListingReceived() {
-        listener.onUserAction(UserActionEvent.builder().event(UserEvent.LISTING_RECEIVED).build());
+    void listingReceivedGoesToStatisticsOnly() {
+        UserActionEvent event = UserActionEvent.builder().event(UserEvent.LISTING_RECEIVED).build();
+
+        listener.onUserAction(event);
 
         verify(auditLogService, never()).recordUserAction(any());
+        verify(statisticsService).record(event);
     }
 
     @Test
@@ -38,5 +44,6 @@ class UserEventListenerTests {
         assertThatThrownBy(() -> listener.onUserAction(new UserActionEvent()))
             .isInstanceOf(NonRetryableEventException.class);
         verify(auditLogService, never()).recordUserAction(any());
+        verify(statisticsService, never()).record(any());
     }
 }
