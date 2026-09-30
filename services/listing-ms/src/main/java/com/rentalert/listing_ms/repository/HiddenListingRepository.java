@@ -2,10 +2,12 @@ package com.rentalert.listing_ms.repository;
 
 import com.rentalert.listing_ms.domain.HiddenListing;
 import com.rentalert.listing_ms.domain.HiddenListingEmbeddedId;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,6 +16,10 @@ import org.springframework.stereotype.Repository;
 public interface HiddenListingRepository extends JpaRepository<HiddenListing, HiddenListingEmbeddedId> {
 
     boolean existsByIdUserIdAndIdListingId(Long userId, Long listingId);
+
+    @Modifying
+    @Query("delete from HiddenListing h where h.id.listingId in :listingIds")
+    int deleteByListingIdIn(@Param("listingIds") List<Long> listingIds);
 
     @EntityGraph(attributePaths = {"listing"})
     @Query("SELECT h FROM HiddenListing h WHERE h.id.userId = :userId")

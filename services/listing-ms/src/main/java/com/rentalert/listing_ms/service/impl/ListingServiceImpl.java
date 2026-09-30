@@ -106,6 +106,10 @@ public class ListingServiceImpl implements ListingService {
             log.debug("Listing {} already stored, skipping", event.listingId());
             return;
         }
+        if (listingRepository.existsBySourceAndSourceId(event.source(), event.sourceId())) {
+            log.info("Listing {}:{} is already stored under another id, skipping listing {}", event.source(), event.sourceId(), event.listingId());
+            return;
+        }
         listingRepository.save(listingEventMapper.toEntity(event));
         log.debug("Listing {} stored. source={}, sourceId={}", event.listingId(), event.source(), event.sourceId());
     }

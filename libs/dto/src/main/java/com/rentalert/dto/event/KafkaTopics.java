@@ -16,6 +16,10 @@ public class KafkaTopics {
 
     public static final String JOB_EVENTS = "ops.job-events.v1";
 
+    public static final String CLEANUP_COMMANDS = "ops.cleanup-commands.v1";
+
+    public static final String CLEANUP_REPLIES = "ops.cleanup-replies.v1";
+
     /** {@code ListingCreatedEvent} from processing-ms, key = listingId. */
     public static final String LISTINGS = "processing.listings.v1";
 

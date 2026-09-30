@@ -24,4 +24,14 @@ public class KafkaConsumerConfiguration extends AbstractKafkaConsumerConfigurati
     public KafkaAdmin.NewTopics jobEventsTopics() {
         return topicWithDeadLetter(KafkaTopics.JOB_EVENTS, Duration.ofDays(7));
     }
+
+    @Bean
+    public KafkaAdmin.NewTopics cleanupCommandsTopics() {
+        return topicWithDeadLetter(KafkaTopics.CLEANUP_COMMANDS, Duration.ofDays(7));
+    }
+
+    @Bean
+    public KafkaAdmin.NewTopics cleanupRepliesTopics() {
+        return topicWithDeadLetter(KafkaTopics.CLEANUP_REPLIES, Duration.ofDays(7));
+    }
 }

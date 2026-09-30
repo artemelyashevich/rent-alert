@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.NonNull;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -49,6 +50,13 @@ public interface NotificationRepository extends JpaRepository<@NonNull Notificat
         where n.createdAt < :cutoff
         """)
     int deleteByCreatedAtBefore(@Param("cutoff") Instant cutoff);
+
+    @Query("select n.id from Notification n where n.createdAt < :cutoff order by n.id")
+    List<Long> findIdsCreatedBefore(@Param("cutoff") Instant cutoff, Pageable pageable);
+
+    @Modifying
+    @Query("delete from Notification n where n.id in :ids")
+    int deleteByIdIn(@Param("ids") List<Long> ids);
 
     boolean existsByRequestId(UUID requestId);
 

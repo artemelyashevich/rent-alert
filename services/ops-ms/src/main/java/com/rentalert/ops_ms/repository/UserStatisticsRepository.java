@@ -2,6 +2,8 @@ package com.rentalert.ops_ms.repository;
 
 import com.rentalert.ops_ms.domain.UserStatistics;
 import java.time.LocalDate;
+import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +24,11 @@ public interface UserStatisticsRepository extends JpaRepository<UserStatistics, 
         @Param("eventType") String eventType,
         @Param("eventDate") LocalDate eventDate
     );
+
+    @Query("select s.id from UserStatistics s where s.eventDate < :cutoff order by s.id")
+    List<Long> findIdsByEventDateBefore(@Param("cutoff") LocalDate cutoff, Pageable pageable);
+
+    @Modifying
+    @Query("delete from UserStatistics s where s.id in :ids")
+    int deleteByIdIn(@Param("ids") List<Long> ids);
 }

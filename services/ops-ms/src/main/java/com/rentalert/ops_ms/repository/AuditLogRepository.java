@@ -3,6 +3,7 @@ package com.rentalert.ops_ms.repository;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.ops_ms.domain.AuditLog;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,4 +32,11 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
         delete from AuditLog a where a.createdAt < :cutoff
         """)
     int deleteAllByCreatedAtBefore(Instant cutoff);
+
+    @Query("select a.id from AuditLog a where a.createdAt < :cutoff order by a.id")
+    List<Long> findIdsCreatedBefore(@Param("cutoff") Instant cutoff, Pageable pageable);
+
+    @Modifying
+    @Query("delete from AuditLog a where a.id in :ids")
+    int deleteByIdIn(@Param("ids") List<Long> ids);
 }

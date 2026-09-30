@@ -5,6 +5,7 @@ import com.rentalert.processing_ms.domain.ScheduledTaskRecord;
 import java.time.Instant;
 import java.util.List;
 import lombok.NonNull;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -53,4 +54,11 @@ public interface ScheduledTaskRecordRepository extends JpaRepository<@NonNull Sc
         delete from ScheduledTaskRecord s where s.createdAt < :cutoff
         """)
     int deleteByCreatedAtBefore(@Param("cutoff") Instant cutoff);
+
+    @Query("select s.id from ScheduledTaskRecord s where s.createdAt < :cutoff order by s.id")
+    List<Long> findIdsCreatedBefore(@Param("cutoff") Instant cutoff, Pageable pageable);
+
+    @Modifying
+    @Query("delete from ScheduledTaskRecord s where s.id in :ids")
+    int deleteByIdIn(@Param("ids") List<Long> ids);
 }
