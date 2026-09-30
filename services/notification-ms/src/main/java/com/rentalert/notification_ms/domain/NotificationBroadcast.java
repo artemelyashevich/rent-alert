@@ -25,7 +25,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class NotificationBroadcast extends AbstractEntity {
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "created_by")
     private Long userId;
 
     @Column(name = "message", columnDefinition = "TEXT", nullable = false)

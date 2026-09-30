@@ -15,6 +15,13 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
+eureka:
+  client:
+    jersey:
+      # telegrambots brings jersey-client onto the classpath; without this Eureka picks the Jersey transport,
+      # which needs eureka-client-jersey3, finds no TransportClientFactories and fails to register
+      enabled: false
+
 app:
   crypto:
     # Must equal identity-ms: receivers in NotificationRequest are encrypted there with this key,
@@ -22,6 +29,8 @@ app:
     aes-key: ${APP_CRYPTO_AES_KEY:}
     hmac-key: ${APP_CRYPTO_HMAC_KEY:}
   telegram:
+    # The bot's incoming commands aren't ported from the monolith yet (no TelegramMessageService), so it's off by default
+    bot-enabled: ${TELEGRAM_BOT_ENABLED:false}
     bot-token: ${TELEGRAM_MAIN_BOT_TOKEN:}
     bot-name: ${TELEGRAM_MAIN_BOT_NAME:RentAlert}
     # Bot API URL with %s for the admin bot token, e.g. https://api.telegram.org/bot%s/sendMessage

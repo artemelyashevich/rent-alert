@@ -54,7 +54,7 @@ management:
 
 logging:
   level:
-    com.rentalert: ${LOG_LEVEL_APP:DEBUG}
+    com.rentalert: ${LOG_LEVEL_APP:INFO}
   pattern:
     dateformat: yyyy-MM-dd HH:mm:ss.SSS,Europe/Minsk
     console: "%d{${logging.pattern.dateformat}} %clr(%-5level) [%thread] [%X{traceId:-}] %logger{0} : %replace(%msg){'\\R+',' '} %ex%n"

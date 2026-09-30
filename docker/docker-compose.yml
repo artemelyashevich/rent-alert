@@ -78,15 +78,15 @@ services:
     networks:
       - monitoring
 
-  kafka-ui:
-    image: kafbat/kafka-ui:latest
-    container_name: kafka-ui
+  redpanda-console:
+    image: redpandadata/console:latest
+    container_name: redpanda-console
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "9999:9999"
     environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_BROKERS: kafka:29092
+      SERVER_LISTENPORT: 9999
     depends_on:
       kafka:
         condition: service_healthy

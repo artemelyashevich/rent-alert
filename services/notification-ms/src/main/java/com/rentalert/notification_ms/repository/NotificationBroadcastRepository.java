@@ -14,7 +14,6 @@ public interface NotificationBroadcastRepository extends JpaRepository<@NonNull 
     @Query("""
             select b
             from NotificationBroadcast b
-            left join fetch b.userId
             order by b.createdAt desc
         """)
     Page<NotificationBroadcast> findAllWithCreatedBy(Pageable pageable);
@@ -22,7 +21,6 @@ public interface NotificationBroadcastRepository extends JpaRepository<@NonNull 
     @Query("""
             select b
             from NotificationBroadcast b
-            left join fetch b.userId
             where b.id = :id
         """)
     Optional<NotificationBroadcast> findByIdWithCreatedBy(@Param("id") Long id);

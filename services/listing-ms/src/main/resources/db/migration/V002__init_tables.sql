@@ -143,3 +143,28 @@ BEGIN
         ALTER TABLE public.hidden_listings ADD CONSTRAINT fk_hidden_listings_listing FOREIGN KEY (listing_id) REFERENCES public.listings(id) ON DELETE CASCADE;
     END IF;
 END $$;
+
+
+-- public.v_calendar_events source
+
+CREATE OR REPLACE VIEW public.v_calendar_events
+AS SELECT f.user_id,
+          f.listing_id,
+          l.title,
+          l.street,
+          l.metro_station,
+          l.price,
+          l.currency,
+          CASE
+              WHEN array_length(l.photos, 1) > 0 THEN l.photos[1]
+              ELSE NULL::character varying
+END AS cover_photo_url,
+    f.viewing_date,
+    ls.name AS status,
+    f.created_at,
+    f.updated_at
+   FROM favorites f
+     JOIN listings l ON l.id = f.listing_id
+     JOIN listing_status ls ON ls.id = f.listing_status_id
+  WHERE f.viewing_date IS NOT NULL AND ls.shows_in_calendar = true;
+

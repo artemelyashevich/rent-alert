@@ -5,6 +5,7 @@ import com.rentalert.common.util.TextUtils;
 import com.rentalert.notification_ms.config.ApplicationProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -21,6 +22,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(value = "app.telegram.bot-enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class TelegramBot extends TelegramLongPollingBot {
 

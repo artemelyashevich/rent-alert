@@ -13,18 +13,12 @@ public interface NotificationBroadcastRecipientRepository extends JpaRepository<
     @Query("""
             select r
             from NotificationBroadcastRecipient r
-            left join fetch r.userProfile u
             where r.broadcast.id = :broadcastId
-              and (
-                    cast(:search as string) is null
-                    or lower(u.username) like lower(concat('%', cast(:search as string), '%'))
-                    or (:searchId is not null and u.id = :searchId)
-                  )
+              and (:searchId is null or r.userId = :searchId)
             order by r.createdAt asc
         """)
     Page<NotificationBroadcastRecipient> findAllByBroadcastId(
         @Param("broadcastId") Long broadcastId,
-        @Param("search") String search,
         @Param("searchId") Long searchId,
         Pageable pageable
     );
