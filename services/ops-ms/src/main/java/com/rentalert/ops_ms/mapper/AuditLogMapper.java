@@ -1,10 +1,10 @@
 package com.rentalert.ops_ms.mapper;
 
+import com.rentalert.dto.audit.AuditLogResponse;
 import com.rentalert.dto.event.AdminActionEvent;
 import com.rentalert.dto.event.EventStatus;
 import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.ops_ms.domain.AuditLog;
-import com.rentalert.ops_ms.dto.AuditLogResponse;
 import java.util.IllegalFormatException;
 import java.util.List;
 import org.mapstruct.Mapper;

@@ -203,6 +203,7 @@
         <module>../services/ops-ms</module>
         <module>../services/listing-ms</module>
         <module>../services/processing-ms</module>
+        <module>../services/admin-ms</module>
     </modules>
 
     <packaging>pom</packaging>

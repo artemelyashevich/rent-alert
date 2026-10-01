@@ -1,4 +1,4 @@
-package com.rentalert.ops_ms.dto;
+package com.rentalert.dto.audit;
 
 import java.time.Instant;
 

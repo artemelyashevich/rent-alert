@@ -17,6 +17,8 @@ public interface CityRepository extends JpaRepository<City, Long> {
 
     Optional<City> findByProviderAndCityCode(ScheduleProvider provider, String cityCode);
 
+    boolean existsByProviderAndCityCode(ScheduleProvider provider, String cityCode);
+
     @Query("SELECT DISTINCT c.name FROM City c ORDER BY c.name")
     List<String> findDistinctNames();
 }

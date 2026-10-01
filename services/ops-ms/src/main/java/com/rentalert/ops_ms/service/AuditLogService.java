@@ -1,10 +1,10 @@
 package com.rentalert.ops_ms.service;
 
+import com.rentalert.dto.audit.AuditLogResponse;
 import com.rentalert.dto.event.AdminActionEvent;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.ops_ms.domain.AuditLog;
-import com.rentalert.ops_ms.dto.AuditLogResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

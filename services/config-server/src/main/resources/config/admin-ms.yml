@@ -1,0 +1,7 @@
+server:
+  port: 8086
+
+app:
+  kafka:
+    outbox:
+      enabled: false

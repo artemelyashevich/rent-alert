@@ -5,4 +5,5 @@ public class PublicUrls {
     public static final String PREFIX = "/processing";
     public static final String CITY_TAG = PREFIX + "/cities";
     public static final String INTERNAL_CURRENCY_RATE_TAG = PREFIX + "/internal/currency-rates";
+    public static final String INTERNAL_ADMIN_TAG = PREFIX + "/internal/admin";
 }

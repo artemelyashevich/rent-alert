@@ -1,7 +1,7 @@
 package com.rentalert.processing_ms.mapper;
 
+import com.rentalert.dto.listing.CityResponse;
 import com.rentalert.processing_ms.domain.City;
-import com.rentalert.processing_ms.dto.CityResponse;
 import java.util.List;
 import org.mapstruct.Mapper;
 

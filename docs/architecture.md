@@ -10,10 +10,11 @@
 | config-server   | 8888 | —                     | конфиги всех сервисов (`native`), подстановка значений из `docker/.env`                                       | —                       |
 | discovery       | 8761 | —                     | Eureka, реестр сервисов                                                                                       | —                       |
 | identity-ms     | 8081 | `identity`            | вход через Telegram, JWT, профили, фильтры, обратная связь, подбор фильтров к новым объявлениям, статус бота  | `/api/v1/identity/**`   |
-| notification-ms | 8082 | `notification`        | очередь и доставка уведомлений (Telegram-бот, Telegram администратору, email, WebSocket — заготовка), шаблоны | нет контроллеров        |
+| notification-ms | 8082 | `notification`        | очередь и доставка уведомлений (Telegram-бот, Telegram администратору, email, WebSocket — заготовка), шаблоны, каналы пользователя, напоминания о просмотрах | `/api/v1/notification/**` |
 | ops-ms          | 8083 | `ops`                 | журнал аудита, история задач, статистика пользователей                                                        | нет контроллеров        |
 | listing-ms      | 8084 | `listing`             | каталог объявлений (копия), избранное, скрытые, календарь просмотров, пересчёт цен по курсам из processing-ms | `/api/v1/listing/**`    |
 | processing-ms   | 8085 | `processing`          | парсеры Kufar, Realt, Onliner, курсы валют (Frankfurter) и внутренний API курсов, города и настройки парсеров | `/api/v1/processing/**` |
+| admin-ms        | 8086 | —                     | админ-API поверх сервисов-владельцев: вход администратора, города, настройки парсеров, отзывы, журнал аудита; действия пишет в `ops.audit-events.v1` | `/api/v1/admin/**`      |
 
 Инфраструктура (`docker/docker-compose.yml`):
 
@@ -32,7 +33,7 @@
 | `common-util`          | JWT, исключения, шифрование, логирование запросов и `traceId`                            |
 | `kafka-util`           | outbox, конфигурация producer и consumer, DLT, `traceId` в заголовках                    |
 | `redis-util`           | кэш, блокировки, сессии                                                                  |
-| `internal-integration` | Feign-клиенты к identity-ms и processing-ms с кэшем в Redis, повторами и circuit breaker |
+| `internal-integration` | Feign-клиенты к identity-ms, listing-ms и processing-ms с кэшем в Redis, повторами и circuit breaker |
 
 ## Общая схема
 
@@ -71,9 +72,16 @@ flowchart LR
     gw -->|"lb:// через Eureka"| idn
     gw --> lst
     gw --> prc
+    gw --> adm
 
     lst -->|"Feign /identity/internal/**<br/>X-Internal-Token"| idn
     lst -->|"Feign /processing/internal/currency-rates/**<br/>X-Internal-Token"| prc
+    ntf -->|"Feign /listing/internal/favorites/**<br/>X-Internal-Token"| lst
+    adm["admin-ms"] -->|"Feign /*/internal/admin/**<br/>X-Internal-Token"| idn
+    adm --> prc
+    adm --> ops
+    adm -->|AdminActionEvent| kafka
+    ntf -->|"Feign /identity/internal/profiles/{id}/receiver<br/>X-Internal-Token"| idn
 
     prc -->|HTTP| ext
     ntf -->|HTTP| tg

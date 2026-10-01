@@ -1,10 +1,15 @@
 package com.rentalert.notification_ms.service.impl;
 
+import com.rentalert.common.util.auth.CryptoService;
+import com.rentalert.dto.listing.FavoriteViewingDto;
 import com.rentalert.dto.listing.ListingDto;
 import com.rentalert.dto.notification.NotificationDto;
 import com.rentalert.dto.notification.NotificationEngine;
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.dto.notification.ReminderIntervalType;
+import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.internal.client.service.ListingMsService;
 import com.rentalert.notification_ms.domain.Reminder;
 import com.rentalert.notification_ms.service.NotificationService;
 import com.rentalert.notification_ms.service.ReminderPersistenceService;
@@ -36,6 +41,9 @@ public class ReminderServiceImpl implements ReminderService {
 
     private final NotificationService notificationService;
     private final ReminderPersistenceService reminderPersistenceService;
+    private final ListingMsService listingMsService;
+    private final IdentityMsService identityMsService;
+    private final CryptoService cryptoService;
 
     @Value("${app.bot.timezone:Europe/Minsk}")
     private ZoneId botZone;
@@ -117,10 +125,22 @@ public class ReminderServiceImpl implements ReminderService {
             reminder.getIntervalType(), target.viewingDate());
     }
 
-    // TODO: дата просмотра и объявление — из listing-ms (избранное пользователя),
-    //  адрес получателя для engine (Telegram id / email) — из identity-ms
     private ReminderTarget loadTarget(Reminder reminder, NotificationEngine engine) {
-        throw new IllegalStateException("Reminder data is unavailable: listing-ms and identity-ms are not integrated");
+        FavoriteViewingDto favorite = listingMsService.getFavoriteViewing(reminder.getUserId(), reminder.getListingId())
+            .orElseThrow(() -> new IllegalStateException("Favorite not found for reminder id=" + reminder.getId()));
+        return new ReminderTarget(favorite.viewingDate(), favorite.listing(), resolveReceiver(reminder.getUserId(), engine));
+    }
+
+    private String resolveReceiver(Long userId, NotificationEngine engine) {
+        if (engine != NotificationEngine.TELEGRAM_BOT && engine != NotificationEngine.EMAIL) {
+            return null;
+        }
+        NotificationRequest.Receiver receiver = identityMsService.getReceiver(userId);
+        String encrypted = engine == NotificationEngine.TELEGRAM_BOT ? receiver.telegramIdEnc() : receiver.emailEnc();
+        if (encrypted == null || encrypted.isBlank()) {
+            throw new IllegalStateException("No receiver address for engine " + engine);
+        }
+        return cryptoService.decrypt(encrypted);
     }
 
     private String buildReminderMessage(Reminder reminder, ReminderTarget target) {

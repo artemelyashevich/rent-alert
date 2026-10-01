@@ -42,6 +42,12 @@ spring:
                 - Path=/api/v1/processing/**
               filters:
                 - StripPrefix=2
+            - id: admin-ms
+              uri: lb://admin-ms
+              predicates:
+                - Path=/api/v1/admin/**
+              filters:
+                - StripPrefix=2
           globalcors:
             cors-configurations:
               '[/**]':
@@ -51,6 +57,7 @@ spring:
                 allowedMethods:
                   - "GET"
                   - "POST"
+                  - "PUT"
                   - "PATCH"
                   - "DELETE"
                   - "OPTIONS"

@@ -1,5 +1,6 @@
 package com.rentalert.internal.client;
 
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -13,6 +14,9 @@ public interface IdentityMsClient {
 
     @GetMapping("/profiles/{userId}")
     UserProfileResponse getProfile(@PathVariable("userId") Long userId);
+
+    @GetMapping("/profiles/{userId}/receiver")
+    NotificationRequest.Receiver getReceiver(@PathVariable("userId") Long userId);
 
     @GetMapping("/filters/active/{userId}")
     UserFilterResponse getActiveFilter(@PathVariable("userId") Long userId);

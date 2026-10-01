@@ -4,6 +4,7 @@ import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.dto.event.user.UserEvent;
+import com.rentalert.dto.listing.FavoriteViewingDto;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.listing_ms.domain.Favorite;
 import com.rentalert.listing_ms.domain.FavoriteEmbeddedId;
@@ -14,6 +15,7 @@ import com.rentalert.listing_ms.dto.FavoriteCreateDto;
 import com.rentalert.listing_ms.dto.FavoriteResponse;
 import com.rentalert.listing_ms.dto.FavoriteUpdateStatusDto;
 import com.rentalert.listing_ms.mapper.FavoriteMapper;
+import com.rentalert.listing_ms.mapper.ListingMapper;
 import com.rentalert.listing_ms.messaging.OpsEventPublisher;
 import com.rentalert.listing_ms.repository.FavoriteRepository;
 import com.rentalert.listing_ms.repository.FavoriteSpecification;
@@ -23,6 +25,7 @@ import com.rentalert.listing_ms.service.ListingStatusService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -48,6 +51,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteMapper favoriteMapper;
     private final OpsEventPublisher opsEventPublisher;
     private final IdentityMsService identityMsService;
+    private final ListingMapper listingMapper;
 
     @Override
     @Transactional
@@ -154,6 +158,19 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteRepository.deleteById(favoriteEmbeddedId);
         log.info("Listing {} removed from favorites for user {}", listingId, userId);
         opsEventPublisher.publishUserEvent(UserEvent.FAVORITE_REMOVED, userId, listingId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<FavoriteViewingDto> findViewing(Long userId, Long listingId) {
+        FavoriteEmbeddedId favoriteEmbeddedId = FavoriteEmbeddedId.builder()
+            .userId(userId)
+            .listingId(listingId)
+            .build();
+
+        return favoriteRepository.findById(favoriteEmbeddedId)
+            .map(favorite -> new FavoriteViewingDto(userId, listingId, favorite.getViewingDate(),
+                listingMapper.toDto(favorite.getListing())));
     }
 
     private void ensureUserExists(Long userId) {

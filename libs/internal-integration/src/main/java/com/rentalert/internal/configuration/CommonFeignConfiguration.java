@@ -1,10 +1,13 @@
 package com.rentalert.internal.configuration;
 
 import com.rentalert.internal.client.IdentityMsClient;
+import com.rentalert.internal.client.ListingMsClient;
 import com.rentalert.internal.client.ProcessingMsClient;
 import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.internal.client.service.ListingMsService;
 import com.rentalert.internal.client.service.ProcessingMsService;
 import com.rentalert.internal.client.service.impl.IdentityMsServiceImpl;
+import com.rentalert.internal.client.service.impl.ListingMsServiceImpl;
 import com.rentalert.internal.client.service.impl.ProcessingMsServiceImpl;
 import com.rentalert.internal.decoder.InternalErrorDecoder;
 import com.rentalert.internal.interceptor.HeaderPropagationInterceptor;
@@ -63,5 +66,12 @@ public class CommonFeignConfiguration {
         @Lazy CacheService cacheService, RetryRegistry retryRegistry,
         CircuitBreakerRegistry circuitBreakerRegistry) {
         return new ProcessingMsServiceImpl(processingMsClient, cacheService, retryRegistry, circuitBreakerRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ListingMsService listingMsService(@Lazy ListingMsClient listingMsClient, RetryRegistry retryRegistry,
+        CircuitBreakerRegistry circuitBreakerRegistry) {
+        return new ListingMsServiceImpl(listingMsClient, retryRegistry, circuitBreakerRegistry);
     }
 }

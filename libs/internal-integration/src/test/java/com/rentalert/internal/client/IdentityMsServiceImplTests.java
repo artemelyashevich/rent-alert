@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.common.exception.UpstreamHttpException;
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.internal.client.service.IdentityMsService;
@@ -49,6 +50,15 @@ class IdentityMsServiceImplTests {
 
         assertThat(service.getProfile(42L)).isSameAs(profile);
         verify(client, times(2)).getProfile(42L);
+    }
+
+    @Test
+    void fetchesReceiverWithoutCache() {
+        NotificationRequest.Receiver receiver = new NotificationRequest.Receiver("tg-enc", null);
+        when(client.getReceiver(42L)).thenReturn(receiver);
+
+        assertThat(service.getReceiver(42L)).isEqualTo(receiver);
+        verify(cacheService, never()).put(any(), any(), any(), any());
     }
 
     @Test

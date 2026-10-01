@@ -4,6 +4,7 @@ import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.AppNotFoundException;
 import com.rentalert.common.util.auth.CryptoService;
 import com.rentalert.common.util.auth.HmacBlindIndexService;
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.dto.profile.UserProfileCreateDto;
 import com.rentalert.dto.profile.UserProfileResponse;
@@ -92,6 +93,17 @@ public class UserProfileServiceImpl implements UserProfileService {
     public UserProfile getById(Long id) {
         log.debug("Fetching user profile with ID: {}", id);
         return userProfileRepository.findById(id).orElseThrow(AppNotFoundException::new);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NotificationRequest.Receiver getReceiver(Long id) {
+        UserProfile profile = getById(id);
+        UserSettings settings = profile.getSettings();
+        String email = Boolean.TRUE.equals(settings.getEmailActive()) && settings.getEmail() != null
+            ? cryptoService.encrypt(settings.getEmail())
+            : null;
+        return new NotificationRequest.Receiver(profile.getTelegramId(), email);
     }
 
     @Override

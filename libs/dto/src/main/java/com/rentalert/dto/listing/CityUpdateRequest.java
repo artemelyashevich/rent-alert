@@ -1,4 +1,4 @@
-package com.rentalert.processing_ms.dto;
+package com.rentalert.dto.listing;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

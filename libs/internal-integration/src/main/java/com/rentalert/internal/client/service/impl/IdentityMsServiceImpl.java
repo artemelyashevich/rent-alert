@@ -1,5 +1,6 @@
 package com.rentalert.internal.client.service.impl;
 
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.internal.client.AbstractResilientClient;
@@ -35,6 +36,11 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
         UserProfileResponse profile = execute(() -> identityMsClient.getProfile(userId));
         cacheService.put(CacheType.USER_PROFILE_INTERNAL, userId, profile, CACHE_TTL);
         return profile;
+    }
+
+    @Override
+    public NotificationRequest.Receiver getReceiver(Long userId) {
+        return execute(() -> identityMsClient.getReceiver(userId));
     }
 
     @Override

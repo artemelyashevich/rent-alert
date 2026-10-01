@@ -7,6 +7,7 @@ import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.dto.notification.ReminderRequestDto;
 import com.rentalert.dto.notification.ReminderResponseDto;
 import com.rentalert.dto.notification.ReminderStatus;
+import com.rentalert.internal.client.service.ListingMsService;
 import com.rentalert.notification_ms.domain.NotificationTemplate;
 import com.rentalert.notification_ms.domain.Reminder;
 import com.rentalert.notification_ms.mapper.ReminderMapper;
@@ -30,6 +31,7 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
     private final NotificationTemplateRepository notificationTemplateRepository;
     private final NotificationSettingsService notificationSettingsService;
     private final ReminderMapper reminderMapper;
+    private final ListingMsService listingMsService;
 
     @Override
     @Transactional
@@ -66,9 +68,10 @@ public class ReminderPersistenceServiceImpl implements ReminderPersistenceServic
         return reminderMapper.toResponse(reminderRepository.save(reminder));
     }
 
-    // TODO: дата просмотра избранного объявления пользователя — из listing-ms
     private Instant findViewingDate(Long userId, Long listingId) {
-        throw new AppException(InternalExceptionCode.EX404_FAVORITE_NOT_FOUND, HttpStatus.NOT_FOUND);
+        return listingMsService.getFavoriteViewing(userId, listingId)
+            .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_FAVORITE_NOT_FOUND, HttpStatus.NOT_FOUND))
+            .viewingDate();
     }
 
     private NotificationChannelDto resolveChannel(ReminderRequestDto requestDto, Long userId) {

@@ -1,7 +1,6 @@
-package com.rentalert.processing_ms.dto;
+package com.rentalert.dto.listing;
 
 
-import com.rentalert.dto.listing.ScheduleProvider;
 import java.time.Instant;
 
 public record CityResponse(

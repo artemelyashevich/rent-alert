@@ -1,4 +1,4 @@
-package com.rentalert.processing_ms.dto;
+package com.rentalert.dto.listing;
 
 import com.rentalert.dto.AbstractDto;
 import jakarta.validation.constraints.AssertTrue;

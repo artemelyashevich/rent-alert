@@ -1,6 +1,5 @@
-package com.rentalert.processing_ms.dto;
+package com.rentalert.dto.listing;
 
-import com.rentalert.dto.listing.ScheduleProvider;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

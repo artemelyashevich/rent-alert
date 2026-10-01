@@ -1,5 +1,6 @@
 package com.rentalert.identity_ms.controller.internal;
 
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.identity_ms.config.PublicUrls;
 import com.rentalert.identity_ms.mapper.UserProfileMapper;
@@ -21,5 +22,10 @@ public class UserProfileInternalController {
     @GetMapping("/{userId}")
     public UserProfileResponse findByName(@PathVariable Long userId) {
         return userProfileMapper.toResponse(userProfileService.getById(userId));
+    }
+
+    @GetMapping("/{userId}/receiver")
+    public NotificationRequest.Receiver findReceiver(@PathVariable Long userId) {
+        return userProfileService.getReceiver(userId);
     }
 }

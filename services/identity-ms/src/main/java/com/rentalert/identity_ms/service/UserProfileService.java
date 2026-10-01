@@ -1,5 +1,6 @@
 package com.rentalert.identity_ms.service;
 
+import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.TelegramUser;
 import com.rentalert.dto.profile.UserProfileCreateDto;
 import com.rentalert.dto.profile.UserProfileResponse;
@@ -15,6 +16,8 @@ public interface UserProfileService {
     UserProfile update(UserProfileUpdateDto userProfileUpdateDto);
 
     UserProfile getById(Long id);
+
+    NotificationRequest.Receiver getReceiver(Long id);
 
     UserProfile getByTelegramId(String telegramId);
 

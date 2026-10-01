@@ -1,8 +1,8 @@
 package com.rentalert.processing_ms.mapper;
 
+import com.rentalert.dto.listing.SchedulerSettingsRequest;
 import com.rentalert.dto.listing.SchedulerSettingsResponse;
 import com.rentalert.processing_ms.domain.SchedulerSettings;
-import com.rentalert.processing_ms.dto.SchedulerSettingsRequest;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -34,7 +34,8 @@ public class NotificationSettingsServiceImpl implements NotificationSettingsServ
 
     @Override
     public List<NotificationChannelDto> getSettings(Long userId) {
-        Map<NotificationEngine, UserNotificationSetting> existing = userNotificationRepository.findByUserId(userId).stream()
+        List<UserNotificationSetting> stored = userNotificationRepository.findByUserId(userId);
+        Map<NotificationEngine, UserNotificationSetting> existing = (stored.isEmpty() ? List.of(defaultSetting(userId)) : stored).stream()
             .collect(Collectors.toMap(UserNotificationSetting::getEngine, s -> s));
         return userSelectableEngines()
             .map(engine -> notificationChannelMapper.toDto(engine, existing.get(engine)))
@@ -95,12 +96,16 @@ public class NotificationSettingsServiceImpl implements NotificationSettingsServ
     @Override
     @Transactional
     public void createDefault(Long userId) {
-        userNotificationRepository.save(UserNotificationSetting.builder()
+        userNotificationRepository.save(defaultSetting(userId));
+    }
+
+    private UserNotificationSetting defaultSetting(Long userId) {
+        return UserNotificationSetting.builder()
             .userId(userId)
             .engine(NotificationEngine.TELEGRAM_BOT)
             .isEnabled(true)
             .isDefault(true)
-            .build());
+            .build();
     }
 
     private NotificationEngine resolveDefaultEngine(Set<NotificationEngine> enabledEngines, NotificationEngine requestedDefault) {
