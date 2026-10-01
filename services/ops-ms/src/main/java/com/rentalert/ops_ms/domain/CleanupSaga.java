@@ -1,6 +1,7 @@
 package com.rentalert.ops_ms.domain;
 
 import com.rentalert.common.util.jpa.AbstractEntity;
+import com.rentalert.dto.event.job.JobInitiator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,11 +39,16 @@ public class CleanupSaga extends AbstractEntity {
     @Column(name = "failed", nullable = false)
     private long failed;
 
-    public static CleanupSaga start(Instant referenceTime) {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "initiator", nullable = false, length = 20)
+    private JobInitiator initiator;
+
+    public static CleanupSaga start(Instant referenceTime, JobInitiator initiator) {
         CleanupSaga saga = new CleanupSaga();
         saga.setSagaId(UUID.randomUUID());
         saga.setStatus(CleanupSagaStatus.RUNNING);
         saga.setReferenceTime(referenceTime);
+        saga.setInitiator(initiator);
         return saga;
     }
 }

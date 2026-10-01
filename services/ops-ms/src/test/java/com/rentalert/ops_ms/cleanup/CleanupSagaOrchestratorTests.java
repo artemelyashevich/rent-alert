@@ -15,6 +15,7 @@ import com.rentalert.dto.event.JobExecutionEvent;
 import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.cleanup.CleanupCommand;
 import com.rentalert.dto.event.cleanup.CleanupReply;
+import com.rentalert.dto.event.job.JobInitiator;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.dto.event.job.JobStatus;
 import com.rentalert.kafka.outbox.OutboxPublisher;
@@ -74,6 +75,17 @@ class CleanupSagaOrchestratorTests {
             .filter(s -> s.getSagaId().equals(invocation.getArgument(0)) && s.getStepOrder() == (int) invocation.getArgument(1)).findFirst());
         when(stepRepository.findAllByStatusAndSentAtBefore(any(), any())).thenAnswer(invocation -> steps.stream()
             .filter(s -> s.getStatus() == invocation.getArgument(0) && s.getSentAt().isBefore(invocation.getArgument(1))).toList());
+    }
+
+    @Test
+    void adminRunIsRecordedAsAdminJob() {
+        UUID sagaId = orchestrator.start(MIDNIGHT, JobInitiator.ADMIN).orElseThrow();
+        orchestrator.onReply(new CleanupReply(sagaId, 1, "listing-ms", 1, 0, 10, List.of()), MIDNIGHT.plusSeconds(1));
+        orchestrator.onReply(new CleanupReply(sagaId, 2, "ops-ms", 1, 0, 10, List.of()), MIDNIGHT.plusSeconds(2));
+
+        ArgumentCaptor<JobExecutionEvent> job = ArgumentCaptor.forClass(JobExecutionEvent.class);
+        verify(jobSettingService).record(job.capture());
+        assertThat(job.getValue().getInitiator()).isEqualTo(JobInitiator.ADMIN);
     }
 
     @Test

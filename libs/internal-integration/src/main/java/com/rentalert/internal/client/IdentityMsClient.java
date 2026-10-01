@@ -1,11 +1,15 @@
 package com.rentalert.internal.client;
 
+import com.rentalert.dto.notification.BroadcastTarget;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
+import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = IdentityMsClient.SERVICE_NAME, path = "/identity/internal")
 public interface IdentityMsClient {
@@ -20,4 +24,7 @@ public interface IdentityMsClient {
 
     @GetMapping("/filters/active/{userId}")
     UserFilterResponse getActiveFilter(@PathVariable("userId") Long userId);
+
+    @PostMapping("/admin/broadcast-targets")
+    List<BroadcastTarget> findBroadcastTargets(@RequestBody List<Long> userIds);
 }

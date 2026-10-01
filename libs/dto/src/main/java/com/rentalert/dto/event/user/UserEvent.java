@@ -18,6 +18,7 @@ public enum UserEvent {
     LOGIN_SUCCESS(UserEventGroup.AUTH, "Успешный вход в систему"),
     LOGIN_FAILED(UserEventGroup.AUTH, "Неудачная попытка входа"),
     PROFILE_UPDATED(UserEventGroup.PROFILE, "Обновление профиля"),
+    USER_DELETED(UserEventGroup.PROFILE, "Удаление профиля администратором"),
     FILTER_CREATED(UserEventGroup.FILTERS, "Создание фильтра"),
     FILTER_DELETED(UserEventGroup.FILTERS, "Удаление фильтра"),
     FILTER_ACTIVATED(UserEventGroup.FILTERS, "Активация фильтра"),

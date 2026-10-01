@@ -55,11 +55,16 @@ public class CleanupSagaOrchestrator {
 
     @Transactional
     public Optional<UUID> start(Instant now) {
+        return start(now, JobInitiator.INTERNAL);
+    }
+
+    @Transactional
+    public Optional<UUID> start(Instant now, JobInitiator initiator) {
         if (sagaRepository.existsByStatus(CleanupSagaStatus.RUNNING)) {
             log.warn("[CLEANUP] previous cleanup saga is still running, skipping this run");
             return Optional.empty();
         }
-        CleanupSaga saga = sagaRepository.save(CleanupSaga.start(now));
+        CleanupSaga saga = sagaRepository.save(CleanupSaga.start(now, initiator));
         List<CleanupSagaStep> sagaSteps = stepRepository.saveAll(IntStream.range(0, steps.size())
             .mapToObj(i -> CleanupSagaStep.pending(saga.getSagaId(), i + 1, steps.get(i)))
             .toList());
@@ -135,7 +140,7 @@ public class CleanupSagaOrchestrator {
         long durationMs = Duration.between(saga.getReferenceTime(), now).toMillis();
         jobSettingService.record(JobExecutionEvent.builder()
             .jobName(JobName.CLEANUP)
-            .initiator(JobInitiator.INTERNAL)
+            .initiator(saga.getInitiator())
             .executionScope(JobScope.DB)
             .description("Cleanup saga " + saga.getSagaId())
             .affectedRecords(deleted)

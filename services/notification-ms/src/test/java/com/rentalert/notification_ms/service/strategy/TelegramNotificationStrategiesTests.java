@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
@@ -116,5 +117,20 @@ class TelegramNotificationStrategiesTests {
             .isInstanceOfSatisfying(AppRateLimitException.class,
                 e -> assertThat(e.getRetryAfterSeconds()).isEqualTo(17L));
         verify(botBlockedService, never()).handle(any());
+    }
+
+    @Test
+    void pinsBroadcastMessage() {
+        server.expect(requestTo("https://api.telegram.org/botbot-token/sendMessage"))
+            .andRespond(withSuccess("{\"ok\":true,\"result\":{\"message_id\":77,\"chat\":{\"id\":12345}}}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://api.telegram.org/botbot-token/pinChatMessage"))
+            .andExpect(content().string(allOf(containsString("chat_id=12345"), containsString("message_id=77"))))
+            .andRespond(withSuccess());
+        NotificationDto dto = dto("Broadcast", "12345");
+        dto.setPin(true);
+
+        botStrategy.sendNotification(dto);
+
+        server.verify();
     }
 }

@@ -14,7 +14,7 @@
 | ops-ms          | 8083 | `ops`                 | журнал аудита, история задач, статистика пользователей                                                        | нет контроллеров        |
 | listing-ms      | 8084 | `listing`             | каталог объявлений (копия), избранное, скрытые, календарь просмотров, пересчёт цен по курсам из processing-ms | `/api/v1/listing/**`    |
 | processing-ms   | 8085 | `processing`          | парсеры Kufar, Realt, Onliner, курсы валют (Frankfurter) и внутренний API курсов, города и настройки парсеров | `/api/v1/processing/**` |
-| admin-ms        | 8086 | —                     | админ-API поверх сервисов-владельцев: вход администратора, города, настройки парсеров, отзывы, журнал аудита; действия пишет в `ops.audit-events.v1` | `/api/v1/admin/**`      |
+| admin-ms        | 8086 | —                     | админ-API поверх сервисов-владельцев: вход, профили, города, настройки парсеров, отзывы, журнал аудита, задачи, статистика, рассылки; действия пишет в `ops.audit-events.v1` | `/api/v1/admin/**`      |
 
 Инфраструктура (`docker/docker-compose.yml`):
 
@@ -80,7 +80,8 @@ flowchart LR
     adm["admin-ms"] -->|"Feign /*/internal/admin/**<br/>X-Internal-Token"| idn
     adm --> prc
     adm --> ops
-    adm -->|AdminActionEvent| kafka
+    adm --> ntf
+    adm -->|"AdminActionEvent, JobExecutionEvent"| kafka
     ntf -->|"Feign /identity/internal/profiles/{id}/receiver<br/>X-Internal-Token"| idn
 
     prc -->|HTTP| ext
@@ -132,6 +133,7 @@ flowchart LR
 
     idn -->|NEW_LISTING_MATCHED| t_req
     idn -->|LISTING_RECEIVED| t_user
+    idn -->|USER_DELETED| t_user
     lst -->|"FAVORITE_*, HIDDEN_LISTING"| t_user
     ntf -->|BOT_BLOCKED| t_user
 
@@ -141,6 +143,8 @@ flowchart LR
     t_prio -->|notification.requests.priority| ntf
     t_user -->|ops.user-events| ops
     t_user -->|identity.user-events| idn
+    t_user -->|"listing.user-events (USER_DELETED)"| lst
+    t_user -->|"notification.user-events (USER_DELETED)"| ntf
     t_job -->|ops.job-events| ops
     t_audit -->|ops.audit| ops
 ```

@@ -18,7 +18,8 @@ public class ProxiedExceptionHandler {
 
     @ExceptionHandler(ProxiedHttpException.class)
     public ResponseEntity<?> handleProxied(ProxiedHttpException e) {
-        if (e.isServerError() || !StringUtils.hasText(e.getBody())) {
+        boolean internalError = e.getUpstreamStatus() == HttpStatus.INTERNAL_SERVER_ERROR.value();
+        if (internalError || !StringUtils.hasText(e.getBody())) {
             log.error("Upstream call failed: {}", e.getMessage());
             HttpStatus status = e.isServerError() ? HttpStatus.BAD_GATEWAY : HttpStatus.valueOf(e.getUpstreamStatus());
             return ResponseEntity.status(status).body(ExceptionBody.builder().message(status.getReasonPhrase()).build());

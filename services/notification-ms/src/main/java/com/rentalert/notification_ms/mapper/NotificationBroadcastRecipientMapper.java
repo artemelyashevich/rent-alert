@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface NotificationBroadcastRecipientMapper {
 
-    // TODO: username и photoUrl получателя — из identity-ms
     @Mapping(target = "username", ignore = true)
     @Mapping(target = "photoUrl", ignore = true)
     BroadcastRecipientResponse toResponse(NotificationBroadcastRecipient recipient);

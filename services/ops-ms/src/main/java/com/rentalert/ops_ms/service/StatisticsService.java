@@ -5,4 +5,6 @@ import com.rentalert.dto.event.UserActionEvent;
 public interface StatisticsService {
 
     void record(UserActionEvent event);
+
+    void deleteUser(Long userId);
 }

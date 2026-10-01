@@ -6,6 +6,7 @@ import com.rentalert.dto.listing.CityResponse;
 import com.rentalert.dto.listing.CityUpdateRequest;
 import com.rentalert.dto.listing.SchedulerSettingsRequest;
 import com.rentalert.dto.listing.SchedulerSettingsResponse;
+import com.rentalert.dto.statistics.ListingStatisticsOverview;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,4 +56,10 @@ public interface ProcessingAdminClient {
 
     @DeleteMapping("/scheduler-settings/{providerName}")
     void deleteSchedulerSettings(@PathVariable("providerName") String providerName);
+
+    @PostMapping("/jobs/currency-rates")
+    void syncCurrencyRates();
+
+    @GetMapping("/listing-statistics/overview")
+    ListingStatisticsOverview getListingStatistics(@RequestParam("since") String since);
 }

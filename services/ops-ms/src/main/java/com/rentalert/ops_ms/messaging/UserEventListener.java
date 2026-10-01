@@ -25,6 +25,12 @@ public class UserEventListener {
         if (event.getEvent() != UserEvent.LISTING_RECEIVED) {
             auditLogService.recordUserAction(event);
         }
+        if (event.getEvent() == UserEvent.USER_DELETED) {
+            if (event.getInitiatorId() != null) {
+                statisticsService.deleteUser(event.getInitiatorId());
+            }
+            return;
+        }
         statisticsService.record(event);
     }
 }

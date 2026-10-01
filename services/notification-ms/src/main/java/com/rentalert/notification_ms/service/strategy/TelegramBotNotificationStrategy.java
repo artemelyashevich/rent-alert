@@ -21,8 +21,12 @@ public class TelegramBotNotificationStrategy implements NotificationStrategy {
     @Override
     public void sendNotification(NotificationDto notificationDto) {
         try {
-            telegramSendMessageClient.send(applicationProperties.getTelegram().getBotToken(),
-                notificationDto.getReceiver(), notificationDto.getContent());
+            String botToken = applicationProperties.getTelegram().getBotToken();
+            if (notificationDto.isPin()) {
+                telegramSendMessageClient.sendAndPin(botToken, notificationDto.getReceiver(), notificationDto.getContent());
+            } else {
+                telegramSendMessageClient.send(botToken, notificationDto.getReceiver(), notificationDto.getContent());
+            }
         } catch (AppException e) {
             if (e.getHttpStatus() == HttpStatus.FORBIDDEN && notificationDto.getUserId() != null) {
                 botBlockedService.handle(notificationDto.getUserId());

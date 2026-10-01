@@ -1,5 +1,6 @@
 package com.rentalert.internal.client.service.impl;
 
+import com.rentalert.dto.notification.BroadcastTarget;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
@@ -11,6 +12,7 @@ import com.rentalert.redis.service.CacheService;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 public class IdentityMsServiceImpl extends AbstractResilientClient implements IdentityMsService {
@@ -54,5 +56,10 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
             cacheService.put(CacheType.USER_ACTIVE_FILTER, userId, filter, CACHE_TTL);
         }
         return Optional.ofNullable(filter);
+    }
+
+    @Override
+    public List<BroadcastTarget> findBroadcastTargets(List<Long> userIds) {
+        return execute(() -> identityMsClient.findBroadcastTargets(userIds));
     }
 }

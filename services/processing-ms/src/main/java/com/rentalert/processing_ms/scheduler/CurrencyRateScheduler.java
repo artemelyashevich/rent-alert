@@ -30,18 +30,21 @@ public class CurrencyRateScheduler {
 
     @Scheduled(fixedDelayString = "PT6H", initialDelayString = "PT5M")
     public void job() {
-        boolean ran = lockService.tryWithLock("scheduled:currency-rate-sync", LOCK_LEASE, this::syncAndReport);
-        if (!ran) {
+        if (!run(JobInitiator.INTERNAL)) {
             log.debug("Currency rates sync skipped — another instance owns the lock");
         }
     }
 
-    private void syncAndReport() {
-        log.info("Starting scheduled currency rates sync");
+    public boolean run(JobInitiator initiator) {
+        return lockService.tryWithLock("scheduled:currency-rate-sync", LOCK_LEASE, () -> syncAndReport(initiator));
+    }
+
+    private void syncAndReport(JobInitiator initiator) {
+        log.info("Starting currency rates sync, initiator={}", initiator);
         Instant started = Instant.now();
         JobExecutionEvent.JobExecutionEventBuilder report = JobExecutionEvent.builder()
             .jobName(JobName.CURRENCY_RATE_SYNC)
-            .initiator(JobInitiator.INTERNAL)
+            .initiator(initiator)
             .executionScope(JobScope.CACHE_DB_SYNC)
             .description("Fetch new currency rates & sync cache")
             .affectedRecords(0L)

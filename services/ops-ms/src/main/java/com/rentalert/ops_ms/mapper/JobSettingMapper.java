@@ -1,6 +1,7 @@
 package com.rentalert.ops_ms.mapper;
 
 import com.rentalert.dto.event.JobExecutionEvent;
+import com.rentalert.dto.job.JobSettingResponse;
 import com.rentalert.ops_ms.domain.JobSetting;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,4 +19,6 @@ public interface JobSettingMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     JobSetting toEntity(JobExecutionEvent event);
+
+    JobSettingResponse toResponse(JobSetting jobSetting);
 }

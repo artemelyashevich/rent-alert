@@ -24,4 +24,8 @@ public interface HiddenListingRepository extends JpaRepository<HiddenListing, Hi
     @EntityGraph(attributePaths = {"listing"})
     @Query("SELECT h FROM HiddenListing h WHERE h.id.userId = :userId")
     Page<HiddenListing> findAllByUserIdWithListing(@Param("userId") Long userId, Pageable pageable);
+
+    @Modifying
+    @Query("delete from HiddenListing h where h.id.userId = :userId")
+    int deleteByUserId(@Param("userId") Long userId);
 }

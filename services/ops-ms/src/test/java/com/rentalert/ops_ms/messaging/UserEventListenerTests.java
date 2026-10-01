@@ -46,4 +46,16 @@ class UserEventListenerTests {
         verify(auditLogService, never()).recordUserAction(any());
         verify(statisticsService, never()).record(any());
     }
+
+    @Test
+    void deletedUserLosesStatisticsButKeepsAuditRecord() {
+        UserActionEvent event = UserActionEvent.builder().event(UserEvent.USER_DELETED).build();
+        event.setInitiatorId(5L);
+
+        listener.onUserAction(event);
+
+        verify(auditLogService).recordUserAction(event);
+        verify(statisticsService).deleteUser(5L);
+        verify(statisticsService, never()).record(any());
+    }
 }

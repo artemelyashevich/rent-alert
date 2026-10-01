@@ -17,6 +17,7 @@ public class ApplicationProperties {
 
         /** Bot API URL with {@code %s} for the admin bot token. */
         private String url;
+        private String pinUrl = "https://api.telegram.org/bot%s/pinChatMessage";
         private String botToken;
         private String botName = "RentAlert";
         private String adminToken;

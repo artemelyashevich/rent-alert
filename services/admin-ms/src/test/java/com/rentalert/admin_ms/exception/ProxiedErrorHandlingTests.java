@@ -26,11 +26,21 @@ class ProxiedErrorHandlingTests {
     }
 
     @Test
-    void serverErrorBecomesBadGateway() {
-        ResponseEntity<?> response = handler.handleProxied(decode(503, "{\"message\":\"internal details\"}"));
+    void internalErrorBecomesBadGateway() {
+        ResponseEntity<?> response = handler.handleProxied(decode(500, "{\"message\":\"internal details\"}"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
         assertThat(String.valueOf(response.getBody())).doesNotContain("internal details");
+    }
+
+    @Test
+    void unavailableJobIsRelayed() {
+        String body = "{\"message\":\"Задача отключена в этом окружении\"}";
+
+        ResponseEntity<?> response = handler.handleProxied(decode(503, body));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(response.getBody()).isEqualTo(body);
     }
 
     @Test

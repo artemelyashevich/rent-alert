@@ -6,16 +6,13 @@
 
 ## 1. Админ-API (admin-ms)
 
-Уже есть в admin-ms: вход администратора, города, настройки парсеров, отзывы, журнал аудита.
+Перенесено всё, кроме модерации roommate.
 
-| Контроллер монолита | Что нужно | Владелец данных | Сложность |
-|---|---|---|---|
-| `AdminUserProfileController` (список, профиль, смена роли, удаление) | внутренние эндпоинты `/identity/internal/admin/profiles/**`; смена роли должна сбрасывать сессию и кэш профиля; удаление пользователя затрагивает данные listing-ms, notification-ms, ops-ms — нужна saga по образцу очистки | identity-ms | средняя (удаление — высокая) |
-| `AdminJobSettingsController` | список `job_setting` (данные уже в ops-ms); запуск очистки → старт `CleanupSagaOrchestrator`; синхронизация курсов → команда в processing-ms; очистка и синхронизация кэшей — решить, какой сервис за что отвечает (`SettingsServiceImpl` монолита трогает кэши всех доменов) | ops-ms, processing-ms | средняя |
-| `AdminStatisticsController` (статистика пользователя, сводка действий, журнал активности, обзор системы) | в ops-ms есть только запись `user_statistics`; запросы и DTO `UserStatisticsResponse`, `UserActionSummary`, `UserActivityLog`, `SystemActivityOverview` не перенесены | ops-ms | средняя |
-| `AdminListingStatisticsController` | `ListingStatisticsService` и ~10 проекций (`CityListingCountProjection`, `ProviderArrivalProjection` …) не перенесены; данные объявлений есть и в listing-ms, и в processing-ms — выбрать источник | listing-ms или processing-ms | средняя |
-| `AdminNotificationController` (рассылки) | `AdminBroadcastService` не перенесён; таблицы, сущности, репозитории и мапперы рассылок в notification-ms уже есть; список получателей — из identity-ms | notification-ms | средняя |
-| `AdminRoommateModerationController` | заблокировано: нет домена roommate (см. п. 5) | — | — |
+| Что | Состояние |
+|---|---|
+| `AdminRoommateModerationController` | заблокировано: нет домена roommate (см. п. 5) |
+| Кнопка «синхронизация кэша» (`/job-settings/cacheSync`) | не перенесена намеренно: в монолите она переносила счётчик попыток парсеров из Redis в `schedule_tasks`, а в processing-ms этого счётчика нет |
+| Поиск получателей рассылки по имени (`search`) | только по id пользователя: имена хранятся в identity-ms |
 
 ## 2. Пользовательские функции
 

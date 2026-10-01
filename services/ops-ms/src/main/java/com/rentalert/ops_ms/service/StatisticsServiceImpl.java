@@ -4,10 +4,12 @@ import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.ops_ms.repository.UserStatisticsRepository;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
 
@@ -28,5 +30,12 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
         userStatisticsRepository.increment(event.getInitiatorId(), event.getFilterId(), event.getEvent().name(),
             LocalDate.now(zone));
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+        int deleted = userStatisticsRepository.deleteByUserId(userId);
+        log.info("Deleted {} statistics rows of user {}", deleted, userId);
     }
 }

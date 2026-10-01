@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -34,4 +35,8 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     List<Reminder> findAllByUserIdOrderByRemindAtAsc(Long userId);
 
     Optional<Reminder> findByIdAndUserId(Long id, Long userId);
+
+    @Modifying
+    @Query("delete from Reminder e where e.userId = :userId")
+    int deleteByUserId(@Param("userId") Long userId);
 }
