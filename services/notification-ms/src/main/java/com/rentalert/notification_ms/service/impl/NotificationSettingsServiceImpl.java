@@ -11,6 +11,7 @@ import com.rentalert.dto.notification.NotificationEngine;
 import com.rentalert.dto.notification.UpdateNotificationSettingsRequest;
 import com.rentalert.notification_ms.domain.UserNotificationSetting;
 import com.rentalert.notification_ms.mapper.NotificationChannelMapper;
+import com.rentalert.notification_ms.messaging.UserEventPublisher;
 import com.rentalert.notification_ms.repository.UserNotificationSettingRepository;
 import com.rentalert.notification_ms.service.NotificationSettingsService;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ public class NotificationSettingsServiceImpl implements NotificationSettingsServ
 
     private final UserNotificationSettingRepository userNotificationRepository;
     private final NotificationChannelMapper notificationChannelMapper;
+    private final UserEventPublisher userEventPublisher;
 
     @Override
     public List<NotificationChannelDto> getSettings(Long userId) {
@@ -85,6 +87,7 @@ public class NotificationSettingsServiceImpl implements NotificationSettingsServ
                 .collect(Collectors.toList());
         }
         userNotificationRepository.saveAll(toSave);
+        userEventPublisher.publishSettingsUpdated(userId);
         Map<NotificationEngine, UserNotificationSetting> saved = toSave.stream()
             .collect(Collectors.toMap(UserNotificationSetting::getEngine, s -> s));
 
@@ -96,6 +99,9 @@ public class NotificationSettingsServiceImpl implements NotificationSettingsServ
     @Override
     @Transactional
     public void createDefault(Long userId) {
+        if (!userNotificationRepository.findByUserId(userId).isEmpty()) {
+            return;
+        }
         userNotificationRepository.save(defaultSetting(userId));
     }
 

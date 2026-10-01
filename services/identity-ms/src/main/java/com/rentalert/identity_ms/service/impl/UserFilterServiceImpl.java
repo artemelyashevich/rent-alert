@@ -4,11 +4,13 @@ import com.rentalert.common.exception.AppBadRequestException;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.dto.currency.Currency;
+import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.profile.filter.UserFilterRequest;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.identity_ms.domain.UserFilter;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.mapper.UserFilterMapper;
+import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.UserFilterRepository;
 import com.rentalert.identity_ms.service.UserFilterService;
 import com.rentalert.identity_ms.service.UserProfileService;
@@ -32,6 +34,7 @@ public class UserFilterServiceImpl implements UserFilterService {
     private final UserProfileService userProfileService;
     private final UserFilterMapper userFilterMapper;
     private final UserSessionService userSessionService;
+    private final UserEventPublisher userEventPublisher;
 
     @Override
     @Transactional
@@ -53,6 +56,7 @@ public class UserFilterServiceImpl implements UserFilterService {
 
         UserFilter saved = userFilterRepository.save(filter);
         log.info("Filter has been created: id={}, userProfileId={}", saved.getId(), userProfileId);
+        userEventPublisher.publish(UserEvent.FILTER_CREATED, userProfileId, saved.getId());
         userProfileService.evictCachedProfile(userProfileId);
 
         return userFilterMapper.toResponse(saved);
@@ -87,6 +91,7 @@ public class UserFilterServiceImpl implements UserFilterService {
 
         UserFilter saved = userFilterRepository.save(filter);
         log.info("Filter has been updated: id={}, userProfileId={}", filterId, userProfileId);
+        userEventPublisher.publish(UserEvent.FILTER_UPDATED, userProfileId, filterId);
         userProfileService.evictCachedProfile(userProfileId);
 
         return userFilterMapper.toResponse(saved);
@@ -109,6 +114,9 @@ public class UserFilterServiceImpl implements UserFilterService {
         filter.setActive(active);
         UserFilter saved = userFilterRepository.save(filter);
         log.info("Filter activation has been set to {}: id={}, userProfileId={}", active, filterId, userProfileId);
+        if (active) {
+            userEventPublisher.publish(UserEvent.FILTER_ACTIVATED, userProfileId, filterId);
+        }
         userProfileService.evictCachedProfile(userProfileId);
         return userFilterMapper.toResponse(saved);
     }
@@ -153,6 +161,7 @@ public class UserFilterServiceImpl implements UserFilterService {
         }
         userFilterRepository.delete(filter);
         log.info("Filter has been deleted: id={}, userProfileId={}", filterId, userProfileId);
+        userEventPublisher.publish(UserEvent.FILTER_DELETED, userProfileId, filterId);
         userProfileService.evictCachedProfile(userProfileId);
     }
 

@@ -14,10 +14,12 @@ import com.rentalert.common.util.auth.JwtService;
 import com.rentalert.common.util.auth.JwtType;
 import com.rentalert.dto.auth.AdminLoginRequest;
 import com.rentalert.dto.auth.LoginResponse;
+import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.profile.UserRole;
 import com.rentalert.dto.user.UserSession;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
+import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
 import com.rentalert.identity_ms.service.UserProfileService;
 import java.util.Optional;
@@ -36,8 +38,9 @@ class AdminLoginServiceTests {
     private final JwtService jwtService = mock(JwtService.class);
     private final TokenIssuer tokenIssuer = mock(TokenIssuer.class);
     private final TransactionTemplate transactionTemplate = mock(TransactionTemplate.class);
+    private final UserEventPublisher userEventPublisher = mock(UserEventPublisher.class);
     private final AdminLoginService service = new AdminLoginService(
-        repository, userProfileService, ENCODER, jwtService, tokenIssuer, transactionTemplate);
+        repository, userProfileService, ENCODER, jwtService, tokenIssuer, transactionTemplate, userEventPublisher);
 
     @BeforeEach
     void runCallbackInline() {
@@ -60,6 +63,7 @@ class AdminLoginServiceTests {
         assertThat(profile.getSettings().getRefreshTokenHash()).isEqualTo("refresh-enc");
         assertThat(profile.getLastLogin()).isNotNull();
         verify(userProfileService).evictCachedProfile(5L);
+        verify(userEventPublisher).publish(UserEvent.LOGIN_SUCCESS, 5L);
     }
 
     @Test
@@ -68,6 +72,7 @@ class AdminLoginServiceTests {
 
         assertThatThrownBy(() -> service.auth(new AdminLoginRequest("admin", "wrong"))).isInstanceOf(AuthException.class);
         verify(tokenIssuer, never()).issue(any(), any());
+        verify(userEventPublisher, never()).publish(any(), any());
     }
 
     @Test

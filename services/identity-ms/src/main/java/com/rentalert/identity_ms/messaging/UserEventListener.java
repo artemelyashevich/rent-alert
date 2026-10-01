@@ -16,8 +16,13 @@ public class UserEventListener {
 
     @KafkaListener(topics = KafkaTopics.USER_EVENTS, groupId = "identity.user-events")
     public void onUserAction(UserActionEvent event) {
-        if (event.getEvent() == UserEvent.BOT_BLOCKED && event.getInitiatorId() != null) {
+        if (event.getInitiatorId() == null) {
+            return;
+        }
+        if (event.getEvent() == UserEvent.BOT_BLOCKED) {
             botStatusService.markBotBlocked(event.getInitiatorId());
+        } else if (event.getEvent() == UserEvent.BOT_UNBLOCKED) {
+            botStatusService.markBotUnblocked(event.getInitiatorId());
         }
     }
 }

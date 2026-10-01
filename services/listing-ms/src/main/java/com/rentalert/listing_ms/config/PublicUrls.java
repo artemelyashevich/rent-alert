@@ -11,4 +11,5 @@ public class PublicUrls {
     public static final String LISTING_TAG = PREFIX + "/listings";
     public static final String LISTING_STATUS_TAG = LISTING_TAG + "/statuses";
     public static final String INTERNAL_FAVORITE_TAG = PREFIX + INTERNAL_PREFIX + "/favorites";
+    public static final String INTERNAL_HIDDEN_LISTING_TAG = PREFIX + INTERNAL_PREFIX + "/hidden-listings";
 }

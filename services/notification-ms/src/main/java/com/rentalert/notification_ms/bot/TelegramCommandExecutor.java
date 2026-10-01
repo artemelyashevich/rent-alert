@@ -7,5 +7,5 @@ public interface TelegramCommandExecutor {
 
     TelegramCommand getCommand();
 
-    SendMessage execute(TelegramMessage telegramMessage);
+    SendMessage execute(TelegramMessage telegramMessage, String chatId);
 }

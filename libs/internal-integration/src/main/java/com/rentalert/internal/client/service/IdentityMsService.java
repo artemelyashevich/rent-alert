@@ -21,6 +21,8 @@ public interface IdentityMsService {
 
     NotificationRequest.Receiver getReceiver(Long userId);
 
+    Optional<UserProfileResponse> findByTelegramId(String telegramId);
+
     Optional<UserFilterResponse> getActiveFilter(Long userId);
 
     List<BroadcastTarget> findBroadcastTargets(List<Long> userIds);

@@ -12,6 +12,8 @@ public class PublicUrls {
     public static final String FEEDBACK_TAG = PREFIX + "/feedbacks";
     public static final String FILTER_TAG = PREFIX + "/filters";
     public static final String PROFILE_TAG = PREFIX + "/profiles";
+    public static final String EMAIL_TAG = PROFILE_TAG + "/email";
+    public static final String APP_SETTINGS_TAG = PREFIX + "/app-settings";
     public static final String INTERNAL_PROFILE_TAG = PREFIX + INTERNAL_PREFIX + "/profiles";
     public static final String INTERNAL_FILTER_TAG = PREFIX + INTERNAL_PREFIX + "/filters";
     public static final String INTERNAL_ADMIN_TAG = PREFIX + INTERNAL_PREFIX + "/admin";

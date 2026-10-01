@@ -62,6 +62,13 @@ class IdentityMsServiceImplTests {
     }
 
     @Test
+    void unknownTelegramUserIsEmpty() {
+        when(client.findByTelegramId(any())).thenThrow(new UpstreamHttpException("not found", 404, null));
+
+        assertThat(service.findByTelegramId("100")).isEmpty();
+    }
+
+    @Test
     void doesNotRetryNotFound() {
         when(client.getProfile(42L)).thenThrow(new UpstreamHttpException("not found", 404, null));
 

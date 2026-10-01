@@ -58,6 +58,17 @@ class BotStatusServiceImplTests {
     }
 
     @Test
+    void marksBotUnblocked() {
+        UserProfile profile = profile(BotStatus.BLOCKED);
+        when(userProfileRepository.findById(10L)).thenReturn(Optional.of(profile));
+
+        service.markBotUnblocked(10L);
+
+        assertThat(profile.getSettings().getBotStatus()).isEqualTo(BotStatus.ACTIVE);
+        verify(userProfileService).save(profile);
+    }
+
+    @Test
     void unknownUserIsIgnored() {
         when(userProfileRepository.findById(10L)).thenReturn(Optional.empty());
 

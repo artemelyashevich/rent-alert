@@ -1,6 +1,10 @@
 package com.rentalert.notification_ms.bot;
 
 import com.rentalert.common.exception.AppException;
+import com.rentalert.dto.event.user.UserEvent;
+import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.notification_ms.messaging.UserEventPublisher;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +22,8 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 public class TelegramCallbackServiceImpl implements TelegramCallbackService {
 
     private final List<TelegramCallbackExecutor> executors;
+    private final IdentityMsService identityMsService;
+    private final UserEventPublisher userEventPublisher;
 
     private Map<String, TelegramCallbackExecutor> executorsMap;
 
@@ -45,6 +51,11 @@ public class TelegramCallbackServiceImpl implements TelegramCallbackService {
             throw new AppException("Unsupported callback", HttpStatus.BAD_REQUEST);
         }
 
-        return executor.execute(callbackQuery, payload);
+        Long userId = identityMsService.findByTelegramId(callbackQuery.getFrom().getId().toString())
+            .map(UserProfileResponse::userId)
+            .orElseThrow(() -> new AppException("Unregistered telegram user", HttpStatus.NOT_FOUND));
+        userEventPublisher.publishBotAction(UserEvent.TELEGRAM_CALLBACK, userId);
+
+        return executor.execute(userId, payload);
     }
 }

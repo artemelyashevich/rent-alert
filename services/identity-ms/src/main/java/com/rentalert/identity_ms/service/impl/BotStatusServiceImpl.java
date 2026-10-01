@@ -22,17 +22,27 @@ public class BotStatusServiceImpl implements BotStatusService {
     @Override
     @Transactional
     public void markBotBlocked(Long userId) {
+        setBotStatus(userId, BotStatus.BLOCKED);
+    }
+
+    @Override
+    @Transactional
+    public void markBotUnblocked(Long userId) {
+        setBotStatus(userId, BotStatus.ACTIVE);
+    }
+
+    private void setBotStatus(Long userId, BotStatus botStatus) {
         Optional<UserProfile> found = userProfileRepository.findById(userId);
         if (found.isEmpty()) {
-            log.warn("Bot blocked by unknown user {}, ignoring", userId);
+            log.warn("Bot status {} for unknown user {}, ignoring", botStatus, userId);
             return;
         }
         UserProfile profile = found.get();
-        if (profile.getSettings().getBotStatus() == BotStatus.BLOCKED) {
+        if (profile.getSettings().getBotStatus() == botStatus) {
             return;
         }
-        profile.getSettings().setBotStatus(BotStatus.BLOCKED);
+        profile.getSettings().setBotStatus(botStatus);
         userProfileService.save(profile);
-        log.warn("Bot was blocked by user {}", userId);
+        log.info("Bot status of user {} changed to {}", userId, botStatus);
     }
 }

@@ -13,6 +13,7 @@ import com.rentalert.dto.user.UserSession;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
 import com.rentalert.identity_ms.mapper.DetailedUserProfileMapper;
+import com.rentalert.identity_ms.messaging.RegistrationEventPublisher;
 import com.rentalert.identity_ms.mapper.UserProfileMapper;
 import com.rentalert.identity_ms.repository.DetailedUserProfileViewRepository;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
@@ -46,6 +47,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final UserSessionService userSessionService;
     private final TransactionTemplate transactionTemplate;
     private final ProfileCacheEvictor profileCacheEvictor;
+    private final RegistrationEventPublisher registrationEventPublisher;
 
     @Override
     @Transactional
@@ -169,7 +171,9 @@ public class UserProfileServiceImpl implements UserProfileService {
             .username(telegramUser.getUsername())
             .photoUrl(telegramUser.getPhotoUrl())
             .build();
-        return create(createDto);
+        UserProfile profile = create(createDto);
+        registrationEventPublisher.publishRegistered(profile);
+        return profile;
     }
 
     @Override

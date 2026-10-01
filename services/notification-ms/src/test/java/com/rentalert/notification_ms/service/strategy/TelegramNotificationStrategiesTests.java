@@ -18,6 +18,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.AppRateLimitException;
 import com.rentalert.dto.notification.NotificationDto;
+import com.rentalert.notification_ms.bot.ListingActionsKeyboardFactory;
 import com.rentalert.notification_ms.config.ApplicationProperties;
 import com.rentalert.notification_ms.service.BotBlockedService;
 import java.net.URLEncoder;
@@ -37,6 +38,7 @@ class TelegramNotificationStrategiesTests {
     private MockRestServiceServer server;
     private TelegramAdminNotificationStrategy adminStrategy;
     private TelegramBotNotificationStrategy botStrategy;
+    private ApplicationProperties properties;
 
     private static NotificationDto dto(String content, String receiver) {
         NotificationDto dto = new NotificationDto();
@@ -51,7 +53,7 @@ class TelegramNotificationStrategiesTests {
 
     @BeforeEach
     void setUp() {
-        ApplicationProperties properties = new ApplicationProperties();
+        properties = new ApplicationProperties();
         properties.getTelegram().setUrl("https://api.telegram.org/bot%s/sendMessage");
         properties.getTelegram().setAdminToken("admin-token");
         properties.getTelegram().setAdminChatId("-100");
@@ -60,7 +62,7 @@ class TelegramNotificationStrategiesTests {
         server = MockRestServiceServer.bindTo(builder).build();
         TelegramSendMessageClient client = new TelegramSendMessageClient(properties, builder.build());
         adminStrategy = new TelegramAdminNotificationStrategy(properties, client);
-        botStrategy = new TelegramBotNotificationStrategy(properties, client, botBlockedService);
+        botStrategy = new TelegramBotNotificationStrategy(properties, client, botBlockedService, new ListingActionsKeyboardFactory());
     }
 
     @Test
@@ -88,6 +90,36 @@ class TelegramNotificationStrategiesTests {
             .andRespond(withSuccess());
 
         botStrategy.sendNotification(dto("New listing", "12345"));
+
+        server.verify();
+    }
+
+    @Test
+    void attachesListingButtonsWhenBotIsEnabled() {
+        properties.getTelegram().setBotEnabled(true);
+        server.expect(requestTo("https://api.telegram.org/botbot-token/sendMessage"))
+            .andExpect(content().string(allOf(
+                containsString("reply_markup="),
+                containsString(encode("\"callback_data\":\"favorite:7\"")),
+                containsString(encode("\"callback_data\":\"hide:7\"")))))
+            .andRespond(withSuccess());
+        NotificationDto dto = dto("New listing", "12345");
+        dto.setListingId(7L);
+
+        botStrategy.sendNotification(dto);
+
+        server.verify();
+    }
+
+    @Test
+    void noListingButtonsWhenBotIsDisabled() {
+        server.expect(requestTo("https://api.telegram.org/botbot-token/sendMessage"))
+            .andExpect(content().string(not(containsString("reply_markup"))))
+            .andRespond(withSuccess());
+        NotificationDto dto = dto("New listing", "12345");
+        dto.setListingId(7L);
+
+        botStrategy.sendNotification(dto);
 
         server.verify();
     }

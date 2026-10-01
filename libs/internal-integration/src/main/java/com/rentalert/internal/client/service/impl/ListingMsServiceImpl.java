@@ -1,5 +1,6 @@
 package com.rentalert.internal.client.service.impl;
 
+import com.rentalert.dto.listing.FavoriteAddResult;
 import com.rentalert.dto.listing.FavoriteViewingDto;
 import com.rentalert.internal.client.AbstractResilientClient;
 import com.rentalert.internal.client.ListingMsClient;
@@ -21,5 +22,20 @@ public class ListingMsServiceImpl extends AbstractResilientClient implements Lis
     @Override
     public Optional<FavoriteViewingDto> getFavoriteViewing(Long userId, Long listingId) {
         return Optional.ofNullable(execute(() -> listingMsClient.getFavoriteViewing(userId, listingId)));
+    }
+
+    @Override
+    public FavoriteAddResult addFavorite(Long userId, Long listingId) {
+        return executeOnce(() -> listingMsClient.addFavorite(userId, listingId));
+    }
+
+    @Override
+    public boolean removeFavorite(Long userId, Long listingId) {
+        return executeOnce(() -> listingMsClient.removeFavorite(userId, listingId));
+    }
+
+    @Override
+    public boolean hideListing(Long userId, Long listingId) {
+        return executeOnce(() -> listingMsClient.hideListing(userId, listingId));
     }
 }

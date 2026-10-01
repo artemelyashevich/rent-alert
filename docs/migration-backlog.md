@@ -16,31 +16,15 @@
 
 ## 2. Пользовательские функции
 
-| Что | Где в монолите | Что нужно |
-|---|---|---|
-| Подтверждение email (OTP) | `EmailController`, `OtpService`, `UserNotificationGateway.sendOtpEmail` / `sendEmailActivationSuccess` | эндпоинты в identity-ms, OTP в Redis, письма через `NotificationRequest` (типы уже есть в `NotificationType`) |
-| Настройки приложения для фронта | `AppSettingsController` (`/api/v1/app-settings`) | только перечисления — можно отдавать из любого сервиса или gateway |
-| Уведомление администратору о новом пользователе | `UserCreatedEventListener` | identity-ms при регистрации кладёт `NotificationRequest` типа `USER_CREATED` в outbox |
-| Настройки уведомлений по умолчанию при регистрации | `UserNotificationGateway.createDefaultSettings` | сейчас заменено ответом по умолчанию (Telegram) в `NotificationSettingsServiceImpl.getSettings`, пока у пользователя нет строк; если нужна строка в БД — событие регистрации из identity-ms |
+Перенесены: подтверждение email, настройки приложения (`/api/v1/identity/app-settings`), уведомление администратору о новом пользователе, настройки уведомлений по умолчанию при регистрации.
 
 ## 3. События статистики (`@UserAudit`)
 
-В монолите эти действия пишутся в статистику, в микросервисах — нет:
-
-| Событие | Где должно публиковаться |
-|---|---|
-| `LOGIN_SUCCESS` | identity-ms, `TelegramLoginService` и `AdminLoginService` |
-| `FILTER_CREATED`, `FILTER_UPDATED`, `FILTER_DELETED` | identity-ms, `UserFilterServiceImpl` |
-| `NOTIFICATION_SETTINGS_UPDATED` | notification-ms, `NotificationSettingsServiceImpl.updateSettings` (для outbox нужна транзакция, таблица `outbox_event` в notification-ms есть) |
-
-`HIDDEN_LISTING`, `FAVORITE_*`, `BOT_BLOCKED`, `LISTING_RECEIVED` уже публикуются.
+Перенесены все: `LOGIN_SUCCESS` (identity-ms, вход через Telegram и админский), `FILTER_CREATED` / `FILTER_UPDATED` / `FILTER_DELETED` (identity-ms, с id фильтра), `NOTIFICATION_SETTINGS_UPDATED` (notification-ms). Публикуются через outbox в той же транзакции, что и изменение.
 
 ## 4. Telegram-бот (входящие команды)
 
-Каркас в notification-ms есть (`TelegramBot`, `TelegramCommandExecutor`, `TelegramCallbackExecutor`), бот выключен (`app.telegram.bot-enabled=false`). Не перенесены:
-
-- команды `/start`, `/help`, `/app` (`TelegramStartCommandExecutor`, `TelegramHelpCommandExecutor`, `TelegramAppCommandExecutor`);
-- кнопки под объявлением: в избранное, убрать из избранного, скрыть (`FavoriteListingCallbackExecutor`, `UnfavoriteListingCallbackExecutor`, `HideListingCallbackExecutor`) — нужны внутренние эндпоинты listing-ms и поиск пользователя по Telegram id в identity-ms.
+Перенесены команды `/start`, `/help`, `/app` и кнопки под объявлением: в избранное, убрать из избранного, скрыть. Бот по-прежнему выключен по умолчанию (`TELEGRAM_BOT_ENABLED`): он работает через long polling, поэтому запускать его можно только в одном экземпляре notification-ms. Для `/app` нужен `FRONT_ADDRESS`.
 
 ## 5. Домен roommate (поиск соседей)
 

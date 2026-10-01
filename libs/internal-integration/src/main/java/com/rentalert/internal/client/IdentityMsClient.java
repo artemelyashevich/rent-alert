@@ -6,6 +6,7 @@ import com.rentalert.dto.auth.LoginResponse;
 import com.rentalert.dto.notification.BroadcastTarget;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.FeedbackResponse;
+import com.rentalert.dto.profile.TelegramIdRequest;
 import com.rentalert.dto.profile.UpdateUserRoleRequest;
 import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
@@ -31,6 +32,9 @@ public interface IdentityMsClient {
 
     @GetMapping("/profiles/{userId}/receiver")
     NotificationRequest.Receiver getReceiver(@PathVariable("userId") Long userId);
+
+    @PostMapping("/profiles/by-telegram")
+    UserProfileResponse findByTelegramId(@RequestBody TelegramIdRequest request);
 
     @GetMapping("/filters/active/{userId}")
     UserFilterResponse getActiveFilter(@PathVariable("userId") Long userId);

@@ -25,6 +25,16 @@ class UserEventListenerTests {
     }
 
     @Test
+    void marksBotUnblocked() {
+        UserActionEvent event = UserActionEvent.builder().event(UserEvent.BOT_UNBLOCKED).build();
+        event.setInitiatorId(10L);
+
+        listener.onUserAction(event);
+
+        verify(botStatusService).markBotUnblocked(10L);
+    }
+
+    @Test
     void ignoresOtherEvents() {
         UserActionEvent event = UserActionEvent.builder().event(UserEvent.LISTING_RECEIVED).build();
         event.setInitiatorId(10L);

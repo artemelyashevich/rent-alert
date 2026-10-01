@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.AppRateLimitException;
+import com.rentalert.common.util.JsonHelper;
 import com.rentalert.notification_ms.config.ApplicationProperties;
 import java.util.function.Supplier;
 import lombok.NonNull;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 
 @Slf4j
@@ -28,13 +30,17 @@ public class TelegramSendMessageClient {
     private final RestClient restClient;
 
     public void send(String botToken, String chatId, String text) {
-        call(() -> request(applicationProperties.getTelegram().getUrl().formatted(botToken), messageParams(chatId, text), text)
+        send(botToken, chatId, text, null);
+    }
+
+    public void send(String botToken, String chatId, String text, InlineKeyboardMarkup replyMarkup) {
+        call(() -> request(applicationProperties.getTelegram().getUrl().formatted(botToken), messageParams(chatId, text, replyMarkup), text)
             .toBodilessEntity());
     }
 
-    public void sendAndPin(String botToken, String chatId, String text) {
+    public void sendAndPin(String botToken, String chatId, String text, InlineKeyboardMarkup replyMarkup) {
         SendMessageResponse response = call(() -> request(applicationProperties.getTelegram().getUrl().formatted(botToken),
-            messageParams(chatId, text), text).body(SendMessageResponse.class));
+            messageParams(chatId, text, replyMarkup), text).body(SendMessageResponse.class));
         if (response == null || response.result() == null || response.result().messageId() == null) {
             log.warn("[TELEGRAM] No message id in sendMessage response, message is not pinned. chat={}", chatId);
             return;
@@ -46,11 +52,14 @@ public class TelegramSendMessageClient {
         call(() -> request(applicationProperties.getTelegram().getPinUrl().formatted(botToken), params, text).toBodilessEntity());
     }
 
-    private MultiValueMap<@NonNull String, String> messageParams(String chatId, String text) {
+    private MultiValueMap<@NonNull String, String> messageParams(String chatId, String text, InlineKeyboardMarkup replyMarkup) {
         MultiValueMap<@NonNull String, String> params = new LinkedMultiValueMap<>();
         params.add("chat_id", chatId);
         params.add("text", text);
         params.add("parse_mode", PARSE_MODE);
+        if (replyMarkup != null) {
+            params.add("reply_markup", JsonHelper.toJson(replyMarkup));
+        }
         return params;
     }
 

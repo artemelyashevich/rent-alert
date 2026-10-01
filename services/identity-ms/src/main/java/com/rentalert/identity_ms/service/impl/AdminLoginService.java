@@ -5,10 +5,12 @@ import com.rentalert.common.util.auth.JwtService;
 import com.rentalert.common.util.auth.JwtType;
 import com.rentalert.dto.auth.AdminLoginRequest;
 import com.rentalert.dto.auth.LoginResponse;
+import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.profile.UserRole;
 import com.rentalert.dto.user.UserSession;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
+import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
 import com.rentalert.identity_ms.service.LoginService;
 import com.rentalert.identity_ms.service.UserProfileService;
@@ -32,6 +34,7 @@ public class AdminLoginService implements LoginService<AdminLoginRequest> {
     private final JwtService jwtService;
     private final TokenIssuer tokenIssuer;
     private final TransactionTemplate transactionTemplate;
+    private final UserEventPublisher userEventPublisher;
 
     @Override
     public LoginResponse auth(AdminLoginRequest request) {
@@ -62,6 +65,7 @@ public class AdminLoginService implements LoginService<AdminLoginRequest> {
         String refreshToken = jwtService.generateToken(session, JwtType.REFRESH);
         settings.setRefreshTokenHash(userProfileService.encryptRefreshToken(refreshToken));
         profile.setLastLogin(Instant.now());
+        userEventPublisher.publish(UserEvent.LOGIN_SUCCESS, profile.getId());
         return new LoginData(session, refreshToken);
     }
 

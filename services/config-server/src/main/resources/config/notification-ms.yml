@@ -29,8 +29,10 @@ app:
     aes-key: ${APP_CRYPTO_AES_KEY:}
     hmac-key: ${APP_CRYPTO_HMAC_KEY:}
   telegram:
-    # The bot's incoming commands aren't ported from the monolith yet (no TelegramMessageService), so it's off by default
+    # Long polling: only one instance may run the bot, so it's off by default
     bot-enabled: ${TELEGRAM_BOT_ENABLED:false}
+    # Mini App opened by /app and by the button for unregistered users
+    web-app-url: ${FRONT_ADDRESS:}
     bot-token: ${TELEGRAM_MAIN_BOT_TOKEN:}
     bot-name: ${TELEGRAM_MAIN_BOT_NAME:RentAlert}
     # Bot API URL with %s for the admin bot token, e.g. https://api.telegram.org/bot%s/sendMessage
