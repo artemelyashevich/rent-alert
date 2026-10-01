@@ -22,7 +22,12 @@ eureka:
       # which needs eureka-client-jersey3, finds no TransportClientFactories and fails to register
       enabled: false
 
+ws:
+  enabled: ${WS_ENABLED:false}
+
 app:
+  startup:
+    services: identity-ms,listing-ms,notification-ms,processing-ms,ops-ms,admin-ms
   crypto:
     # Must equal identity-ms: receivers in NotificationRequest are encrypted there with this key,
     # deduplication keys are hashed with the HMAC key

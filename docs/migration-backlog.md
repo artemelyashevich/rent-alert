@@ -34,12 +34,11 @@
 
 | Что | Состояние |
 |---|---|
-| WebSocket-уведомления (`WebSocketConfiguration`, `WebSocketAuthChannelInterceptor`) | в notification-ms только заглушка `WebSocketNotificationStrategy` |
-| Уведомление «приложение запущено» и синхронизация курсов при старте (`AppInitService`) | не перенесено |
+| WebSocket-уведомления | перенесены, включаются `WS_ENABLED`; встроенный брокер — только один экземпляр notification-ms. Отправителей пока нет: канал WEBSOCKET используют только типы roommate (п. 5) |
+| Уведомление «приложение запущено» (`AppInitService`) | перенесено: каждый сервис шлёт `ServiceStartedEvent`, notification-ms уведомляет администратора, когда стартовали все из `app.startup.services` (окно 15 мин) |
+| Синхронизация курсов при старте | не переносим: processing-ms синхронизирует через 5 минут после старта и далее каждые 6 часов |
 | Периодическая синхронизация кэшей (`CacheSyncScheduler`, каждые 5 мин) | не перенесено; решить, нужно ли при кэшах с TTL |
 
 ## Известные проблемы, найденные при переносе
 
 - **Feign использует `HttpURLConnection`**, который не умеет PATCH, поэтому внутренние эндпоинты делаются через PUT.
-- **`ListingMsApplicationTests`, `ProcessingMsApplicationTests`** падают без config-server (нет datasource).
-- **`redis-util`**: тесты не компилируются (`RedisUtilAutoConfigurationTests` обращается к непубличному `jsonRedisSerializer()`).

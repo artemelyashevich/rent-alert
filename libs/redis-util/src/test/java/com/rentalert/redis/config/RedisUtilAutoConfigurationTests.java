@@ -1,10 +1,9 @@
-package com.rentalert.redis;
+package com.rentalert.redis.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-import com.rentalert.redis.config.RedisUtilAutoConfiguration;
 import com.rentalert.redis.service.CacheService;
 import java.time.LocalDate;
 import java.util.List;

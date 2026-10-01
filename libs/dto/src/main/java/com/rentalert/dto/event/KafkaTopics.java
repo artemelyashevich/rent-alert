@@ -20,6 +20,9 @@ public class KafkaTopics {
 
     public static final String CLEANUP_REPLIES = "ops.cleanup-replies.v1";
 
+    /** {@link ServiceStartedEvent} from every service with a Kafka producer, key = service name. */
+    public static final String SERVICE_STARTED = "ops.service-started.v1";
+
     /** {@code ListingCreatedEvent} from processing-ms, key = listingId. */
     public static final String LISTINGS = "processing.listings.v1";
 

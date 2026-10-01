@@ -98,8 +98,16 @@ public abstract class AbstractKafkaConsumerConfiguration implements DisposableBe
     }
 
     private NewTopic newTopic(String name, Duration retention) {
+        return newTopic(name, topicPartitions, retention);
+    }
+
+    /**
+     * A topic with an explicit partition count and no dead-letter topic, for low-volume events whose loss is
+     * acceptable. Replication settings are the same as for the other topics.
+     */
+    protected NewTopic newTopic(String name, int partitions, Duration retention) {
         return TopicBuilder.name(name)
-            .partitions(topicPartitions)
+            .partitions(partitions)
             .replicas(topicReplicas)
             .config(TopicConfig.RETENTION_MS_CONFIG, String.valueOf(retention.toMillis()))
             .config(TopicConfig.MIN_IN_SYNC_REPLICAS_CONFIG, String.valueOf(topicMinInsyncReplicas))

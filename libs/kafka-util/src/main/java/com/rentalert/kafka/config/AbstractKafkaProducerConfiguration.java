@@ -1,5 +1,6 @@
 package com.rentalert.kafka.config;
 
+import com.rentalert.kafka.lifecycle.ServiceStartedPublisher;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import com.rentalert.kafka.outbox.OutboxRelay;
 import java.time.Duration;
@@ -34,6 +35,12 @@ public abstract class AbstractKafkaProducerConfiguration {
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    public ServiceStartedPublisher serviceStartedPublisher(KafkaTemplate<String, Object> kafkaTemplate,
+        @Value("${spring.application.name}") String applicationName) {
+        return new ServiceStartedPublisher(kafkaTemplate, applicationName);
     }
 
     @Bean
