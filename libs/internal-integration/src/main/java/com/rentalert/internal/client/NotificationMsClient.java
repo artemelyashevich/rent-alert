@@ -1,4 +1,4 @@
-package com.rentalert.admin_ms.client;
+package com.rentalert.internal.client;
 
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.notification.BroadcastRecipientResponse;
@@ -14,23 +14,25 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "notification-ms", contextId = "notificationAdminClient", path = "/notification/internal/admin")
-public interface NotificationAdminClient {
+@FeignClient(name = NotificationMsClient.SERVICE_NAME, path = "/notification/internal")
+public interface NotificationMsClient {
 
-    @PostMapping("/broadcasts")
+    String SERVICE_NAME = "notification-ms";
+
+    @PostMapping("/admin/broadcasts")
     BroadcastResponse broadcast(@RequestBody BroadcastRequest request, @RequestParam("createdBy") Long createdBy);
 
-    @GetMapping("/broadcasts")
+    @GetMapping("/admin/broadcasts")
     PageResponse<BroadcastSummaryResponse> findBroadcasts(
         @RequestParam("page") int page,
         @RequestParam("size") int size,
         @RequestParam("sort") List<String> sort
     );
 
-    @GetMapping("/broadcasts/{broadcastId}")
+    @GetMapping("/admin/broadcasts/{broadcastId}")
     BroadcastSummaryResponse findBroadcast(@PathVariable("broadcastId") Long broadcastId);
 
-    @GetMapping("/broadcasts/{broadcastId}/recipients")
+    @GetMapping("/admin/broadcasts/{broadcastId}/recipients")
     PageResponse<BroadcastRecipientResponse> findRecipients(
         @PathVariable("broadcastId") Long broadcastId,
         @RequestParam(value = "userId", required = false) Long userId,
@@ -39,6 +41,6 @@ public interface NotificationAdminClient {
         @RequestParam("sort") List<String> sort
     );
 
-    @DeleteMapping("/broadcasts/{broadcastId}")
+    @DeleteMapping("/admin/broadcasts/{broadcastId}")
     void deleteBroadcast(@PathVariable("broadcastId") Long broadcastId);
 }

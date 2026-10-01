@@ -77,6 +77,19 @@ class AbstractResilientClientTests {
         assertThat(attempts).hasValue(2);
     }
 
+    @Test
+    void nonIdempotentCallIsNotRetried() {
+        TestClient client = new TestClient(retryRegistry, CircuitBreakerRegistry.ofDefaults());
+        AtomicInteger attempts = new AtomicInteger();
+
+        assertThatThrownBy(() -> client.callOnce(() -> {
+            attempts.incrementAndGet();
+            throw new UpstreamHttpException("unavailable", 503, null);
+        })).isInstanceOf(UpstreamHttpException.class);
+
+        assertThat(attempts).hasValue(1);
+    }
+
     static class TestClient extends AbstractResilientClient {
 
         TestClient(RetryRegistry retry, CircuitBreakerRegistry circuitBreaker) {
@@ -85,6 +98,10 @@ class AbstractResilientClientTests {
 
         <T> T call(Supplier<T> supplier) {
             return execute(supplier);
+        }
+
+        <T> T callOnce(Supplier<T> supplier) {
+            return executeOnce(supplier);
         }
     }
 }

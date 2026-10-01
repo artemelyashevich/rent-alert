@@ -7,6 +7,7 @@ import com.rentalert.admin_ms.exception.ProxiedHttpException;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.listing.CityResponse;
 import com.rentalert.dto.listing.ScheduleProvider;
+import com.rentalert.internal.client.ProcessingMsClient;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,18 +30,18 @@ import org.springframework.test.context.DynamicPropertySource;
     "app.auth.refresh-secret=test-refresh-secret-0123456789abcdef",
     "app.internal.token=test-internal-token"
 })
-class ProcessingAdminClientTests {
+class ProcessingMsClientTests {
 
     private static final AtomicReference<String> LAST_QUERY = new AtomicReference<>();
     private static final AtomicReference<String> LAST_TOKEN = new AtomicReference<>();
     private static final HttpServer SERVER = startServer();
 
     @Autowired
-    private ProcessingAdminClient client;
+    private ProcessingMsClient client;
 
     @DynamicPropertySource
     static void processingUrl(DynamicPropertyRegistry registry) {
-        registry.add("spring.cloud.openfeign.client.config.processingAdminClient.url",
+        registry.add("spring.cloud.openfeign.client.config.processing-ms.url",
             () -> "http://localhost:" + SERVER.getAddress().getPort());
     }
 

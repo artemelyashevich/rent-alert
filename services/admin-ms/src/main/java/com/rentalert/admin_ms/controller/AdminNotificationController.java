@@ -1,10 +1,8 @@
 package com.rentalert.admin_ms.controller;
 
 import com.rentalert.admin_ms.audit.AdminAuditPublisher;
-import com.rentalert.admin_ms.client.NotificationAdminClient;
 import com.rentalert.admin_ms.client.UserBriefs;
 import com.rentalert.admin_ms.config.PublicUrls;
-import com.rentalert.common.util.jpa.PageUtil;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.event.admin.AdminEvent;
 import com.rentalert.dto.notification.BroadcastRecipientResponse;
@@ -12,6 +10,7 @@ import com.rentalert.dto.notification.BroadcastRequest;
 import com.rentalert.dto.notification.BroadcastResponse;
 import com.rentalert.dto.notification.BroadcastSummaryResponse;
 import com.rentalert.dto.profile.UserBriefResponse;
+import com.rentalert.internal.client.service.NotificationMsService;
 import com.rentalert.redis.service.UserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminNotificationController {
 
-    private final NotificationAdminClient notificationAdminClient;
+    private final NotificationMsService notificationMsService;
     private final UserBriefs userBriefs;
     private final UserSessionService userSessionService;
     private final AdminAuditPublisher auditPublisher;
@@ -70,7 +69,7 @@ public class AdminNotificationController {
     @PostMapping("/broadcast")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public BroadcastResponse broadcast(@Valid @RequestBody BroadcastRequest request) {
-        BroadcastResponse response = notificationAdminClient.broadcast(request, userSessionService.getCurrentUser().getUserId());
+        BroadcastResponse response = notificationMsService.broadcast(request, userSessionService.getCurrentUser().getUserId());
         auditPublisher.publish(AdminEvent.NOTIFICATION_SEND);
         return response;
     }
@@ -78,8 +77,7 @@ public class AdminNotificationController {
     @Operation(summary = "Список рассылок")
     @GetMapping("/broadcasts")
     public PageResponse<BroadcastSummaryResponse> findAll(@ParameterObject @PageableDefault(size = 20) Pageable pageable) {
-        PageResponse<BroadcastSummaryResponse> page = notificationAdminClient.findBroadcasts(
-            pageable.getPageNumber(), pageable.getPageSize(), PageUtil.toSortParams(pageable));
+        PageResponse<BroadcastSummaryResponse> page = notificationMsService.findBroadcasts(pageable);
         Map<Long, UserBriefResponse> briefs = userBriefs.byId(page.content().stream().map(BroadcastSummaryResponse::createdByUserId).toList());
         List<BroadcastSummaryResponse> content = page.content().stream().map(summary -> withAuthor(summary, briefs)).toList();
         return new PageResponse<>(content, page.number(), page.size(), page.totalElements(), page.totalPages());
@@ -88,7 +86,7 @@ public class AdminNotificationController {
     @Operation(summary = "Рассылка и её счётчики")
     @GetMapping("/broadcasts/{broadcastId}")
     public BroadcastSummaryResponse findById(@PathVariable Long broadcastId) {
-        BroadcastSummaryResponse summary = notificationAdminClient.findBroadcast(broadcastId);
+        BroadcastSummaryResponse summary = notificationMsService.findBroadcast(broadcastId);
         return withAuthor(summary, userBriefs.byId(Collections.singletonList(summary.createdByUserId())));
     }
 
@@ -99,8 +97,7 @@ public class AdminNotificationController {
         @RequestParam(required = false) Long search,
         @ParameterObject @PageableDefault(size = 50) Pageable pageable
     ) {
-        PageResponse<BroadcastRecipientResponse> page = notificationAdminClient.findRecipients(broadcastId, search,
-            pageable.getPageNumber(), pageable.getPageSize(), PageUtil.toSortParams(pageable));
+        PageResponse<BroadcastRecipientResponse> page = notificationMsService.findRecipients(broadcastId, search, pageable);
         Map<Long, UserBriefResponse> briefs = userBriefs.byId(page.content().stream().map(BroadcastRecipientResponse::userId).toList());
         List<BroadcastRecipientResponse> content = page.content().stream().map(recipient -> withUser(recipient, briefs)).toList();
         return new PageResponse<>(content, page.number(), page.size(), page.totalElements(), page.totalPages());
@@ -110,7 +107,7 @@ public class AdminNotificationController {
     @DeleteMapping("/broadcasts/{broadcastId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long broadcastId) {
-        notificationAdminClient.deleteBroadcast(broadcastId);
+        notificationMsService.deleteBroadcast(broadcastId);
         auditPublisher.publish(AdminEvent.NOTIFICATION_DELETE, broadcastId);
     }
 }

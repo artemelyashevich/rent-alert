@@ -1,15 +1,14 @@
 package com.rentalert.admin_ms.controller;
 
 import com.rentalert.admin_ms.audit.AdminAuditPublisher;
-import com.rentalert.admin_ms.client.OpsAdminClient;
-import com.rentalert.admin_ms.client.ProcessingAdminClient;
 import com.rentalert.admin_ms.config.PublicUrls;
 import com.rentalert.admin_ms.job.CacheCleanupJob;
 import com.rentalert.common.exception.AppBadRequestException;
-import com.rentalert.common.util.jpa.PageUtil;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.event.admin.AdminEvent;
 import com.rentalert.dto.job.JobSettingResponse;
+import com.rentalert.internal.client.service.OpsMsService;
+import com.rentalert.internal.client.service.ProcessingMsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
@@ -34,8 +33,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminJobSettingsController {
 
-    private final OpsAdminClient opsAdminClient;
-    private final ProcessingAdminClient processingAdminClient;
+    private final OpsMsService opsMsService;
+    private final ProcessingMsService processingMsService;
     private final CacheCleanupJob cacheCleanupJob;
     private final AdminAuditPublisher auditPublisher;
 
@@ -44,14 +43,14 @@ public class AdminJobSettingsController {
     public PageResponse<JobSettingResponse> findAll(
         @ParameterObject @PageableDefault(size = 20, sort = "startedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return opsAdminClient.findJobSettings(pageable.getPageNumber(), pageable.getPageSize(), PageUtil.toSortParams(pageable));
+        return opsMsService.findJobSettings(pageable);
     }
 
     @Operation(summary = "Запустить очистку устаревших данных во всех сервисах; возвращает id saga")
     @PostMapping("/cleanUp")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public UUID startCleanup() {
-        UUID sagaId = opsAdminClient.startCleanup();
+        UUID sagaId = opsMsService.startCleanup();
         auditPublisher.publish(AdminEvent.JOB_CLEAN_UP);
         return sagaId;
     }
@@ -70,7 +69,7 @@ public class AdminJobSettingsController {
     @PostMapping("/currency-rates")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void syncCurrencyRates() {
-        processingAdminClient.syncCurrencyRates();
+        processingMsService.syncCurrencyRates();
         auditPublisher.publish(AdminEvent.JOB_SYNC_CURRENCY_RATES);
     }
 }

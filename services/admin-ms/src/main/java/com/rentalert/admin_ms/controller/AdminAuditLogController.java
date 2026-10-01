@@ -1,13 +1,12 @@
 package com.rentalert.admin_ms.controller;
 
 import com.rentalert.admin_ms.audit.AdminAuditPublisher;
-import com.rentalert.admin_ms.client.OpsAdminClient;
 import com.rentalert.admin_ms.config.PublicUrls;
-import com.rentalert.common.util.jpa.PageUtil;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.audit.AuditLogResponse;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.event.admin.AdminEvent;
+import com.rentalert.internal.client.service.OpsMsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminAuditLogController {
 
-    private final OpsAdminClient opsAdminClient;
+    private final OpsMsService opsMsService;
     private final AdminAuditPublisher auditPublisher;
 
     @Operation(summary = "Получить журнал аудита")
@@ -37,14 +36,13 @@ public class AdminAuditLogController {
         @RequestParam(required = false) Long userId,
         @ParameterObject Pageable pageable
     ) {
-        return opsAdminClient.findAuditLogs(eventInitiator, userId,
-            pageable.getPageNumber(), pageable.getPageSize(), PageUtil.toSortParams(pageable));
+        return opsMsService.findAuditLogs(eventInitiator, userId, pageable);
     }
 
     @Operation(summary = "Удалить записи журнала аудита старше retentionDays дней")
     @DeleteMapping
     public int cleanUp(@RequestParam(defaultValue = "4") int retentionDays) {
-        int deleted = opsAdminClient.cleanUpAuditLogs(retentionDays);
+        int deleted = opsMsService.cleanUpAuditLogs(retentionDays);
         auditPublisher.publish(AdminEvent.AUDIT_LOG_CLEAN_UP);
         return deleted;
     }

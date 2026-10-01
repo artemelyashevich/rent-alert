@@ -2,10 +2,11 @@ package com.rentalert.admin_ms;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.rentalert.admin_ms.client.IdentityAdminClient;
-import com.rentalert.admin_ms.client.OpsAdminClient;
-import com.rentalert.admin_ms.client.ProcessingAdminClient;
 import com.rentalert.admin_ms.exception.ProxiedErrorDecoder;
+import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.internal.client.service.NotificationMsService;
+import com.rentalert.internal.client.service.OpsMsService;
+import com.rentalert.internal.client.service.ProcessingMsService;
 import feign.codec.ErrorDecoder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,9 +29,10 @@ class AdminMsApplicationTests {
     @Test
     void startsWithoutDatabase() {
         assertThat(context.getBeanNamesForType(javax.sql.DataSource.class)).isEmpty();
-        assertThat(context.getBean(IdentityAdminClient.class)).isNotNull();
-        assertThat(context.getBean(OpsAdminClient.class)).isNotNull();
-        assertThat(context.getBean(ProcessingAdminClient.class)).isNotNull();
+        assertThat(context.getBean(IdentityMsService.class)).isNotNull();
+        assertThat(context.getBean(OpsMsService.class)).isNotNull();
+        assertThat(context.getBean(ProcessingMsService.class)).isNotNull();
+        assertThat(context.getBean(NotificationMsService.class)).isNotNull();
         assertThat(context.getBean(ErrorDecoder.class)).isInstanceOf(ProxiedErrorDecoder.class);
     }
 }

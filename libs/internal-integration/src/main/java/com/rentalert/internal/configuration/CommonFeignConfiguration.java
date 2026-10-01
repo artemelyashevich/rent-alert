@@ -2,12 +2,18 @@ package com.rentalert.internal.configuration;
 
 import com.rentalert.internal.client.IdentityMsClient;
 import com.rentalert.internal.client.ListingMsClient;
+import com.rentalert.internal.client.NotificationMsClient;
+import com.rentalert.internal.client.OpsMsClient;
 import com.rentalert.internal.client.ProcessingMsClient;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.internal.client.service.ListingMsService;
+import com.rentalert.internal.client.service.NotificationMsService;
+import com.rentalert.internal.client.service.OpsMsService;
 import com.rentalert.internal.client.service.ProcessingMsService;
 import com.rentalert.internal.client.service.impl.IdentityMsServiceImpl;
 import com.rentalert.internal.client.service.impl.ListingMsServiceImpl;
+import com.rentalert.internal.client.service.impl.NotificationMsServiceImpl;
+import com.rentalert.internal.client.service.impl.OpsMsServiceImpl;
 import com.rentalert.internal.client.service.impl.ProcessingMsServiceImpl;
 import com.rentalert.internal.decoder.InternalErrorDecoder;
 import com.rentalert.internal.interceptor.HeaderPropagationInterceptor;
@@ -73,5 +79,19 @@ public class CommonFeignConfiguration {
     public ListingMsService listingMsService(@Lazy ListingMsClient listingMsClient, RetryRegistry retryRegistry,
         CircuitBreakerRegistry circuitBreakerRegistry) {
         return new ListingMsServiceImpl(listingMsClient, retryRegistry, circuitBreakerRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public OpsMsService opsMsService(@Lazy OpsMsClient opsMsClient, RetryRegistry retryRegistry,
+        CircuitBreakerRegistry circuitBreakerRegistry) {
+        return new OpsMsServiceImpl(opsMsClient, retryRegistry, circuitBreakerRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NotificationMsService notificationMsService(@Lazy NotificationMsClient notificationMsClient,
+        RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
+        return new NotificationMsServiceImpl(notificationMsClient, retryRegistry, circuitBreakerRegistry);
     }
 }

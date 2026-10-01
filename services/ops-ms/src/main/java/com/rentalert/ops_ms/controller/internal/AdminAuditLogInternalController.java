@@ -8,6 +8,7 @@ import com.rentalert.ops_ms.configuration.PublicUrls;
 import com.rentalert.ops_ms.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping(PublicUrls.INTERNAL_ADMIN_TAG + "/audit-logs")
 @RequiredArgsConstructor
 public class AdminAuditLogInternalController {

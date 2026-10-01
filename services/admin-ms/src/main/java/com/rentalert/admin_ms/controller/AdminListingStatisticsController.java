@@ -1,8 +1,8 @@
 package com.rentalert.admin_ms.controller;
 
-import com.rentalert.admin_ms.client.ProcessingAdminClient;
 import com.rentalert.admin_ms.config.PublicUrls;
 import com.rentalert.dto.statistics.ListingStatisticsOverview;
+import com.rentalert.internal.client.service.ProcessingMsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
@@ -22,11 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminListingStatisticsController {
 
-    private final ProcessingAdminClient processingAdminClient;
+    private final ProcessingMsService processingMsService;
 
     @Operation(summary = "Обзор объявлений с начала периода since")
     @GetMapping("/overview")
     public ListingStatisticsOverview getOverview(@RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate since) {
-        return processingAdminClient.getListingStatistics(since.toString());
+        return processingMsService.getListingStatistics(since);
     }
 }

@@ -1,13 +1,12 @@
 package com.rentalert.admin_ms.controller;
 
 import com.rentalert.admin_ms.audit.AdminAuditPublisher;
-import com.rentalert.admin_ms.client.IdentityAdminClient;
 import com.rentalert.admin_ms.config.PublicUrls;
-import com.rentalert.common.util.jpa.PageUtil;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.event.admin.AdminEvent;
 import com.rentalert.dto.profile.UpdateUserRoleRequest;
 import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.internal.client.service.IdentityMsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -35,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminUserProfileController {
 
-    private final IdentityAdminClient identityAdminClient;
+    private final IdentityMsService identityMsService;
     private final AdminAuditPublisher auditPublisher;
 
     @Operation(summary = "Получить профили (поиск по username, email или id)")
@@ -44,20 +43,19 @@ public class AdminUserProfileController {
         @ParameterObject @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
         @RequestParam(required = false) String filter
     ) {
-        return identityAdminClient.findProfiles(filter,
-            pageable.getPageNumber(), pageable.getPageSize(), PageUtil.toSortParams(pageable));
+        return identityMsService.findProfiles(filter, pageable);
     }
 
     @Operation(summary = "Получить профиль пользователя")
     @GetMapping("/{userId}")
     public UserProfileResponse findById(@PathVariable Long userId) {
-        return identityAdminClient.findProfile(userId);
+        return identityMsService.findProfile(userId);
     }
 
     @Operation(summary = "Изменить роль пользователя; активная сессия пользователя сбрасывается")
     @PatchMapping("/{userId}/role")
     public UserProfileResponse updateRole(@PathVariable Long userId, @Valid @RequestBody UpdateUserRoleRequest request) {
-        UserProfileResponse profile = identityAdminClient.updateRole(userId, request);
+        UserProfileResponse profile = identityMsService.updateRole(userId, request);
         auditPublisher.publish(AdminEvent.USER_PROFILES_CHANGE_ROLE, userId, request.role().name());
         return profile;
     }
@@ -66,7 +64,7 @@ public class AdminUserProfileController {
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long userId) {
-        identityAdminClient.deleteProfile(userId);
+        identityMsService.deleteProfile(userId);
         auditPublisher.publish(AdminEvent.USER_PROFILES_DELETE, userId);
     }
 }

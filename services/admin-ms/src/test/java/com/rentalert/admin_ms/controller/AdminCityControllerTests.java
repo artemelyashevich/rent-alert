@@ -9,13 +9,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.admin_ms.audit.AdminAuditPublisher;
-import com.rentalert.admin_ms.client.ProcessingAdminClient;
 import com.rentalert.admin_ms.exception.ProxiedHttpException;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.event.admin.AdminEvent;
 import com.rentalert.dto.listing.CityRequest;
 import com.rentalert.dto.listing.CityResponse;
 import com.rentalert.dto.listing.ScheduleProvider;
+import com.rentalert.internal.client.service.ProcessingMsService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +23,7 @@ import org.springframework.data.domain.Sort;
 
 class AdminCityControllerTests {
 
-    private final ProcessingAdminClient client = mock(ProcessingAdminClient.class);
+    private final ProcessingMsService client = mock(ProcessingMsService.class);
     private final AdminAuditPublisher auditPublisher = mock(AdminAuditPublisher.class);
     private final AdminCityController controller = new AdminCityController(client, auditPublisher);
 
@@ -49,9 +49,9 @@ class AdminCityControllerTests {
     @Test
     void pagingIsForwarded() {
         PageResponse<CityResponse> page = new PageResponse<>(List.of(), 2, 10, 0, 0);
-        when(client.findCities(2, 10, List.of("provider,ASC", "name,DESC"))).thenReturn(page);
+        PageRequest pageable = PageRequest.of(2, 10, Sort.by(Sort.Order.asc("provider"), Sort.Order.desc("name")));
+        when(client.findCities(pageable)).thenReturn(page);
 
-        assertThat(controller.findAll(PageRequest.of(2, 10, Sort.by(Sort.Order.asc("provider"), Sort.Order.desc("name")))))
-            .isSameAs(page);
+        assertThat(controller.findAll(pageable)).isSameAs(page);
     }
 }

@@ -24,4 +24,12 @@ public abstract class AbstractResilientClient {
     protected void execute(Runnable call) {
         Retry.decorateRunnable(retry, CircuitBreaker.decorateRunnable(circuitBreaker, call)).run();
     }
+
+    protected <T> T executeOnce(Supplier<T> call) {
+        return CircuitBreaker.decorateSupplier(circuitBreaker, call).get();
+    }
+
+    protected void executeOnce(Runnable call) {
+        CircuitBreaker.decorateRunnable(circuitBreaker, call).run();
+    }
 }

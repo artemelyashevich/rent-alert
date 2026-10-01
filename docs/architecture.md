@@ -33,7 +33,7 @@
 | `common-util`          | JWT, исключения, шифрование, логирование запросов и `traceId`                            |
 | `kafka-util`           | outbox, конфигурация producer и consumer, DLT, `traceId` в заголовках                    |
 | `redis-util`           | кэш, блокировки, сессии                                                                  |
-| `internal-integration` | Feign-клиенты к identity-ms, listing-ms и processing-ms с кэшем в Redis, повторами и circuit breaker |
+| `internal-integration` | Feign-клиенты ко всем сервисам с кэшем в Redis, повторами и circuit breaker; изменения данных повторно не отправляются (`executeOnce`) |
 
 ## Общая схема
 
@@ -77,7 +77,7 @@ flowchart LR
     lst -->|"Feign /identity/internal/**<br/>X-Internal-Token"| idn
     lst -->|"Feign /processing/internal/currency-rates/**<br/>X-Internal-Token"| prc
     ntf -->|"Feign /listing/internal/favorites/**<br/>X-Internal-Token"| lst
-    adm["admin-ms"] -->|"Feign /*/internal/admin/**<br/>X-Internal-Token"| idn
+    adm["admin-ms"] -->|"Feign /*/internal/admin/**<br/>X-Internal-Token + токен администратора"| idn
     adm --> prc
     adm --> ops
     adm --> ntf

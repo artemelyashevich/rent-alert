@@ -8,12 +8,14 @@ import com.rentalert.processing_ms.scheduler.CurrencyRateScheduler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping(PublicUrls.INTERNAL_ADMIN_TAG + "/jobs")
 @RequiredArgsConstructor
 public class AdminJobInternalController {

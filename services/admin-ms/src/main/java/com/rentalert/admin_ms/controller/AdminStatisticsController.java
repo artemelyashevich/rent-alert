@@ -1,6 +1,5 @@
 package com.rentalert.admin_ms.controller;
 
-import com.rentalert.admin_ms.client.OpsAdminClient;
 import com.rentalert.admin_ms.client.UserBriefs;
 import com.rentalert.admin_ms.config.PublicUrls;
 import com.rentalert.dto.profile.UserBriefResponse;
@@ -8,6 +7,7 @@ import com.rentalert.dto.statistics.SystemActivityOverview;
 import com.rentalert.dto.statistics.UserActionSummary;
 import com.rentalert.dto.statistics.UserActivityLog;
 import com.rentalert.dto.statistics.UserStatisticsResponse;
+import com.rentalert.internal.client.service.OpsMsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
@@ -30,13 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminStatisticsController {
 
-    private final OpsAdminClient opsAdminClient;
+    private final OpsMsService opsMsService;
     private final UserBriefs userBriefs;
 
     @Operation(summary = "Статистика пользователя за сегодня")
     @GetMapping("/{userId}")
     public UserStatisticsResponse getUserStatistics(@PathVariable Long userId, @RequestParam(required = false) Long filterId) {
-        return opsAdminClient.getUserStatistics(userId, filterId);
+        return opsMsService.getUserStatistics(userId, filterId);
     }
 
     @Operation(summary = "Сводка действий пользователя или топ активных пользователей, если userId не указан")
@@ -46,7 +46,7 @@ public class AdminStatisticsController {
         @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate since,
         @RequestParam(defaultValue = "10") int limit
     ) {
-        return withUsernames(opsAdminClient.getUserActionSummary(userId, since.toString(), limit));
+        return withUsernames(opsMsService.getUserActionSummary(userId, since, limit));
     }
 
     @Operation(summary = "Журнал активности пользователя по дням")
@@ -56,13 +56,13 @@ public class AdminStatisticsController {
         @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate since,
         @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate until
     ) {
-        return opsAdminClient.getUserActivityLog(userId, since.toString(), until == null ? null : until.toString());
+        return opsMsService.getUserActivityLog(userId, since, until);
     }
 
     @Operation(summary = "Обзор активности системы")
     @GetMapping("/system")
     public SystemActivityOverview getSystemActivity(@RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate since) {
-        return opsAdminClient.getSystemActivity(since.toString());
+        return opsMsService.getSystemActivity(since);
     }
 
     private List<UserActionSummary> withUsernames(List<UserActionSummary> summaries) {

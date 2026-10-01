@@ -1,4 +1,4 @@
-package com.rentalert.admin_ms.client;
+package com.rentalert.internal.client;
 
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.audit.AuditLogResponse;
@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "ops-ms", contextId = "opsAdminClient", path = "/ops/internal/admin")
-public interface OpsAdminClient {
+@FeignClient(name = OpsMsClient.SERVICE_NAME, path = "/ops/internal")
+public interface OpsMsClient {
 
-    @GetMapping("/audit-logs")
+    String SERVICE_NAME = "ops-ms";
+
+    @GetMapping("/admin/audit-logs")
     PageResponse<AuditLogResponse> findAuditLogs(
         @RequestParam(value = "eventInitiator", required = false) EventInitiatorType eventInitiator,
         @RequestParam(value = "userId", required = false) Long userId,
@@ -29,37 +31,37 @@ public interface OpsAdminClient {
         @RequestParam("sort") List<String> sort
     );
 
-    @DeleteMapping("/audit-logs")
+    @DeleteMapping("/admin/audit-logs")
     int cleanUpAuditLogs(@RequestParam("retentionDays") int retentionDays);
 
-    @GetMapping("/job-settings")
+    @GetMapping("/admin/job-settings")
     PageResponse<JobSettingResponse> findJobSettings(
         @RequestParam("page") int page,
         @RequestParam("size") int size,
         @RequestParam("sort") List<String> sort
     );
 
-    @PostMapping("/jobs/cleanup")
+    @PostMapping("/admin/jobs/cleanup")
     UUID startCleanup();
 
-    @GetMapping("/user-statistics/{userId}")
+    @GetMapping("/admin/user-statistics/{userId}")
     UserStatisticsResponse getUserStatistics(@PathVariable("userId") Long userId,
         @RequestParam(value = "filterId", required = false) Long filterId);
 
-    @GetMapping("/user-statistics/actions")
+    @GetMapping("/admin/user-statistics/actions")
     List<UserActionSummary> getUserActionSummary(
         @RequestParam(value = "userId", required = false) Long userId,
         @RequestParam("since") String since,
         @RequestParam("limit") int limit
     );
 
-    @GetMapping("/user-statistics/actions/{userId}/log")
+    @GetMapping("/admin/user-statistics/actions/{userId}/log")
     List<UserActivityLog> getUserActivityLog(
         @PathVariable("userId") Long userId,
         @RequestParam("since") String since,
         @RequestParam(value = "until", required = false) String until
     );
 
-    @GetMapping("/user-statistics/system")
+    @GetMapping("/admin/user-statistics/system")
     SystemActivityOverview getSystemActivity(@RequestParam("since") String since);
 }

@@ -1,7 +1,14 @@
 package com.rentalert.internal.client.service.impl;
 
+import com.rentalert.common.util.jpa.PageUtil;
+import com.rentalert.dto.PageResponse;
+import com.rentalert.dto.auth.AdminLoginRequest;
+import com.rentalert.dto.auth.LoginResponse;
 import com.rentalert.dto.notification.BroadcastTarget;
 import com.rentalert.dto.notification.NotificationRequest;
+import com.rentalert.dto.profile.FeedbackResponse;
+import com.rentalert.dto.profile.UpdateUserRoleRequest;
+import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.internal.client.AbstractResilientClient;
@@ -12,8 +19,10 @@ import com.rentalert.redis.service.CacheService;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 
 public class IdentityMsServiceImpl extends AbstractResilientClient implements IdentityMsService {
 
@@ -61,5 +70,42 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
     @Override
     public List<BroadcastTarget> findBroadcastTargets(List<Long> userIds) {
         return execute(() -> identityMsClient.findBroadcastTargets(userIds));
+    }
+
+    @Override
+    public LoginResponse adminLogin(AdminLoginRequest request) {
+        return executeOnce(() -> identityMsClient.adminLogin(request));
+    }
+
+    @Override
+    public PageResponse<FeedbackResponse> findFeedbacks(Pageable pageable) {
+        return execute(() -> identityMsClient.findFeedbacks(pageable.getPageNumber(), pageable.getPageSize(),
+            PageUtil.toSortParams(pageable)));
+    }
+
+    @Override
+    public PageResponse<UserProfileResponse> findProfiles(String filter, Pageable pageable) {
+        return execute(() -> identityMsClient.findProfiles(filter, pageable.getPageNumber(), pageable.getPageSize(),
+            PageUtil.toSortParams(pageable)));
+    }
+
+    @Override
+    public UserProfileResponse findProfile(Long userId) {
+        return execute(() -> identityMsClient.findProfile(userId));
+    }
+
+    @Override
+    public UserProfileResponse updateRole(Long userId, UpdateUserRoleRequest request) {
+        return executeOnce(() -> identityMsClient.updateRole(userId, request));
+    }
+
+    @Override
+    public void deleteProfile(Long userId) {
+        executeOnce(() -> identityMsClient.deleteProfile(userId));
+    }
+
+    @Override
+    public List<UserBriefResponse> findBriefs(Collection<Long> userIds) {
+        return execute(() -> identityMsClient.findBriefs(userIds));
     }
 }

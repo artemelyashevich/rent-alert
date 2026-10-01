@@ -8,22 +8,22 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.admin_ms.audit.AdminAuditPublisher;
-import com.rentalert.admin_ms.client.OpsAdminClient;
-import com.rentalert.admin_ms.client.ProcessingAdminClient;
 import com.rentalert.admin_ms.job.CacheCleanupJob;
 import com.rentalert.common.exception.AppBadRequestException;
 import com.rentalert.dto.event.admin.AdminEvent;
+import com.rentalert.internal.client.service.OpsMsService;
+import com.rentalert.internal.client.service.ProcessingMsService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 class AdminJobSettingsControllerTests {
 
-    private final OpsAdminClient opsAdminClient = mock(OpsAdminClient.class);
-    private final ProcessingAdminClient processingAdminClient = mock(ProcessingAdminClient.class);
+    private final OpsMsService opsMsService = mock(OpsMsService.class);
+    private final ProcessingMsService processingMsService = mock(ProcessingMsService.class);
     private final CacheCleanupJob cacheCleanupJob = mock(CacheCleanupJob.class);
     private final AdminAuditPublisher auditPublisher = mock(AdminAuditPublisher.class);
     private final AdminJobSettingsController controller =
-        new AdminJobSettingsController(opsAdminClient, processingAdminClient, cacheCleanupJob, auditPublisher);
+        new AdminJobSettingsController(opsMsService, processingMsService, cacheCleanupJob, auditPublisher);
 
     @Test
     void cacheCleanupIsAuditedBeforeSessionsAreWiped() {

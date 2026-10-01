@@ -1,14 +1,13 @@
 package com.rentalert.admin_ms.controller;
 
 import com.rentalert.admin_ms.audit.AdminAuditPublisher;
-import com.rentalert.admin_ms.client.ProcessingAdminClient;
 import com.rentalert.admin_ms.config.PublicUrls;
-import com.rentalert.common.util.jpa.PageUtil;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.event.admin.AdminEvent;
 import com.rentalert.dto.listing.CityRequest;
 import com.rentalert.dto.listing.CityResponse;
 import com.rentalert.dto.listing.CityUpdateRequest;
+import com.rentalert.internal.client.service.ProcessingMsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -38,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AdminCityController {
 
-    private final ProcessingAdminClient processingAdminClient;
+    private final ProcessingMsService processingMsService;
     private final AdminAuditPublisher auditPublisher;
 
     @Operation(summary = "Получить города")
@@ -46,20 +45,20 @@ public class AdminCityController {
     public PageResponse<CityResponse> findAll(
         @ParameterObject @PageableDefault(size = 20, sort = {"provider", "name"}, direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return processingAdminClient.findCities(pageable.getPageNumber(), pageable.getPageSize(), PageUtil.toSortParams(pageable));
+        return processingMsService.findCities(pageable);
     }
 
     @Operation(summary = "Получить город по ID")
     @GetMapping("/{id}")
     public CityResponse findById(@PathVariable Long id) {
-        return processingAdminClient.findCity(id);
+        return processingMsService.findCity(id);
     }
 
     @Operation(summary = "Создать город")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CityResponse create(@Valid @RequestBody CityRequest request) {
-        CityResponse city = processingAdminClient.createCity(request);
+        CityResponse city = processingMsService.createCity(request);
         auditPublisher.publish(AdminEvent.CITY_CREATE, request.getName(), request.getProvider().name());
         return city;
     }
@@ -67,7 +66,7 @@ public class AdminCityController {
     @Operation(summary = "Обновить город")
     @PutMapping("/{id}")
     public CityResponse update(@PathVariable Long id, @Valid @RequestBody CityUpdateRequest request) {
-        CityResponse city = processingAdminClient.updateCity(id, request);
+        CityResponse city = processingMsService.updateCity(id, request);
         auditPublisher.publish(AdminEvent.CITY_UPDATE, id);
         return city;
     }
@@ -75,7 +74,7 @@ public class AdminCityController {
     @Operation(summary = "Изменить флаг активности города")
     @PatchMapping("/{id}/active")
     public CityResponse setActive(@PathVariable Long id, @RequestParam boolean active) {
-        CityResponse city = processingAdminClient.setCityActive(id, active);
+        CityResponse city = processingMsService.setCityActive(id, active);
         auditPublisher.publish(AdminEvent.CITY_TOGGLE_ACTIVE, id, active);
         return city;
     }
@@ -84,7 +83,7 @@ public class AdminCityController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        processingAdminClient.deleteCity(id);
+        processingMsService.deleteCity(id);
         auditPublisher.publish(AdminEvent.CITY_DELETE, id);
     }
 }
