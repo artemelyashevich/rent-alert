@@ -5,6 +5,7 @@ import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.auth.AdminLoginRequest;
 import com.rentalert.dto.auth.LoginResponse;
 import com.rentalert.dto.notification.BroadcastTarget;
+import com.rentalert.dto.notification.NotificationDelivery;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.dto.profile.FeedbackResponse;
@@ -12,6 +13,7 @@ import com.rentalert.dto.profile.TelegramIdRequest;
 import com.rentalert.dto.profile.UpdateUserRoleRequest;
 import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.filter.UserFilterRequest;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.internal.client.AbstractResilientClient;
 import com.rentalert.internal.client.IdentityMsClient;
@@ -58,6 +60,11 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
     }
 
     @Override
+    public NotificationDelivery getDelivery(Long userId) {
+        return execute(() -> identityMsClient.getDelivery(userId));
+    }
+
+    @Override
     public Optional<UserProfileResponse> findByTelegramId(String telegramId) {
         try {
             return Optional.of(execute(() -> identityMsClient.findByTelegramId(new TelegramIdRequest(telegramId))));
@@ -80,6 +87,21 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
             cacheService.put(CacheType.USER_ACTIVE_FILTER, userId, filter, CACHE_TTL);
         }
         return Optional.ofNullable(filter);
+    }
+
+    @Override
+    public Optional<UserFilterResponse> getMatchFilter(Long matchId) {
+        return Optional.ofNullable(execute(() -> identityMsClient.getMatchFilter(matchId)));
+    }
+
+    @Override
+    public UserFilterResponse upsertMatchFilter(Long matchId, UserFilterRequest request) {
+        return executeOnce(() -> identityMsClient.upsertMatchFilter(matchId, request));
+    }
+
+    @Override
+    public UserFilterResponse setMatchFilterActivation(Long matchId, boolean active) {
+        return executeOnce(() -> identityMsClient.setMatchFilterActivation(matchId, active));
     }
 
     @Override
@@ -122,5 +144,13 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
     @Override
     public List<UserBriefResponse> findBriefs(Collection<Long> userIds) {
         return execute(() -> identityMsClient.findBriefs(userIds));
+    }
+
+    @Override
+    public List<UserBriefResponse> findUserBriefs(Collection<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return List.of();
+        }
+        return execute(() -> identityMsClient.findUserBriefs(userIds));
     }
 }

@@ -4,8 +4,10 @@ import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.AppNotFoundException;
 import com.rentalert.common.util.auth.CryptoService;
 import com.rentalert.common.util.auth.HmacBlindIndexService;
+import com.rentalert.dto.notification.NotificationDelivery;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.TelegramUser;
+import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileCreateDto;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.UserProfileUpdateDto;
@@ -21,6 +23,9 @@ import com.rentalert.identity_ms.service.UserProfileService;
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
 import com.rentalert.redis.service.UserSessionService;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -48,6 +53,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final TransactionTemplate transactionTemplate;
     private final ProfileCacheEvictor profileCacheEvictor;
     private final RegistrationEventPublisher registrationEventPublisher;
+    private final QuietHoursPolicy quietHoursPolicy;
 
     @Override
     @Transactional
@@ -100,7 +106,26 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     @Transactional(readOnly = true)
     public NotificationRequest.Receiver getReceiver(Long id) {
+        return receiverOf(getById(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NotificationDelivery getDelivery(Long id) {
         UserProfile profile = getById(id);
+        Instant sendAt = quietHoursPolicy.resumeAt(profile.getSettings(), Instant.now()).orElse(null);
+        return new NotificationDelivery(receiverOf(profile), sendAt);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserBriefResponse> findBriefs(Collection<Long> ids) {
+        return userProfileRepository.findAllById(ids).stream()
+            .map(profile -> new UserBriefResponse(profile.getId(), profile.getUsername(), profile.getPhotoUrl()))
+            .toList();
+    }
+
+    private NotificationRequest.Receiver receiverOf(UserProfile profile) {
         UserSettings settings = profile.getSettings();
         String email = Boolean.TRUE.equals(settings.getEmailActive()) && settings.getEmail() != null
             ? cryptoService.encrypt(settings.getEmail())

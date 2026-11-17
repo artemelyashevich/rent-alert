@@ -1,15 +1,21 @@
 package com.rentalert.identity_ms.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.common.util.auth.CryptoService;
+import com.rentalert.dto.notification.NotificationDelivery;
 import com.rentalert.dto.notification.NotificationRequest;
+import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +37,9 @@ class UserProfileServiceImplTests {
 
     @Mock
     private CryptoService cryptoService;
+
+    @Mock
+    private QuietHoursPolicy quietHoursPolicy;
 
     @InjectMocks
     private UserProfileServiceImpl userProfileService;
@@ -86,6 +95,36 @@ class UserProfileServiceImplTests {
 
         assertThat(userProfileService.getReceiver(5L)).isEqualTo(new NotificationRequest.Receiver("tg-enc", null));
         verify(cryptoService, never()).encrypt("user@mail.by");
+    }
+
+    @Test
+    void deliveryIsDeferredUntilQuietHoursEnd() {
+        UserProfile profile = profileWithSettings(UserSettings.builder().build());
+        Instant resumeAt = Instant.parse("2026-10-02T05:00:00Z");
+        when(userProfileRepository.findById(5L)).thenReturn(Optional.of(profile));
+        when(quietHoursPolicy.resumeAt(eq(profile.getSettings()), any())).thenReturn(Optional.of(resumeAt));
+
+        assertThat(userProfileService.getDelivery(5L))
+            .isEqualTo(new NotificationDelivery(new NotificationRequest.Receiver("tg-enc", null), resumeAt));
+    }
+
+    @Test
+    void deliveryOutsideQuietHoursIsImmediate() {
+        UserProfile profile = profileWithSettings(UserSettings.builder().build());
+        when(userProfileRepository.findById(5L)).thenReturn(Optional.of(profile));
+        when(quietHoursPolicy.resumeAt(eq(profile.getSettings()), any())).thenReturn(Optional.empty());
+
+        assertThat(userProfileService.getDelivery(5L).sendAt()).isNull();
+    }
+
+    @Test
+    void briefsCarryNameAndPhoto() {
+        UserProfile profile = profileWithSettings(UserSettings.builder().build());
+        profile.setUsername("anna");
+        profile.setPhotoUrl("a.jpg");
+        when(userProfileRepository.findAllById(List.of(5L, 6L))).thenReturn(List.of(profile));
+
+        assertThat(userProfileService.findBriefs(List.of(5L, 6L))).containsExactly(new UserBriefResponse(5L, "anna", "a.jpg"));
     }
 
     private UserProfile profileWithSettings(UserSettings settings) {

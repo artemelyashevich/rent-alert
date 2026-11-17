@@ -27,6 +27,11 @@
         </dependency>
 
         <dependency>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+            <groupId>org.springframework.boot</groupId>
+        </dependency>
+
+        <dependency>
             <artifactId>spring-boot-starter-kafka-test</artifactId>
             <groupId>org.springframework.boot</groupId>
             <scope>test</scope>

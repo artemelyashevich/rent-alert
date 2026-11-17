@@ -15,8 +15,11 @@ import com.rentalert.dto.notification.NotificationDto;
 import com.rentalert.dto.notification.NotificationEngine;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.ReminderIntervalType;
+import com.rentalert.dto.roommate.RoommateViewingDto;
+import com.rentalert.dto.roommate.RoommateViewingStatus;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.internal.client.service.ListingMsService;
+import com.rentalert.internal.client.service.RoommateMsService;
 import com.rentalert.notification_ms.domain.NotificationTemplate;
 import com.rentalert.notification_ms.domain.Reminder;
 import com.rentalert.notification_ms.service.NotificationService;
@@ -37,8 +40,9 @@ class ReminderServiceImplTests {
     private final ListingMsService listingMsService = mock(ListingMsService.class);
     private final IdentityMsService identityMsService = mock(IdentityMsService.class);
     private final CryptoService cryptoService = mock(CryptoService.class);
+    private final RoommateMsService roommateMsService = mock(RoommateMsService.class);
     private final ReminderServiceImpl service = new ReminderServiceImpl(
-        notificationService, persistenceService, listingMsService, identityMsService, cryptoService);
+        notificationService, persistenceService, listingMsService, identityMsService, cryptoService, roommateMsService);
 
     private final Reminder reminder = Reminder.builder()
         .userId(42L)
@@ -92,5 +96,61 @@ class ReminderServiceImplTests {
 
         verify(notificationService, never()).sendNotification(any());
         verify(persistenceService).markAsFailed(any(), anyString());
+    }
+
+    @Test
+    void sendsRoommateViewingReminderWithSnapshotCard() {
+        Reminder roommateReminder = roommateReminder();
+        when(persistenceService.findBatchToRemind(any(Integer.class))).thenReturn(List.of(roommateReminder));
+        when(roommateMsService.getViewing(5L)).thenReturn(Optional.of(scheduledViewing()));
+        when(identityMsService.getReceiver(42L)).thenReturn(new NotificationRequest.Receiver("tg-enc", null));
+        when(cryptoService.decrypt("tg-enc")).thenReturn("123456");
+
+        service.send();
+
+        ArgumentCaptor<NotificationDto> sent = ArgumentCaptor.forClass(NotificationDto.class);
+        verify(notificationService).sendNotification(sent.capture());
+        assertThat(sent.getValue().getReceiver()).isEqualTo("123456");
+        assertThat(sent.getValue().getTemplateParams().get("message"))
+            .contains("5 октября, 15:00", "напоминание за час", "2-комн. // Немига 5");
+        verify(listingMsService, never()).getFavoriteViewing(any(), any());
+        verify(persistenceService).markAsSent(roommateReminder);
+    }
+
+    @Test
+    void removedRoommateViewingFailsReminder() {
+        when(persistenceService.findBatchToRemind(any(Integer.class))).thenReturn(List.of(roommateReminder()));
+        when(roommateMsService.getViewing(5L)).thenReturn(Optional.empty());
+
+        service.send();
+
+        verify(notificationService, never()).sendNotification(any());
+        verify(persistenceService).markAsFailed(any(), anyString());
+    }
+
+    @Test
+    void cancelledRoommateViewingFailsReminder() {
+        when(persistenceService.findBatchToRemind(any(Integer.class))).thenReturn(List.of(roommateReminder()));
+        when(roommateMsService.getViewing(5L)).thenReturn(Optional.of(new RoommateViewingDto(5L, 10L, 42L, 77L,
+            Instant.parse("2026-10-05T12:00:00Z"), RoommateViewingStatus.CANCELLED, 15L, "Немига 5", "2-комн.", "Немига 5")));
+
+        service.send();
+
+        verify(notificationService, never()).sendNotification(any());
+        verify(persistenceService).markAsFailed(any(), anyString());
+    }
+
+    private static Reminder roommateReminder() {
+        return Reminder.builder()
+            .userId(42L)
+            .roommateViewingId(5L)
+            .intervalType(ReminderIntervalType.BEFORE_1_HOUR)
+            .notificationTemplate(NotificationTemplate.builder().engine(NotificationEngine.TELEGRAM_BOT).build())
+            .build();
+    }
+
+    private static RoommateViewingDto scheduledViewing() {
+        return new RoommateViewingDto(5L, 10L, 42L, 77L, Instant.parse("2026-10-05T12:00:00Z"),
+            RoommateViewingStatus.SCHEDULED, 15L, "Немига 5", "2-комн.", "Немига 5");
     }
 }

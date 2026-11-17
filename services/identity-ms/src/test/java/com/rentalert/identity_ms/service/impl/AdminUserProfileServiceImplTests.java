@@ -10,8 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.common.exception.AppException;
-import com.rentalert.dto.event.KafkaTopics;
-import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.notification.BroadcastTarget;
 import com.rentalert.dto.profile.BotStatus;
@@ -19,9 +17,9 @@ import com.rentalert.dto.profile.UserRole;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
 import com.rentalert.identity_ms.mapper.UserProfileMapper;
+import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
 import com.rentalert.identity_ms.service.UserProfileService;
-import com.rentalert.kafka.outbox.OutboxPublisher;
 import com.rentalert.redis.service.UserSessionService;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +27,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -53,7 +50,7 @@ class AdminUserProfileServiceImplTests {
     private UserSessionService userSessionService;
 
     @Mock
-    private OutboxPublisher outboxPublisher;
+    private UserEventPublisher userEventPublisher;
 
     @InjectMocks
     private AdminUserProfileServiceImpl service;
@@ -75,11 +72,7 @@ class AdminUserProfileServiceImplTests {
         service.delete(5L);
 
         verify(userProfileRepository).deleteById(5L);
-        ArgumentCaptor<Object> event = ArgumentCaptor.forClass(Object.class);
-        verify(outboxPublisher).publish(eq(KafkaTopics.USER_EVENTS), eq("5"), event.capture());
-        UserActionEvent deleted = (UserActionEvent) event.getValue();
-        assertThat(deleted.getEvent()).isEqualTo(UserEvent.USER_DELETED);
-        assertThat(deleted.getInitiatorId()).isEqualTo(5L);
+        verify(userEventPublisher).publish(UserEvent.USER_DELETED, 5L);
         verify(userProfileService).evictCachedProfile(5L);
 
         verify(userSessionService, never()).invalidateSession(anyLong());
@@ -93,7 +86,7 @@ class AdminUserProfileServiceImplTests {
 
         assertThatThrownBy(() -> service.delete(5L))
             .isInstanceOfSatisfying(AppException.class, e -> assertThat(e.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND));
-        verify(outboxPublisher, never()).publish(any(), any(), any());
+        verify(userEventPublisher, never()).publish(any(), any());
     }
 
     @Test

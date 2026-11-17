@@ -11,8 +11,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.common.exception.UpstreamHttpException;
+import com.rentalert.dto.notification.NotificationDelivery;
 import com.rentalert.dto.notification.NotificationRequest;
+import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.filter.UserFilterRequest;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.internal.client.service.impl.IdentityMsServiceImpl;
@@ -23,6 +26,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +67,33 @@ class IdentityMsServiceImplTests {
     }
 
     @Test
+    void retriesDeliveryLookup() {
+        NotificationDelivery delivery = new NotificationDelivery(new NotificationRequest.Receiver("tg-enc", null),
+            Instant.parse("2026-10-02T05:00:00Z"));
+        when(client.getDelivery(42L))
+            .thenThrow(new UpstreamHttpException("unavailable", 503, null))
+            .thenReturn(delivery);
+
+        assertThat(service.getDelivery(42L)).isEqualTo(delivery);
+        verify(client, times(2)).getDelivery(42L);
+    }
+
+    @Test
+    void userBriefsAreFetchedWithoutAdminPath() {
+        List<UserBriefResponse> briefs = List.of(new UserBriefResponse(42L, "anna", null));
+        when(client.findUserBriefs(List.of(42L))).thenReturn(briefs);
+
+        assertThat(service.findUserBriefs(List.of(42L))).isEqualTo(briefs);
+        verify(client, never()).findBriefs(any());
+    }
+
+    @Test
+    void emptyUserBriefsRequestMakesNoCall() {
+        assertThat(service.findUserBriefs(List.of())).isEmpty();
+        verify(client, never()).findUserBriefs(any());
+    }
+
+    @Test
     void unknownTelegramUserIsEmpty() {
         when(client.findByTelegramId(any())).thenThrow(new UpstreamHttpException("not found", 404, null));
 
@@ -98,5 +130,32 @@ class IdentityMsServiceImplTests {
     void absentActiveFilterIsNotCached() {
         assertThat(service.getActiveFilter(42L)).isEmpty();
         verify(cacheService, never()).put(eq(CacheType.USER_ACTIVE_FILTER), any(), any(), any());
+    }
+
+    @Test
+    void absentMatchFilterIsEmpty() {
+        when(client.getMatchFilter(7L)).thenReturn(null);
+
+        assertThat(service.getMatchFilter(7L)).isEmpty();
+    }
+
+    @Test
+    void upsertsMatchFilterWithoutRetry() {
+        UserFilterRequest request = UserFilterRequest.builder().city("Минск").build();
+        UserFilterResponse filter = UserFilterResponse.builder().id(3L).active(false).build();
+        when(client.upsertMatchFilter(7L, request)).thenReturn(filter);
+
+        assertThat(service.upsertMatchFilter(7L, request)).isSameAs(filter);
+        verify(client).upsertMatchFilter(7L, request);
+    }
+
+    @Test
+    void matchFilterActivationIsNotRetried() {
+        when(client.setMatchFilterActivation(7L, true))
+            .thenThrow(new UpstreamHttpException("unavailable", 503, null));
+
+        assertThatThrownBy(() -> service.setMatchFilterActivation(7L, true))
+            .isInstanceOf(UpstreamHttpException.class);
+        verify(client).setMatchFilterActivation(7L, true);
     }
 }

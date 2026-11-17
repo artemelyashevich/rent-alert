@@ -6,3 +6,8 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5440/ops}
     username: ${DB_USERNAME:${OPS_DB_USER:ops_ms}}
     password: ${DB_PASSWORD:${OPS_DB_PASSWORD:}}
+
+app:
+  kafka:
+    inbox:
+      enabled: true

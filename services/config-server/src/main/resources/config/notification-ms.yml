@@ -27,7 +27,7 @@ ws:
 
 app:
   startup:
-    services: identity-ms,listing-ms,notification-ms,processing-ms,ops-ms,admin-ms
+    services: identity-ms,listing-ms,notification-ms,processing-ms,ops-ms,admin-ms,roommate-ms
   crypto:
     # Must equal identity-ms: receivers in NotificationRequest are encrypted there with this key,
     # deduplication keys are hashed with the HMAC key

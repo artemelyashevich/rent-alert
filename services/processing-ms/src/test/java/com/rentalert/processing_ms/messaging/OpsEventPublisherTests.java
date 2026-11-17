@@ -8,11 +8,18 @@ import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class OpsEventPublisherTests {
 
     private final OutboxPublisher outboxPublisher = mock(OutboxPublisher.class);
-    private final OpsEventPublisher publisher = new OpsEventPublisher(outboxPublisher);
+    private final OpsEventPublisher publisher = createPublisher();
+
+    private OpsEventPublisher createPublisher() {
+        OpsEventPublisher created = new OpsEventPublisher();
+        ReflectionTestUtils.setField(created, "outboxPublisher", outboxPublisher);
+        return created;
+    }
 
     @Test
     void publishesJobEventKeyedByJobName() {

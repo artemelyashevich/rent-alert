@@ -3,15 +3,12 @@ package com.rentalert.identity_ms.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.dto.currency.Currency;
-import com.rentalert.dto.event.KafkaTopics;
-import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.listing.ListingCreatedEvent;
 import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.listing.ListingCategory;
@@ -22,8 +19,9 @@ import com.rentalert.dto.profile.UserRole;
 import com.rentalert.identity_ms.domain.UserFilter;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
+import com.rentalert.identity_ms.messaging.NotificationRequestPublisher;
+import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.UserFilterRepository;
-import com.rentalert.kafka.outbox.OutboxPublisher;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -42,10 +40,13 @@ class NewListingNotificationServiceImplTests {
     private UserFilterRepository userFilterRepository;
 
     @Mock
-    private OutboxPublisher outboxPublisher;
+    private NotificationRequestPublisher notificationRequestPublisher;
 
     @Mock
     private QuietHoursPolicy quietHoursPolicy;
+
+    @Mock
+    private UserEventPublisher userEventPublisher;
 
     @InjectMocks
     private NewListingNotificationServiceImpl service;
@@ -91,7 +92,7 @@ class NewListingNotificationServiceImplTests {
         service.notifyMatchingUsers(listing(ListingCategory.FLAT));
 
         ArgumentCaptor<NotificationRequest> request = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(outboxPublisher).publish(eq(KafkaTopics.NOTIFICATION_REQUESTS), eq("10"), request.capture());
+        verify(notificationRequestPublisher).publishListingMatch(request.capture());
         assertThat(request.getValue().type()).isEqualTo(NotificationType.NEW_LISTING_MATCHED);
         assertThat(request.getValue().userId()).isEqualTo(10L);
         assertThat(request.getValue().listingId()).isEqualTo(7L);
@@ -112,7 +113,7 @@ class NewListingNotificationServiceImplTests {
         service.notifyMatchingUsers(listing(ListingCategory.FLAT));
 
         ArgumentCaptor<NotificationRequest> request = ArgumentCaptor.forClass(NotificationRequest.class);
-        verify(outboxPublisher).publish(eq(KafkaTopics.NOTIFICATION_REQUESTS), eq("10"), request.capture());
+        verify(notificationRequestPublisher).publishListingMatch(request.capture());
         assertThat(request.getValue().sendAt()).isEqualTo(resumeAt);
     }
 
@@ -140,10 +141,9 @@ class NewListingNotificationServiceImplTests {
 
         service.notifyMatchingUsers(listing(ListingCategory.FLAT));
 
-        verify(outboxPublisher).publish(eq(KafkaTopics.NOTIFICATION_REQUESTS), eq("1"), any());
-        verify(outboxPublisher).publish(eq(KafkaTopics.NOTIFICATION_REQUESTS), eq("3"), any());
-        verify(outboxPublisher, never()).publish(eq(KafkaTopics.NOTIFICATION_REQUESTS), eq("2"), any());
-        verify(outboxPublisher, never()).publish(eq(KafkaTopics.NOTIFICATION_REQUESTS), eq("4"), any());
+        ArgumentCaptor<NotificationRequest> requests = ArgumentCaptor.forClass(NotificationRequest.class);
+        verify(notificationRequestPublisher, times(2)).publishListingMatch(requests.capture());
+        assertThat(requests.getAllValues()).extracting(NotificationRequest::userId).containsExactlyInAnyOrder(1L, 3L);
     }
 
     @Test
@@ -161,7 +161,7 @@ class NewListingNotificationServiceImplTests {
 
         service.notifyMatchingUsers(listing(ListingCategory.FLAT));
 
-        verifyNoInteractions(outboxPublisher);
+        verifyNoInteractions(notificationRequestPublisher, userEventPublisher);
     }
 
     @Test
@@ -172,7 +172,7 @@ class NewListingNotificationServiceImplTests {
 
         service.notifyMatchingUsers(listing(ListingCategory.FLAT));
 
-        verify(outboxPublisher, times(1)).publish(eq(KafkaTopics.NOTIFICATION_REQUESTS), eq("10"), any());
+        verify(notificationRequestPublisher, times(1)).publishListingMatch(any());
     }
 
     @Test
@@ -187,14 +187,9 @@ class NewListingNotificationServiceImplTests {
 
         service.notifyMatchingUsers(listing(ListingCategory.FLAT));
 
-        ArgumentCaptor<UserActionEvent> events = ArgumentCaptor.forClass(UserActionEvent.class);
-        verify(outboxPublisher, times(2)).publish(eq(KafkaTopics.USER_EVENTS), eq("10"), events.capture());
-        assertThat(events.getAllValues())
-            .allSatisfy(e -> {
-                assertThat(e.getEvent()).isEqualTo(UserEvent.LISTING_RECEIVED);
-                assertThat(e.getInitiatorId()).isEqualTo(10L);
-            })
-            .extracting(UserActionEvent::getFilterId).containsExactly(100L, 101L);
+        ArgumentCaptor<Long> filterIds = ArgumentCaptor.forClass(Long.class);
+        verify(userEventPublisher, times(2)).publish(eq(UserEvent.LISTING_RECEIVED), eq(10L), filterIds.capture());
+        assertThat(filterIds.getAllValues()).containsExactly(100L, 101L);
     }
 
     @Test
@@ -203,6 +198,6 @@ class NewListingNotificationServiceImplTests {
 
         service.notifyMatchingUsers(withoutMessage);
 
-        verifyNoInteractions(userFilterRepository, outboxPublisher);
+        verifyNoInteractions(userFilterRepository, notificationRequestPublisher, userEventPublisher);
     }
 }

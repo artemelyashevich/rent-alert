@@ -24,9 +24,10 @@ public class ProcessingCleanupParticipant extends AbstractCleanupParticipant {
     private final Duration taskRecordRetention;
     private final int maxRowsPerRun;
 
-    public ProcessingCleanupParticipant(ListingRepository listingRepository, ScheduledTaskRecordRepository scheduledTaskRecordRepository, TransactionTemplate transactionTemplate,
+    public ProcessingCleanupParticipant(@Value("${spring.application.name}") String serviceName, ListingRepository listingRepository, ScheduledTaskRecordRepository scheduledTaskRecordRepository, TransactionTemplate transactionTemplate,
                                         @Value("${app.cleanup.listing-retention:P7D}") Duration listingRetention, @Value("${app.cleanup.task-record-retention:P7D}") Duration taskRecordRetention,
                                         @Value("${app.cleanup.max-rows-per-run:20000}") int maxRowsPerRun) {
+        super(serviceName);
         this.listingRepository = listingRepository;
         this.scheduledTaskRecordRepository = scheduledTaskRecordRepository;
         this.transactionTemplate = transactionTemplate;

@@ -5,16 +5,19 @@ import com.rentalert.internal.client.ListingMsClient;
 import com.rentalert.internal.client.NotificationMsClient;
 import com.rentalert.internal.client.OpsMsClient;
 import com.rentalert.internal.client.ProcessingMsClient;
+import com.rentalert.internal.client.RoommateMsClient;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.internal.client.service.ListingMsService;
 import com.rentalert.internal.client.service.NotificationMsService;
 import com.rentalert.internal.client.service.OpsMsService;
 import com.rentalert.internal.client.service.ProcessingMsService;
+import com.rentalert.internal.client.service.RoommateMsService;
 import com.rentalert.internal.client.service.impl.IdentityMsServiceImpl;
 import com.rentalert.internal.client.service.impl.ListingMsServiceImpl;
 import com.rentalert.internal.client.service.impl.NotificationMsServiceImpl;
 import com.rentalert.internal.client.service.impl.OpsMsServiceImpl;
 import com.rentalert.internal.client.service.impl.ProcessingMsServiceImpl;
+import com.rentalert.internal.client.service.impl.RoommateMsServiceImpl;
 import com.rentalert.internal.decoder.InternalErrorDecoder;
 import com.rentalert.internal.interceptor.HeaderPropagationInterceptor;
 import com.rentalert.internal.interceptor.InternalTokenInterceptor;
@@ -93,5 +96,12 @@ public class CommonFeignConfiguration {
     public NotificationMsService notificationMsService(@Lazy NotificationMsClient notificationMsClient,
         RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
         return new NotificationMsServiceImpl(notificationMsClient, retryRegistry, circuitBreakerRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RoommateMsService roommateMsService(@Lazy RoommateMsClient roommateMsClient, RetryRegistry retryRegistry,
+        CircuitBreakerRegistry circuitBreakerRegistry) {
+        return new RoommateMsServiceImpl(roommateMsClient, retryRegistry, circuitBreakerRegistry);
     }
 }

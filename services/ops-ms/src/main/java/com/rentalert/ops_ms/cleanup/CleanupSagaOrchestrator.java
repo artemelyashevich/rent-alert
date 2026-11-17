@@ -1,18 +1,17 @@
 package com.rentalert.ops_ms.cleanup;
 
 import com.rentalert.dto.event.JobExecutionEvent;
-import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.cleanup.CleanupCommand;
 import com.rentalert.dto.event.cleanup.CleanupReply;
 import com.rentalert.dto.event.job.JobInitiator;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.dto.event.job.JobScope;
 import com.rentalert.dto.event.job.JobStatus;
-import com.rentalert.kafka.outbox.OutboxPublisher;
 import com.rentalert.ops_ms.domain.CleanupSaga;
 import com.rentalert.ops_ms.domain.CleanupSagaStatus;
 import com.rentalert.ops_ms.domain.CleanupSagaStep;
 import com.rentalert.ops_ms.domain.CleanupStepStatus;
+import com.rentalert.ops_ms.messaging.CleanupCommandPublisher;
 import com.rentalert.ops_ms.repository.CleanupSagaRepository;
 import com.rentalert.ops_ms.repository.CleanupSagaStepRepository;
 import com.rentalert.ops_ms.service.JobSettingService;
@@ -35,18 +34,18 @@ public class CleanupSagaOrchestrator {
 
     private final CleanupSagaRepository sagaRepository;
     private final CleanupSagaStepRepository stepRepository;
-    private final OutboxPublisher outboxPublisher;
+    private final CleanupCommandPublisher cleanupCommandPublisher;
     private final JobSettingService jobSettingService;
     private final List<String> steps;
     private final Duration stepTimeout;
     private final int maxAttempts;
 
-    public CleanupSagaOrchestrator(CleanupSagaRepository sagaRepository, CleanupSagaStepRepository stepRepository, OutboxPublisher outboxPublisher, JobSettingService jobSettingService,
-                                   @Value("${app.cleanup.saga.steps:listing-ms,processing-ms,notification-ms,ops-ms}") List<String> steps,
+    public CleanupSagaOrchestrator(CleanupSagaRepository sagaRepository, CleanupSagaStepRepository stepRepository, CleanupCommandPublisher cleanupCommandPublisher, JobSettingService jobSettingService,
+                                   @Value("${app.cleanup.saga.steps:listing-ms,processing-ms,notification-ms,roommate-ms,ops-ms}") List<String> steps,
                                    @Value("${app.cleanup.saga.step-timeout:PT30M}") Duration stepTimeout, @Value("${app.cleanup.saga.max-attempts:3}") int maxAttempts) {
         this.sagaRepository = sagaRepository;
         this.stepRepository = stepRepository;
-        this.outboxPublisher = outboxPublisher;
+        this.cleanupCommandPublisher = cleanupCommandPublisher;
         this.jobSettingService = jobSettingService;
         this.steps = steps;
         this.stepTimeout = stepTimeout;
@@ -124,7 +123,7 @@ public class CleanupSagaOrchestrator {
         step.setAttempts(step.getAttempts() + 1);
         step.setSentAt(now);
         stepRepository.save(step);
-        outboxPublisher.publish(KafkaTopics.CLEANUP_COMMANDS, step.getService(), new CleanupCommand(saga.getSagaId(), step.getStepOrder(), step.getService(), saga.getReferenceTime()));
+        cleanupCommandPublisher.publishCommand(new CleanupCommand(saga.getSagaId(), step.getStepOrder(), step.getService(), saga.getReferenceTime()));
     }
 
     private void finish(CleanupSaga saga, List<CleanupSagaStep> sagaSteps, Instant now) {

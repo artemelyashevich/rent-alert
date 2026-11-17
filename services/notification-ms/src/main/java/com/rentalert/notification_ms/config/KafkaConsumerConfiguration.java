@@ -25,4 +25,9 @@ public class KafkaConsumerConfiguration extends AbstractKafkaConsumerConfigurati
     public KafkaAdmin.NewTopics priorityNotificationRequestsTopics() {
         return topicWithDeadLetter(KafkaTopics.NOTIFICATION_REQUESTS_PRIORITY, Duration.ofDays(1));
     }
+
+    @Bean
+    public KafkaAdmin.NewTopics listingsDeletedTopics() {
+        return topicWithDeadLetter(KafkaTopics.LISTINGS_DELETED, Duration.ofDays(7));
+    }
 }

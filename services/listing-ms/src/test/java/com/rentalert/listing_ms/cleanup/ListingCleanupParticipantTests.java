@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.dto.cleanup.CleanupResult;
+import com.rentalert.listing_ms.messaging.ListingEventPublisher;
 import com.rentalert.listing_ms.repository.FavoriteRepository;
 import com.rentalert.listing_ms.repository.HiddenListingRepository;
 import com.rentalert.listing_ms.repository.ListingRepository;
@@ -27,8 +28,9 @@ class ListingCleanupParticipantTests {
     private final ListingRepository listingRepository = mock(ListingRepository.class);
     private final FavoriteRepository favoriteRepository = mock(FavoriteRepository.class);
     private final HiddenListingRepository hiddenListingRepository = mock(HiddenListingRepository.class);
+    private final ListingEventPublisher listingEventPublisher = mock(ListingEventPublisher.class);
     private final TransactionTemplate transactionTemplate = mock(TransactionTemplate.class);
-    private final ListingCleanupParticipant participant = new ListingCleanupParticipant(listingRepository, favoriteRepository, hiddenListingRepository, transactionTemplate, Duration.ofDays(7), 20000);
+    private final ListingCleanupParticipant participant = new ListingCleanupParticipant("listing-ms", listingRepository, favoriteRepository, hiddenListingRepository, listingEventPublisher, transactionTemplate, Duration.ofDays(7), 20000);
 
     @BeforeEach
     void setUp() {
@@ -50,6 +52,18 @@ class ListingCleanupParticipantTests {
         assertThat(result.errors()).isEmpty();
         verify(favoriteRepository).deleteByListingIdIn(stale);
         verify(hiddenListingRepository).deleteByListingIdIn(stale);
+    }
+
+    @Test
+    void publishesDeletedListingsInTheSameTransaction() {
+        List<Long> stale = List.of(1L, 2L);
+        when(listingRepository.findStaleListingIds(any(), any())).thenReturn(stale);
+        when(listingRepository.deleteByIdIn(stale)).thenReturn(2);
+
+        CleanupResult result = participant.cleanUp(MIDNIGHT);
+
+        assertThat(result.deleted()).isEqualTo(2);
+        verify(listingEventPublisher).publishListingsDeleted(stale);
     }
 
     @Test

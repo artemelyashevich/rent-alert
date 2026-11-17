@@ -13,12 +13,14 @@ import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.listing_ms.domain.Listing;
 import com.rentalert.listing_ms.mapper.ListingEventMapper;
 import com.rentalert.listing_ms.mapper.ListingMapper;
+import com.rentalert.listing_ms.messaging.ListingEventPublisher;
 import com.rentalert.listing_ms.repository.ListingRepository;
 import com.rentalert.listing_ms.repository.ListingSpecification;
 import com.rentalert.listing_ms.service.CurrencyRateService;
 import com.rentalert.listing_ms.service.ListingService;
 import com.rentalert.redis.service.UserSessionService;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,6 +45,7 @@ public class ListingServiceImpl implements ListingService {
     private final UserSessionService userSessionService;
     private final CurrencyRateService currencyRateService;
     private final IdentityMsService identityMsService;
+    private final ListingEventPublisher listingEventPublisher;
 
     @Override
     public Page<ListingDto> findAll(String filter, Set<String> sources, ListingCategory category, Pageable pageable) {
@@ -84,6 +87,15 @@ public class ListingServiceImpl implements ListingService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ListingDto> findCards(Collection<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return listingMapper.toDtoList(listingRepository.findAllByIdInOrderByIdAsc(ids));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Long> findStaleListingIds(Instant cutoff, int limit) {
         return listingRepository.findStaleListingIds(cutoff, PageRequest.of(0, Math.max(1, limit)));
     }
@@ -95,6 +107,7 @@ public class ListingServiceImpl implements ListingService {
             return 0;
         }
         int deleted = listingRepository.deleteByIdIn(listingIds);
+        listingEventPublisher.publishListingsDeleted(listingIds);
         log.info("Deleted {} listing entries", deleted);
         return deleted;
     }

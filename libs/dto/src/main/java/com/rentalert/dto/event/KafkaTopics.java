@@ -26,6 +26,12 @@ public class KafkaTopics {
     /** {@code ListingCreatedEvent} from processing-ms, key = listingId. */
     public static final String LISTINGS = "processing.listings.v1";
 
+    public static final String LISTINGS_DELETED = "listing.listings-deleted.v1";
+
+    public static final String REALTIME_PUSH = "notification.realtime-push.v1";
+
+    public static final String ROOMMATE_COMPLAINTS = "identity.roommate-complaints.v1";
+
     public static String notificationRequests(NotificationType type) {
         return type.isPriority()
             ? NOTIFICATION_REQUESTS_PRIORITY

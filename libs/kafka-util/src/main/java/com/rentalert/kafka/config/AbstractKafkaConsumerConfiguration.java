@@ -2,6 +2,7 @@ package com.rentalert.kafka.config;
 
 import com.rentalert.kafka.NonRetryableEventException;
 import com.rentalert.kafka.TraceIdRecordInterceptor;
+import com.rentalert.kafka.inbox.InboxGuard;
 import java.time.Duration;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +14,11 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.kafka.autoconfigure.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
@@ -29,6 +32,8 @@ import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.converter.JacksonJsonMessageConverter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.FixedBackOff;
 import tools.jackson.databind.json.JsonMapper;
@@ -60,6 +65,13 @@ public abstract class AbstractKafkaConsumerConfiguration implements DisposableBe
         props.putIfAbsent(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new StringDeserializer());
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "app.kafka.inbox.enabled")
+    public InboxGuard inboxGuard(JdbcTemplate jdbcTemplate, PlatformTransactionManager transactionManager,
+        @Value("${app.kafka.inbox.retention:P7D}") Duration retention) {
+        return new InboxGuard(jdbcTemplate, new TransactionTemplate(transactionManager), retention);
     }
 
     @Bean

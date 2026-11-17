@@ -3,7 +3,6 @@ package com.rentalert.ops_ms.cleanup;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -12,17 +11,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.dto.event.JobExecutionEvent;
-import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.cleanup.CleanupCommand;
 import com.rentalert.dto.event.cleanup.CleanupReply;
 import com.rentalert.dto.event.job.JobInitiator;
 import com.rentalert.dto.event.job.JobName;
 import com.rentalert.dto.event.job.JobStatus;
-import com.rentalert.kafka.outbox.OutboxPublisher;
 import com.rentalert.ops_ms.domain.CleanupSaga;
 import com.rentalert.ops_ms.domain.CleanupSagaStatus;
 import com.rentalert.ops_ms.domain.CleanupSagaStep;
 import com.rentalert.ops_ms.domain.CleanupStepStatus;
+import com.rentalert.ops_ms.messaging.CleanupCommandPublisher;
 import com.rentalert.ops_ms.repository.CleanupSagaRepository;
 import com.rentalert.ops_ms.repository.CleanupSagaStepRepository;
 import com.rentalert.ops_ms.service.JobSettingService;
@@ -43,9 +41,9 @@ class CleanupSagaOrchestratorTests {
 
     private final CleanupSagaRepository sagaRepository = mock(CleanupSagaRepository.class);
     private final CleanupSagaStepRepository stepRepository = mock(CleanupSagaStepRepository.class);
-    private final OutboxPublisher outboxPublisher = mock(OutboxPublisher.class);
+    private final CleanupCommandPublisher cleanupCommandPublisher = mock(CleanupCommandPublisher.class);
     private final JobSettingService jobSettingService = mock(JobSettingService.class);
-    private final CleanupSagaOrchestrator orchestrator = new CleanupSagaOrchestrator(sagaRepository, stepRepository, outboxPublisher, jobSettingService,
+    private final CleanupSagaOrchestrator orchestrator = new CleanupSagaOrchestrator(sagaRepository, stepRepository, cleanupCommandPublisher, jobSettingService,
         List.of("listing-ms", "ops-ms"), Duration.ofMinutes(30), 3);
 
     private final List<CleanupSaga> sagas = new ArrayList<>();
@@ -111,6 +109,20 @@ class CleanupSagaOrchestratorTests {
     }
 
     @Test
+    void roommateStepRunsBetweenItsNeighboursInSagaOrder() {
+        CleanupSagaOrchestrator withRoommate = new CleanupSagaOrchestrator(sagaRepository, stepRepository, cleanupCommandPublisher, jobSettingService,
+            List.of("listing-ms", "roommate-ms", "ops-ms"), Duration.ofMinutes(30), 3);
+        UUID sagaId = withRoommate.start(MIDNIGHT).orElseThrow();
+        assertThat(sentCommands()).extracting(CleanupCommand::service).containsExactly("listing-ms");
+
+        withRoommate.onReply(new CleanupReply(sagaId, 1, "listing-ms", 1, 0, 10, List.of()), MIDNIGHT.plusSeconds(1));
+        assertThat(sentCommands()).extracting(CleanupCommand::service).containsExactly("listing-ms", "roommate-ms");
+
+        withRoommate.onReply(new CleanupReply(sagaId, 2, "roommate-ms", 1, 0, 10, List.of()), MIDNIGHT.plusSeconds(2));
+        assertThat(sentCommands()).extracting(CleanupCommand::service).containsExactly("listing-ms", "roommate-ms", "ops-ms");
+    }
+
+    @Test
     void reportsRowsThatCouldNotBeDeleted() {
         UUID sagaId = orchestrator.start(MIDNIGHT).orElseThrow();
         orchestrator.onReply(new CleanupReply(sagaId, 1, "listing-ms", 100, 500, 900, List.of()), MIDNIGHT.plusSeconds(1));
@@ -157,13 +169,13 @@ class CleanupSagaOrchestratorTests {
         Optional<UUID> second = orchestrator.start(MIDNIGHT.plus(Duration.ofDays(1)));
 
         assertThat(second).isEmpty();
-        verify(outboxPublisher, times(1)).publish(eq(KafkaTopics.CLEANUP_COMMANDS), any(), any());
+        verify(cleanupCommandPublisher, times(1)).publishCommand(any());
         verify(jobSettingService, never()).record(any());
     }
 
     private List<CleanupCommand> sentCommands() {
-        ArgumentCaptor<Object> commands = ArgumentCaptor.forClass(Object.class);
-        verify(outboxPublisher, atLeast(0)).publish(eq(KafkaTopics.CLEANUP_COMMANDS), any(), commands.capture());
-        return commands.getAllValues().stream().map(CleanupCommand.class::cast).toList();
+        ArgumentCaptor<CleanupCommand> commands = ArgumentCaptor.forClass(CleanupCommand.class);
+        verify(cleanupCommandPublisher, atLeast(0)).publishCommand(commands.capture());
+        return commands.getAllValues();
     }
 }

@@ -18,6 +18,8 @@ services:
       LISTING_DB_PASSWORD: ${LISTING_DB_PASSWORD:?set LISTING_DB_PASSWORD in docker/.env}
       PROCESSING_DB_USER: ${PROCESSING_DB_USER:-processing_ms}
       PROCESSING_DB_PASSWORD: ${PROCESSING_DB_PASSWORD:?set PROCESSING_DB_PASSWORD in docker/.env}
+      ROOMMATE_DB_USER: ${ROOMMATE_DB_USER:-roommate_ms}
+      ROOMMATE_DB_PASSWORD: ${ROOMMATE_DB_PASSWORD:?set ROOMMATE_DB_PASSWORD in docker/.env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro

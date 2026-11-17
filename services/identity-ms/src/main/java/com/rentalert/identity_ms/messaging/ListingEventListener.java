@@ -4,21 +4,38 @@ import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.listing.ListingCreatedEvent;
 import com.rentalert.identity_ms.service.NewListingNotificationService;
 import com.rentalert.kafka.NonRetryableEventException;
-import lombok.RequiredArgsConstructor;
+import com.rentalert.kafka.inbox.AbstractIdempotentKafkaListener;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class ListingEventListener {
+public class ListingEventListener extends AbstractIdempotentKafkaListener {
+
+    private static final String CONSUMER = "identity.listings";
 
     private final NewListingNotificationService newListingNotificationService;
 
-    @KafkaListener(topics = KafkaTopics.LISTINGS, groupId = "identity.listings")
+    public ListingEventListener(NewListingNotificationService newListingNotificationService) {
+        super(CONSUMER);
+        this.newListingNotificationService = newListingNotificationService;
+    }
+
+    /**
+     * Notifies matching users once per listing. The idempotency key is derived from the listing id assigned by
+     * processing-ms, so a redelivered listing does not produce duplicate notifications. A listing without id is not
+     * retryable.
+     */
+    @KafkaListener(topics = KafkaTopics.LISTINGS, groupId = CONSUMER)
     public void onListingCreated(ListingCreatedEvent event) {
         if (event.listingId() == null) {
             throw new NonRetryableEventException("Listing event without listing id");
         }
-        newListingNotificationService.notifyMatchingUsers(event);
+        processOnce(listingKey(event), () -> newListingNotificationService.notifyMatchingUsers(event));
+    }
+
+    private static UUID listingKey(ListingCreatedEvent event) {
+        return UUID.nameUUIDFromBytes(("ListingCreatedEvent:" + event.listingId()).getBytes(StandardCharsets.UTF_8));
     }
 }

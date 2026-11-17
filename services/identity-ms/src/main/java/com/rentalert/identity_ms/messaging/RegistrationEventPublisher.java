@@ -1,35 +1,27 @@
 package com.rentalert.identity_ms.messaging;
 
-import com.rentalert.dto.event.EventStatus;
 import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.identity_ms.domain.UserProfile;
-import com.rentalert.kafka.outbox.OutboxPublisher;
+import com.rentalert.kafka.outbox.AbstractOutboxEventPublisher;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-@RequiredArgsConstructor
-public class RegistrationEventPublisher {
+public class RegistrationEventPublisher extends AbstractOutboxEventPublisher {
 
     private static final String PRODUCER = "identity-ms";
-
-    private final OutboxPublisher outboxPublisher;
 
     public void publishRegistered(UserProfile profile) {
         String key = String.valueOf(profile.getId());
 
-        UserActionEvent event = UserActionEvent.builder()
+        publishEvent(KafkaTopics.USER_EVENTS, profile.getId(), UserActionEvent.builder()
             .event(UserEvent.USER_REGISTERED)
-            .build();
-        event.setInitiatorId(profile.getId());
-        event.setEventStatus(EventStatus.SUCCESS);
-        outboxPublisher.publish(KafkaTopics.USER_EVENTS, key, event);
+            .build());
 
         String name = StringUtils.hasText(profile.getUsername()) ? profile.getUsername() : key;
         NotificationRequest adminAlert = NotificationRequest.builder()
@@ -39,6 +31,6 @@ public class RegistrationEventPublisher {
             .templateParams(Map.of("message", name))
             .deduplicationKey("user-created:" + key)
             .build();
-        outboxPublisher.publish(KafkaTopics.notificationRequests(NotificationType.USER_CREATED), key, adminAlert);
+        publish(KafkaTopics.notificationRequests(NotificationType.USER_CREATED), key, adminAlert);
     }
 }

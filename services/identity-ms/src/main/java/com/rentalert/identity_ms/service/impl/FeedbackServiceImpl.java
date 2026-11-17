@@ -8,6 +8,7 @@ import com.rentalert.dto.profile.FeedbackResponse;
 import com.rentalert.identity_ms.domain.Feedback;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.mapper.FeedbackMapper;
+import com.rentalert.identity_ms.messaging.RoommateComplaintEventPublisher;
 import com.rentalert.identity_ms.repository.FeedbackRepository;
 import com.rentalert.identity_ms.service.FeedbackService;
 import com.rentalert.identity_ms.service.UserProfileService;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedbackServiceImpl implements FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
+    private final RoommateComplaintEventPublisher roommateComplaintEventPublisher;
     private final UserProfileService userProfileService;
     private final FeedbackMapper feedbackMapper;
 
@@ -35,8 +37,12 @@ public class FeedbackServiceImpl implements FeedbackService {
             .userProfile(userProfile)
             .message(request.getMessage())
             .rating(request.getRating())
+            .subjectType(request.getSubjectType())
+            .subjectId(request.getSubjectId())
+            .reasonCode(request.getReasonCode())
             .build();
         Feedback saved = feedbackRepository.save(feedback);
+        roommateComplaintEventPublisher.publish(saved.getSubjectType(), saved.getSubjectId());
         log.info("Feedback created: id={}, userId={}, rating={}", saved.getId(), userId, request.getRating());
         userProfileService.evictCachedProfile(userId);
         return feedbackMapper.toResponse(saved);

@@ -3,6 +3,7 @@ package com.rentalert.listing_ms.repository;
 import com.rentalert.dto.listing.ScheduleProvider;
 import com.rentalert.listing_ms.domain.Listing;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import lombok.NonNull;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,8 @@ public interface ListingRepository extends JpaRepository<@NonNull Listing, @NonN
         order by l.id
         """)
     List<Long> findStaleListingIds(@Param("cutoff") Instant cutoff, Pageable pageable);
+
+    List<Listing> findAllByIdInOrderByIdAsc(Collection<Long> ids);
 
     boolean existsBySourceAndSourceId(ScheduleProvider source, String sourceId);
 

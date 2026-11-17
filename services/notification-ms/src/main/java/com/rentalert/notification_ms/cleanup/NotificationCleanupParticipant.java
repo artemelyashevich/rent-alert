@@ -19,8 +19,9 @@ public class NotificationCleanupParticipant extends AbstractCleanupParticipant {
     private final Duration notificationRetention;
     private final int maxRowsPerRun;
 
-    public NotificationCleanupParticipant(NotificationRepository notificationRepository, TransactionTemplate transactionTemplate,
+    public NotificationCleanupParticipant(@Value("${spring.application.name}") String serviceName, NotificationRepository notificationRepository, TransactionTemplate transactionTemplate,
                                           @Value("${app.cleanup.notification-retention:P2D}") Duration notificationRetention, @Value("${app.cleanup.max-rows-per-run:20000}") int maxRowsPerRun) {
+        super(serviceName);
         this.notificationRepository = notificationRepository;
         this.transactionTemplate = transactionTemplate;
         this.notificationRetention = notificationRetention;

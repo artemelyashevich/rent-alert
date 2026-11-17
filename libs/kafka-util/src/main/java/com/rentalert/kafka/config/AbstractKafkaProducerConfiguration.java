@@ -1,5 +1,7 @@
 package com.rentalert.kafka.config;
 
+import com.rentalert.kafka.audit.CurrentUserIdProvider;
+import com.rentalert.kafka.audit.UserAuditAspect;
 import com.rentalert.kafka.lifecycle.ServiceStartedPublisher;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import com.rentalert.kafka.outbox.OutboxRelay;
@@ -7,6 +9,7 @@ import java.time.Duration;
 import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
@@ -59,5 +62,12 @@ public abstract class AbstractKafkaProducerConfiguration {
         @Value("${app.kafka.outbox.retention:P7D}") Duration retention
     ) {
         return new OutboxRelay(jdbcTemplate, new TransactionTemplate(transactionManager), kafkaTemplate, jsonMapper, batchSize, sendTimeout, retention);
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "app.kafka.user-audit.enabled", havingValue = "true")
+    public UserAuditAspect userAuditAspect(ObjectProvider<CurrentUserIdProvider> currentUserIdProvider,
+        OutboxPublisher outboxPublisher, PlatformTransactionManager transactionManager) {
+        return new UserAuditAspect(currentUserIdProvider.getIfAvailable(), outboxPublisher, transactionManager);
     }
 }

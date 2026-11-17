@@ -1,14 +1,18 @@
 package com.rentalert.identity_ms.controller.internal;
 
+import com.rentalert.dto.profile.filter.UserFilterRequest;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.identity_ms.config.PublicUrls;
 import com.rentalert.identity_ms.domain.UserFilter;
 import com.rentalert.identity_ms.mapper.UserFilterMapper;
 import com.rentalert.identity_ms.service.UserFilterService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,5 +30,31 @@ public class UserFilterInternalController {
         return filter == null
             ? ResponseEntity.noContent().build()
             : ResponseEntity.ok(userFilterMapper.toResponse(filter));
+    }
+
+    /** Общий фильтр roommate-матча; 204, если фильтр для матча ещё не создан. */
+    @GetMapping("/match/{matchId}")
+    public ResponseEntity<UserFilterResponse> findMatchFilter(@PathVariable Long matchId) {
+        return userFilterService.findByOwnerMatchId(matchId)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    /** Создаёт или обновляет общий фильтр roommate-матча. */
+    @PutMapping("/match/{matchId}")
+    public ResponseEntity<UserFilterResponse> upsertMatchFilter(
+        @PathVariable Long matchId,
+        @Valid @RequestBody UserFilterRequest request
+    ) {
+        return ResponseEntity.ok(userFilterService.upsertForMatch(matchId, request));
+    }
+
+    /** Включает или выключает общий фильтр roommate-матча; 404, если фильтр для матча не создан. */
+    @PutMapping("/match/{matchId}/activation/{active}")
+    public ResponseEntity<UserFilterResponse> setMatchFilterActivation(
+        @PathVariable Long matchId,
+        @PathVariable boolean active
+    ) {
+        return ResponseEntity.ok(userFilterService.setActivationForMatch(matchId, active));
     }
 }

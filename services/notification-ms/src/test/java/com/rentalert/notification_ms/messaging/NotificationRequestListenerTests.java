@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,13 +21,20 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class NotificationRequestListenerTests {
 
     private static final Duration GRACE = Duration.ofSeconds(30);
 
     private final NotificationService notificationService = mock(NotificationService.class);
-    private final NotificationRequestListener listener = new NotificationRequestListener(notificationService, GRACE);
+    private final NotificationRequestListener listener = createListener();
+
+    private NotificationRequestListener createListener() {
+        NotificationRequestListener created = new NotificationRequestListener(notificationService, GRACE);
+        ReflectionTestUtils.setField(created, "inboxGuard", new InMemoryInboxGuard());
+        return created;
+    }
 
     private static NotificationRequest request(NotificationType type, Instant expiresAt) {
         return NotificationRequest.builder().userId(42L).type(type).expiresAt(expiresAt).build();
@@ -93,6 +101,29 @@ class NotificationRequestListenerTests {
         listener.onPriorityRequest(request(NotificationType.EMAIL_ACTIVATION, Instant.now().minusSeconds(1)));
 
         verify(notificationService, never()).enqueue(any(), any());
+    }
+
+    @Test
+    void redeliveredRequestIsEnqueuedOnce() {
+        NotificationRequest request = request(NotificationType.NEW_LISTING_MATCHED, null);
+
+        listener.onRequest(request);
+        listener.onRequest(request);
+
+        verify(notificationService, times(1)).enqueue(eq(request), any());
+    }
+
+    @Test
+    void redeliveredPriorityRequestIsDispatchedOnce() {
+        NotificationRequest request = request(NotificationType.EMAIL_ACTIVATION, null);
+        List<Notification> queued = List.of(new Notification());
+        when(notificationService.enqueue(eq(request), any())).thenReturn(queued);
+
+        listener.onPriorityRequest(request);
+        listener.onPriorityRequest(request);
+
+        verify(notificationService, times(1)).enqueue(eq(request), any());
+        verify(notificationService, times(1)).dispatch(queued);
     }
 
     @Test

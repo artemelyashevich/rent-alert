@@ -4,12 +4,14 @@ import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.auth.AdminLoginRequest;
 import com.rentalert.dto.auth.LoginResponse;
 import com.rentalert.dto.notification.BroadcastTarget;
+import com.rentalert.dto.notification.NotificationDelivery;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.FeedbackResponse;
 import com.rentalert.dto.profile.TelegramIdRequest;
 import com.rentalert.dto.profile.UpdateUserRoleRequest;
 import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
+import com.rentalert.dto.profile.filter.UserFilterRequest;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import java.util.Collection;
 import java.util.List;
@@ -33,11 +35,29 @@ public interface IdentityMsClient {
     @GetMapping("/profiles/{userId}/receiver")
     NotificationRequest.Receiver getReceiver(@PathVariable("userId") Long userId);
 
+    @GetMapping("/profiles/{userId}/delivery")
+    NotificationDelivery getDelivery(@PathVariable("userId") Long userId);
+
+    @PostMapping("/profiles/briefs")
+    List<UserBriefResponse> findUserBriefs(@RequestBody Collection<Long> userIds);
+
     @PostMapping("/profiles/by-telegram")
     UserProfileResponse findByTelegramId(@RequestBody TelegramIdRequest request);
 
     @GetMapping("/filters/active/{userId}")
     UserFilterResponse getActiveFilter(@PathVariable("userId") Long userId);
+
+    @GetMapping("/filters/match/{matchId}")
+    UserFilterResponse getMatchFilter(@PathVariable("matchId") Long matchId);
+
+    @PutMapping("/filters/match/{matchId}")
+    UserFilterResponse upsertMatchFilter(@PathVariable("matchId") Long matchId, @RequestBody UserFilterRequest request);
+
+    @PutMapping("/filters/match/{matchId}/activation/{active}")
+    UserFilterResponse setMatchFilterActivation(
+        @PathVariable("matchId") Long matchId,
+        @PathVariable("active") boolean active
+    );
 
     @PostMapping("/admin/login")
     LoginResponse adminLogin(@RequestBody AdminLoginRequest request);

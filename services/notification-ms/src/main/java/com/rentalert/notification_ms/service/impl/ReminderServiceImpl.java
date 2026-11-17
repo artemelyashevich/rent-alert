@@ -8,8 +8,11 @@ import com.rentalert.dto.notification.NotificationEngine;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.dto.notification.ReminderIntervalType;
+import com.rentalert.dto.roommate.RoommateViewingDto;
+import com.rentalert.dto.roommate.RoommateViewingStatus;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.internal.client.service.ListingMsService;
+import com.rentalert.internal.client.service.RoommateMsService;
 import com.rentalert.notification_ms.domain.Reminder;
 import com.rentalert.notification_ms.service.NotificationService;
 import com.rentalert.notification_ms.service.ReminderPersistenceService;
@@ -44,6 +47,7 @@ public class ReminderServiceImpl implements ReminderService {
     private final ListingMsService listingMsService;
     private final IdentityMsService identityMsService;
     private final CryptoService cryptoService;
+    private final RoommateMsService roommateMsService;
 
     @Value("${app.bot.timezone:Europe/Minsk}")
     private ZoneId botZone;
@@ -126,9 +130,25 @@ public class ReminderServiceImpl implements ReminderService {
     }
 
     private ReminderTarget loadTarget(Reminder reminder, NotificationEngine engine) {
+        if (reminder.getRoommateViewingId() != null) {
+            return loadRoommateTarget(reminder, engine);
+        }
         FavoriteViewingDto favorite = listingMsService.getFavoriteViewing(reminder.getUserId(), reminder.getListingId())
             .orElseThrow(() -> new IllegalStateException("Favorite not found for reminder id=" + reminder.getId()));
         return new ReminderTarget(favorite.viewingDate(), favorite.listing(), resolveReceiver(reminder.getUserId(), engine));
+    }
+
+    private ReminderTarget loadRoommateTarget(Reminder reminder, NotificationEngine engine) {
+        RoommateViewingDto viewing = roommateMsService.getViewing(reminder.getRoommateViewingId())
+            .orElseThrow(() -> new IllegalStateException("Roommate viewing not found for reminder id=" + reminder.getId()));
+        if (viewing.status() != RoommateViewingStatus.SCHEDULED) {
+            throw new IllegalStateException("Roommate viewing is not scheduled for reminder id=" + reminder.getId());
+        }
+        ListingDto listing = ListingDto.builder()
+            .title(viewing.listingTitle())
+            .street(viewing.listingStreet())
+            .build();
+        return new ReminderTarget(viewing.viewingDate(), listing, resolveReceiver(reminder.getUserId(), engine));
     }
 
     private String resolveReceiver(Long userId, NotificationEngine engine) {

@@ -11,11 +11,18 @@ import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class UserEventPublisherTests {
 
     private final OutboxPublisher outboxPublisher = mock(OutboxPublisher.class);
-    private final UserEventPublisher publisher = new UserEventPublisher(outboxPublisher);
+    private final UserEventPublisher publisher = createPublisher();
+
+    private UserEventPublisher createPublisher() {
+        UserEventPublisher created = new UserEventPublisher();
+        ReflectionTestUtils.setField(created, "outboxPublisher", outboxPublisher);
+        return created;
+    }
 
     @Test
     void filterEventCarriesFilterId() {

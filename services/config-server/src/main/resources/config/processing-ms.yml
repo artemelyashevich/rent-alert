@@ -8,6 +8,9 @@ spring:
     password: ${DB_PASSWORD:${PROCESSING_DB_PASSWORD:}}
 
 app:
+  kafka:
+    inbox:
+      enabled: true
   schedulers:
     enabled: true
   parsers:

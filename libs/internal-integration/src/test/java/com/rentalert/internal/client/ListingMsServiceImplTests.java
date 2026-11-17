@@ -1,13 +1,16 @@
 package com.rentalert.internal.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.dto.listing.FavoriteViewingDto;
+import com.rentalert.dto.listing.ListingDto;
 import com.rentalert.internal.client.service.ListingMsService;
 import com.rentalert.internal.client.service.impl.ListingMsServiceImpl;
 import com.rentalert.internal.resilience.RetryableExceptionPredicate;
@@ -16,6 +19,7 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class ListingMsServiceImplTests {
@@ -45,5 +49,22 @@ class ListingMsServiceImplTests {
     @Test
     void missingFavoriteIsEmpty() {
         assertThat(service.getFavoriteViewing(42L, 15L)).isEmpty();
+    }
+
+    @Test
+    void retriesCards() {
+        ListingDto card = ListingDto.builder().id(15L).build();
+        when(client.findCards(List.of(15L)))
+            .thenThrow(new UpstreamHttpException("unavailable", 503, null))
+            .thenReturn(List.of(card));
+
+        assertThat(service.findCards(List.of(15L))).containsExactly(card);
+        verify(client, times(2)).findCards(List.of(15L));
+    }
+
+    @Test
+    void emptyCardsRequestMakesNoCall() {
+        assertThat(service.findCards(List.of())).isEmpty();
+        verify(client, never()).findCards(any());
     }
 }

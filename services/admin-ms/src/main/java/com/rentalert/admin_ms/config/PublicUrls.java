@@ -15,6 +15,7 @@ public class PublicUrls {
     public static final String NOTIFICATION_TAG = PREFIX + "/notifications";
     public static final String USER_STATISTICS_TAG = PREFIX + "/user-statistics";
     public static final String PROFILE_TAG = PREFIX + "/profiles";
+    public static final String ROOMMATE_MODERATION_TAG = PREFIX + "/roommate/moderation";
     public static final String SCHEDULER_SETTINGS_TAG = PREFIX + "/scheduler-settings";
 
     public static final RequestMatcher PUBLIC_URLS = PathPatternRequestMatcher.withDefaults().matcher(AUTH_TAG + "/login");

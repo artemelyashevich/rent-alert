@@ -7,6 +7,7 @@ import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.internal.client.service.NotificationMsService;
 import com.rentalert.internal.client.service.OpsMsService;
 import com.rentalert.internal.client.service.ProcessingMsService;
+import com.rentalert.internal.client.service.RoommateMsService;
 import feign.codec.ErrorDecoder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ class AdminMsApplicationTests {
         assertThat(context.getBean(OpsMsService.class)).isNotNull();
         assertThat(context.getBean(ProcessingMsService.class)).isNotNull();
         assertThat(context.getBean(NotificationMsService.class)).isNotNull();
+        assertThat(context.getBean(RoommateMsService.class)).isNotNull();
         assertThat(context.getBean(ErrorDecoder.class)).isInstanceOf(ProxiedErrorDecoder.class);
     }
 }

@@ -7,15 +7,14 @@ import com.rentalert.common.util.auth.CryptoService;
 import com.rentalert.dto.auth.EmailOtp;
 import com.rentalert.dto.auth.OtpConfirmationRequest;
 import com.rentalert.dto.auth.OtpPreparationResponse;
-import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
+import com.rentalert.identity_ms.messaging.NotificationRequestPublisher;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
 import com.rentalert.identity_ms.service.EmailActivationService;
 import com.rentalert.identity_ms.service.UserProfileService;
-import com.rentalert.kafka.outbox.OutboxPublisher;
 import com.rentalert.redis.dto.CacheType;
 import com.rentalert.redis.service.CacheService;
 import java.nio.charset.StandardCharsets;
@@ -43,17 +42,17 @@ public class EmailActivationServiceImpl implements EmailActivationService {
     private final UserProfileService userProfileService;
     private final CacheService cacheService;
     private final CryptoService cryptoService;
-    private final OutboxPublisher outboxPublisher;
+    private final NotificationRequestPublisher notificationRequestPublisher;
     private final Duration otpTtl;
 
     public EmailActivationServiceImpl(UserProfileRepository userProfileRepository, UserProfileService userProfileService,
-        CacheService cacheService, CryptoService cryptoService, OutboxPublisher outboxPublisher,
+        CacheService cacheService, CryptoService cryptoService, NotificationRequestPublisher notificationRequestPublisher,
         @Value("${app.email.otp-ttl:PT10M}") Duration otpTtl) {
         this.userProfileRepository = userProfileRepository;
         this.userProfileService = userProfileService;
         this.cacheService = cacheService;
         this.cryptoService = cryptoService;
-        this.outboxPublisher = outboxPublisher;
+        this.notificationRequestPublisher = notificationRequestPublisher;
         this.otpTtl = otpTtl;
     }
 
@@ -79,7 +78,7 @@ public class EmailActivationServiceImpl implements EmailActivationService {
         Instant expiresAt = Instant.now().plus(otpTtl);
         cacheService.put(CacheType.EMAIL_OTP, requestId, new EmailOtp(userId, email, code, 0, expiresAt), otpTtl);
 
-        publish(NotificationRequest.builder()
+        notificationRequestPublisher.publishRequest(NotificationRequest.builder()
             .producer(PRODUCER)
             .userId(userId)
             .type(NotificationType.EMAIL_ACTIVATION)
@@ -114,7 +113,7 @@ public class EmailActivationServiceImpl implements EmailActivationService {
         userProfileRepository.save(profile);
         userProfileService.evictCachedProfile(userId);
 
-        publish(NotificationRequest.builder()
+        notificationRequestPublisher.publishRequest(NotificationRequest.builder()
             .producer(PRODUCER)
             .userId(userId)
             .type(NotificationType.EMAIL_ACTIVATION_SUCCESS)
@@ -134,9 +133,5 @@ public class EmailActivationServiceImpl implements EmailActivationService {
             return;
         }
         cacheService.put(CacheType.EMAIL_OTP, requestId, failed, remaining);
-    }
-
-    private void publish(NotificationRequest request) {
-        outboxPublisher.publish(KafkaTopics.notificationRequests(request.type()), String.valueOf(request.userId()), request);
     }
 }

@@ -1,0 +1,8 @@
+server:
+  port: 8087
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5440/roommate}
+    username: ${DB_USERNAME:${ROOMMATE_DB_USER:roommate_ms}}
+    password: ${DB_PASSWORD:${ROOMMATE_DB_PASSWORD:}}

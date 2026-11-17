@@ -14,11 +14,18 @@ import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class RegistrationEventPublisherTests {
 
     private final OutboxPublisher outboxPublisher = mock(OutboxPublisher.class);
-    private final RegistrationEventPublisher publisher = new RegistrationEventPublisher(outboxPublisher);
+    private final RegistrationEventPublisher publisher = createPublisher();
+
+    private RegistrationEventPublisher createPublisher() {
+        RegistrationEventPublisher created = new RegistrationEventPublisher();
+        ReflectionTestUtils.setField(created, "outboxPublisher", outboxPublisher);
+        return created;
+    }
 
     @Test
     void registrationNotifiesServicesAndAdmin() {

@@ -2,9 +2,6 @@ package com.rentalert.identity_ms.service.impl;
 
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.util.jpa.SpecificationUtil;
-import com.rentalert.dto.event.EventStatus;
-import com.rentalert.dto.event.KafkaTopics;
-import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.notification.BroadcastTarget;
 import com.rentalert.dto.profile.UserBriefResponse;
@@ -14,11 +11,11 @@ import com.rentalert.identity_ms.domain.DetailedUserProfileView;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.mapper.DetailedUserProfileMapper;
 import com.rentalert.identity_ms.mapper.UserProfileMapper;
+import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.DetailedUserProfileViewRepository;
 import com.rentalert.identity_ms.repository.UserProfileRepository;
 import com.rentalert.identity_ms.service.AdminUserProfileService;
 import com.rentalert.identity_ms.service.UserProfileService;
-import com.rentalert.kafka.outbox.OutboxPublisher;
 import com.rentalert.redis.service.UserSessionService;
 import java.util.Collection;
 import java.util.List;
@@ -43,10 +40,10 @@ public class AdminUserProfileServiceImpl implements AdminUserProfileService {
     private final UserProfileRepository userProfileRepository;
     private final DetailedUserProfileViewRepository detailedUserProfileViewRepository;
     private final DetailedUserProfileMapper detailedUserProfileMapper;
+    private final UserEventPublisher userEventPublisher;
     private final UserProfileMapper userProfileMapper;
     private final UserProfileService userProfileService;
     private final UserSessionService userSessionService;
-    private final OutboxPublisher outboxPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -88,13 +85,7 @@ public class AdminUserProfileServiceImpl implements AdminUserProfileService {
             throw new AppException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND);
         }
         userProfileRepository.deleteById(id);
-
-        UserActionEvent event = UserActionEvent.builder()
-            .event(UserEvent.USER_DELETED)
-            .build();
-        event.setInitiatorId(id);
-        event.setEventStatus(EventStatus.SUCCESS);
-        outboxPublisher.publish(KafkaTopics.USER_EVENTS, String.valueOf(id), event);
+        userEventPublisher.publish(UserEvent.USER_DELETED, id);
 
         userProfileService.evictCachedProfile(id);
         invalidateSessionAfterCommit(id);

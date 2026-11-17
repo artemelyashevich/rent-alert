@@ -17,6 +17,7 @@ import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.listing_ms.domain.Listing;
 import com.rentalert.listing_ms.mapper.ListingEventMapper;
 import com.rentalert.listing_ms.mapper.ListingMapper;
+import com.rentalert.listing_ms.messaging.ListingEventPublisher;
 import com.rentalert.listing_ms.repository.ListingRepository;
 import com.rentalert.listing_ms.service.impl.ListingServiceImpl;
 import com.rentalert.redis.service.UserSessionService;
@@ -32,13 +33,15 @@ class ListingServiceImplTests {
     private final ListingRepository repository = mock(ListingRepository.class);
     private final UserSessionService userSessionService = mock(UserSessionService.class);
     private final IdentityMsService identityMsService = mock(IdentityMsService.class);
+    private final ListingEventPublisher listingEventPublisher = mock(ListingEventPublisher.class);
     private final ListingService service = new ListingServiceImpl(
         repository,
         Mappers.getMapper(ListingMapper.class),
         Mappers.getMapper(ListingEventMapper.class),
         userSessionService,
         mock(CurrencyRateService.class),
-        identityMsService
+        identityMsService,
+        listingEventPublisher
     );
 
     private final ListingCreatedEvent event = ListingCreatedEvent.builder()
@@ -83,5 +86,32 @@ class ListingServiceImplTests {
         assertThatThrownBy(() -> service.findAll(null, null, null, Pageable.unpaged()))
             .isInstanceOf(NoActiveFiltersException.class);
         verify(repository, never()).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void findsCardsWithPreviewPhoto() {
+        Listing listing = Listing.builder().id(7L).title("Квартира").photos(new String[]{"a.jpg", "b.jpg"}).build();
+        when(repository.findAllByIdInOrderByIdAsc(List.of(7L, 8L))).thenReturn(List.of(listing));
+
+        assertThat(service.findCards(List.of(7L, 8L)))
+            .singleElement()
+            .satisfies(card -> {
+                assertThat(card.getId()).isEqualTo(7L);
+                assertThat(card.getPreviewPhoto()).isEqualTo("a.jpg");
+            });
+    }
+
+    @Test
+    void deletedListingsArePublished() {
+        when(repository.deleteByIdIn(List.of(7L, 8L))).thenReturn(2);
+
+        assertThat(service.deleteByIds(List.of(7L, 8L))).isEqualTo(2);
+        verify(listingEventPublisher).publishListingsDeleted(List.of(7L, 8L));
+    }
+
+    @Test
+    void emptyIdsSkipTheDatabase() {
+        assertThat(service.findCards(List.of())).isEmpty();
+        verify(repository, never()).findAllByIdInOrderByIdAsc(any());
     }
 }

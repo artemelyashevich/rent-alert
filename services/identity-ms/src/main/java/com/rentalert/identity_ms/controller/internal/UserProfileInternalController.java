@@ -1,11 +1,14 @@
 package com.rentalert.identity_ms.controller.internal;
 
+import com.rentalert.dto.notification.NotificationDelivery;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.profile.TelegramIdRequest;
+import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.identity_ms.config.PublicUrls;
 import com.rentalert.identity_ms.mapper.UserProfileMapper;
 import com.rentalert.identity_ms.service.UserProfileService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +33,16 @@ public class UserProfileInternalController {
     @GetMapping("/{userId}/receiver")
     public NotificationRequest.Receiver findReceiver(@PathVariable Long userId) {
         return userProfileService.getReceiver(userId);
+    }
+
+    @GetMapping("/{userId}/delivery")
+    public NotificationDelivery findDelivery(@PathVariable Long userId) {
+        return userProfileService.getDelivery(userId);
+    }
+
+    @PostMapping("/briefs")
+    public List<UserBriefResponse> findBriefs(@RequestBody List<Long> userIds) {
+        return userProfileService.findBriefs(userIds);
     }
 
     @PostMapping("/by-telegram")

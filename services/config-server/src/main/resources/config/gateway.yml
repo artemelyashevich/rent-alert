@@ -48,6 +48,16 @@ spring:
                 - Path=/api/v1/admin/**
               filters:
                 - StripPrefix=2
+            - id: roommate-ms
+              uri: lb://roommate-ms
+              predicates:
+                - Path=/api/v1/roommate/**
+              filters:
+                - StripPrefix=2
+            - id: realtime-ms-ws
+              uri: lb:ws://realtime-ms
+              predicates:
+                - Path=/ws,/ws/**
           globalcors:
             cors-configurations:
               '[/**]':

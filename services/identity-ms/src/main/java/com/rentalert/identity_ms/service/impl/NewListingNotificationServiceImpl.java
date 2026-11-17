@@ -1,8 +1,5 @@
 package com.rentalert.identity_ms.service.impl;
 
-import com.rentalert.dto.event.EventStatus;
-import com.rentalert.dto.event.KafkaTopics;
-import com.rentalert.dto.event.UserActionEvent;
 import com.rentalert.dto.event.listing.ListingCreatedEvent;
 import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.dto.listing.ListingCategory;
@@ -12,9 +9,10 @@ import com.rentalert.dto.profile.BotStatus;
 import com.rentalert.dto.profile.UserRole;
 import com.rentalert.identity_ms.domain.UserFilter;
 import com.rentalert.identity_ms.domain.UserProfile;
+import com.rentalert.identity_ms.messaging.NotificationRequestPublisher;
+import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.UserFilterRepository;
 import com.rentalert.identity_ms.service.NewListingNotificationService;
-import com.rentalert.kafka.outbox.OutboxPublisher;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
@@ -35,8 +33,9 @@ public class NewListingNotificationServiceImpl implements NewListingNotification
     private static final String PRODUCER = "identity-ms";
 
     private final UserFilterRepository userFilterRepository;
-    private final OutboxPublisher outboxPublisher;
+    private final NotificationRequestPublisher notificationRequestPublisher;
     private final QuietHoursPolicy quietHoursPolicy;
+    private final UserEventPublisher userEventPublisher;
 
     private static boolean matchesPrice(UserFilter filter, ListingCreatedEvent listing) {
         if (filter.getPriceFrom() == null && filter.getPriceTo() == null) {
@@ -82,24 +81,13 @@ public class NewListingNotificationServiceImpl implements NewListingNotification
             if (!matchesPrice(filter, listing) || !isEligible(profile)) {
                 continue;
             }
-            publishListingReceived(profile, filter);
+            userEventPublisher.publish(UserEvent.LISTING_RECEIVED, profile.getId(), filter.getId());
             if (notifiedUsers.add(profile.getId())) {
-                outboxPublisher.publish(KafkaTopics.NOTIFICATION_REQUESTS, String.valueOf(profile.getId()),
-                    buildRequest(profile, listing, now));
+                notificationRequestPublisher.publishListingMatch(buildRequest(profile, listing, now));
             }
         }
         log.info("Listing {} matched {} filters, {} users notified", listing.listingId(), candidates.size(),
             notifiedUsers.size());
-    }
-
-    private void publishListingReceived(UserProfile profile, UserFilter filter) {
-        UserActionEvent event = UserActionEvent.builder()
-            .event(UserEvent.LISTING_RECEIVED)
-            .filterId(filter.getId())
-            .build();
-        event.setInitiatorId(profile.getId());
-        event.setEventStatus(EventStatus.SUCCESS);
-        outboxPublisher.publish(KafkaTopics.USER_EVENTS, String.valueOf(profile.getId()), event);
     }
 
     private NotificationRequest buildRequest(UserProfile profile, ListingCreatedEvent listing, Instant now) {

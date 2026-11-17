@@ -26,9 +26,10 @@ public class OpsCleanupParticipant extends AbstractCleanupParticipant {
     private final ZoneId zone;
     private final int maxRowsPerRun;
 
-    public OpsCleanupParticipant(AuditLogRepository auditLogRepository, UserStatisticsRepository userStatisticsRepository, TransactionTemplate transactionTemplate,
+    public OpsCleanupParticipant(@Value("${spring.application.name}") String serviceName, AuditLogRepository auditLogRepository, UserStatisticsRepository userStatisticsRepository, TransactionTemplate transactionTemplate,
                                  @Value("${app.cleanup.audit-log-retention:P3D}") Duration auditLogRetention, @Value("${app.cleanup.statistics-retention:P7D}") Period statisticsRetention,
                                  @Value("${app.bot.timezone:Europe/Minsk}") ZoneId zone, @Value("${app.cleanup.max-rows-per-run:20000}") int maxRowsPerRun) {
+        super(serviceName);
         this.auditLogRepository = auditLogRepository;
         this.userStatisticsRepository = userStatisticsRepository;
         this.transactionTemplate = transactionTemplate;

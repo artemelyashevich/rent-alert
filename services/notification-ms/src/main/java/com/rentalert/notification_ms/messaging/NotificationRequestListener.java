@@ -3,10 +3,12 @@ package com.rentalert.notification_ms.messaging;
 import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.kafka.NonRetryableEventException;
+import com.rentalert.kafka.inbox.AbstractIdempotentKafkaListener;
 import com.rentalert.notification_ms.domain.Notification;
 import com.rentalert.notification_ms.service.NotificationService;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +19,15 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class NotificationRequestListener {
+public class NotificationRequestListener extends AbstractIdempotentKafkaListener {
+
+    private static final String CONSUMER = "notification.requests";
 
     private final NotificationService notificationService;
     private final Duration priorityDispatchGrace;
 
     public NotificationRequestListener(NotificationService notificationService, @Value("${app.notification.priority-dispatch-grace:PT30S}") Duration priorityDispatchGrace) {
+        super(CONSUMER);
         this.notificationService = notificationService;
         this.priorityDispatchGrace = priorityDispatchGrace;
     }
@@ -31,10 +36,10 @@ public class NotificationRequestListener {
         return Optional.ofNullable(request.sendAt()).filter(sendAt -> sendAt.isAfter(Instant.now()));
     }
 
-    @KafkaListener(topics = KafkaTopics.NOTIFICATION_REQUESTS, groupId = "notification.requests", concurrency = "${app.notification.requests-concurrency:3}")
+    @KafkaListener(topics = KafkaTopics.NOTIFICATION_REQUESTS, groupId = CONSUMER, concurrency = "${app.notification.requests-concurrency:3}")
     public void onRequest(NotificationRequest request) {
         if (isAcceptable(request)) {
-            enqueue(request, deferredUntil(request).orElse(Instant.now()));
+            processOnce(request.requestId(), () -> enqueue(request, deferredUntil(request).orElse(Instant.now())));
         }
     }
 
@@ -45,10 +50,11 @@ public class NotificationRequestListener {
         }
         Optional<Instant> deferredUntil = deferredUntil(request);
         if (deferredUntil.isPresent()) {
-            enqueue(request, deferredUntil.get());
+            processOnce(request.requestId(), () -> enqueue(request, deferredUntil.get()));
             return;
         }
-        List<Notification> queued = enqueue(request, Instant.now().plus(priorityDispatchGrace));
+        List<Notification> queued = new ArrayList<>();
+        processOnce(request.requestId(), () -> queued.addAll(enqueue(request, Instant.now().plus(priorityDispatchGrace))));
         notificationService.dispatch(queued);
     }
 
