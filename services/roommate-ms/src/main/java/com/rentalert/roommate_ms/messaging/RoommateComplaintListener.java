@@ -20,10 +20,6 @@ public class RoommateComplaintListener extends AbstractIdempotentKafkaListener {
         this.complaintHandler = complaintHandler;
     }
 
-    /**
-     * Counts a complaint once per event id and hides or pauses the subject after the reports threshold. A complaint
-     * without an event id or subject is not retryable and goes to the dead-letter topic.
-     */
     @KafkaListener(topics = KafkaTopics.ROOMMATE_COMPLAINTS, groupId = CONSUMER)
     public void onComplaint(RoommateComplaintEvent event) {
         if (event.eventId() == null || event.subjectType() == null || event.subjectId() == null) {

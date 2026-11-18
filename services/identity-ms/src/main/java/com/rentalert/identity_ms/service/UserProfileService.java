@@ -23,16 +23,11 @@ public interface UserProfileService {
 
     NotificationRequest.Receiver getReceiver(Long id);
 
-    /**
-     * The user's addresses together with the moment their quiet hours end, so a producer outside identity-ms can
-     * schedule a notification the way identity-ms does for its own.
-     */
     NotificationDelivery getDelivery(Long id);
 
-    /**
-     * Public name and photo of the given users for other services' UI; unknown ids are skipped.
-     */
     List<UserBriefResponse> findBriefs(Collection<Long> ids);
+
+    List<UserBriefResponse> searchBriefsByUsername(String username);
 
     UserProfile getByTelegramId(String telegramId);
 

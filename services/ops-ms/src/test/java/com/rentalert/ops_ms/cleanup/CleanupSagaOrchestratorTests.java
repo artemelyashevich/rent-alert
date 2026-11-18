@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -34,6 +35,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 class CleanupSagaOrchestratorTests {
 
@@ -43,8 +46,9 @@ class CleanupSagaOrchestratorTests {
     private final CleanupSagaStepRepository stepRepository = mock(CleanupSagaStepRepository.class);
     private final CleanupCommandPublisher cleanupCommandPublisher = mock(CleanupCommandPublisher.class);
     private final JobSettingService jobSettingService = mock(JobSettingService.class);
+    private final TransactionTemplate transactionTemplate = new TransactionTemplate(mock(PlatformTransactionManager.class));
     private final CleanupSagaOrchestrator orchestrator = new CleanupSagaOrchestrator(sagaRepository, stepRepository, cleanupCommandPublisher, jobSettingService,
-        List.of("listing-ms", "ops-ms"), Duration.ofMinutes(30), 3);
+        transactionTemplate, List.of("listing-ms", "ops-ms"), Duration.ofMinutes(30), 3);
 
     private final List<CleanupSaga> sagas = new ArrayList<>();
     private final List<CleanupSagaStep> steps = new ArrayList<>();
@@ -69,7 +73,7 @@ class CleanupSagaOrchestratorTests {
         when(stepRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(stepRepository.findAllBySagaIdOrderByStepOrder(any())).thenAnswer(invocation -> steps.stream()
             .filter(s -> s.getSagaId().equals(invocation.getArgument(0))).sorted(Comparator.comparingInt(CleanupSagaStep::getStepOrder)).toList());
-        when(stepRepository.findBySagaIdAndStepOrder(any(), anyInt())).thenAnswer(invocation -> steps.stream()
+        when(stepRepository.findBySagaIdAndStepOrderForUpdate(any(), anyInt())).thenAnswer(invocation -> steps.stream()
             .filter(s -> s.getSagaId().equals(invocation.getArgument(0)) && s.getStepOrder() == (int) invocation.getArgument(1)).findFirst());
         when(stepRepository.findAllByStatusAndSentAtBefore(any(), any())).thenAnswer(invocation -> steps.stream()
             .filter(s -> s.getStatus() == invocation.getArgument(0) && s.getSentAt().isBefore(invocation.getArgument(1))).toList());
@@ -111,7 +115,7 @@ class CleanupSagaOrchestratorTests {
     @Test
     void roommateStepRunsBetweenItsNeighboursInSagaOrder() {
         CleanupSagaOrchestrator withRoommate = new CleanupSagaOrchestrator(sagaRepository, stepRepository, cleanupCommandPublisher, jobSettingService,
-            List.of("listing-ms", "roommate-ms", "ops-ms"), Duration.ofMinutes(30), 3);
+            transactionTemplate, List.of("listing-ms", "roommate-ms", "ops-ms"), Duration.ofMinutes(30), 3);
         UUID sagaId = withRoommate.start(MIDNIGHT).orElseThrow();
         assertThat(sentCommands()).extracting(CleanupCommand::service).containsExactly("listing-ms");
 
@@ -160,6 +164,38 @@ class CleanupSagaOrchestratorTests {
 
         assertThat(steps.getFirst().getStatus()).isEqualTo(CleanupStepStatus.TIMED_OUT);
         assertThat(sentCommands()).extracting(CleanupCommand::service).containsExactly("listing-ms", "listing-ms", "listing-ms", "ops-ms");
+    }
+
+    @Test
+    void lateReplyForTimedOutStepDoesNotAdvanceSaga() {
+        UUID sagaId = orchestrator.start(MIDNIGHT).orElseThrow();
+        orchestrator.checkTimeouts(MIDNIGHT.plus(Duration.ofMinutes(31)));
+        orchestrator.checkTimeouts(MIDNIGHT.plus(Duration.ofMinutes(62)));
+        orchestrator.checkTimeouts(MIDNIGHT.plus(Duration.ofMinutes(93)));
+        assertThat(sentCommands()).extracting(CleanupCommand::service).containsExactly("listing-ms", "listing-ms", "listing-ms", "ops-ms");
+
+        orchestrator.onReply(new CleanupReply(sagaId, 1, "listing-ms", 120, 0, 900, List.of()), MIDNIGHT.plus(Duration.ofMinutes(94)));
+
+        assertThat(steps.getFirst().getStatus()).isEqualTo(CleanupStepStatus.TIMED_OUT);
+        assertThat(steps.getFirst().getDeleted()).isZero();
+        assertThat(sentCommands()).hasSize(4);
+        assertThat(sagas.getFirst().getStatus()).isEqualTo(CleanupSagaStatus.RUNNING);
+    }
+
+    @Test
+    void timeoutCheckSkipsStepWhoseReplyWasAlreadyHandled() {
+        UUID sagaId = orchestrator.start(MIDNIGHT).orElseThrow();
+        CleanupSagaStep staleCandidate = steps.getFirst();
+        orchestrator.onReply(new CleanupReply(sagaId, 1, "listing-ms", 120, 0, 900, List.of()), MIDNIGHT.plusSeconds(1));
+        when(stepRepository.findAllByStatusAndSentAtBefore(any(), any())).thenReturn(List.of(staleCandidate));
+        clearInvocations(stepRepository);
+
+        orchestrator.checkTimeouts(MIDNIGHT.plus(Duration.ofHours(2)));
+
+        verify(stepRepository).findBySagaIdAndStepOrderForUpdate(sagaId, 1);
+        assertThat(sentCommands()).extracting(CleanupCommand::service).containsExactly("listing-ms", "ops-ms");
+        assertThat(staleCandidate.getStatus()).isEqualTo(CleanupStepStatus.DONE);
+        assertThat(staleCandidate.getAttempts()).isEqualTo(1);
     }
 
     @Test

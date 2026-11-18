@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.redis.service.CacheService;
 import com.rentalert.roommate_ms.domain.Gender;
 import com.rentalert.roommate_ms.domain.RoommateListing;
 import com.rentalert.roommate_ms.domain.RoommateProfile;
@@ -17,7 +18,6 @@ import com.rentalert.roommate_ms.domain.RoommateScenario;
 import com.rentalert.roommate_ms.dto.RoommateCandidateView;
 import com.rentalert.roommate_ms.dto.RoommateFeedCursor;
 import com.rentalert.roommate_ms.dto.RoommateFeedPage;
-import com.rentalert.roommate_ms.dto.RoommateListingCardView;
 import com.rentalert.roommate_ms.mapper.RoommateFeedMapper;
 import com.rentalert.roommate_ms.repository.RoommateListingRepository;
 import com.rentalert.roommate_ms.repository.RoommateProfileRepository;
@@ -37,8 +37,10 @@ class RoommateFeedServiceImplTests {
     private final RoommateScoringService scoringService = mock(RoommateScoringService.class);
     private final RoommateProfileAccess profileAccess = mock(RoommateProfileAccess.class);
     private final IdentityMsService identityMsService = mock(IdentityMsService.class);
+    private final RoommateUserBriefs roommateUserBriefs =
+        new RoommateUserBriefs(identityMsService, new RoommateBatchCache(mock(CacheService.class)));
     private final RoommateFeedService service = new RoommateFeedServiceImpl(profileRepository, listingRepository, scoringService,
-        Mappers.getMapper(RoommateFeedMapper.class), profileAccess, identityMsService);
+        Mappers.getMapper(RoommateFeedMapper.class), profileAccess, roommateUserBriefs);
 
     private final RoommateProfile viewer = RoommateProfile.builder()
         .userId(1L)

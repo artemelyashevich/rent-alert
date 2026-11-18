@@ -5,6 +5,7 @@ import com.rentalert.dto.notification.BroadcastRecipientResponse;
 import com.rentalert.dto.notification.BroadcastRequest;
 import com.rentalert.dto.notification.BroadcastResponse;
 import com.rentalert.dto.notification.BroadcastSummaryResponse;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 public interface NotificationMsService {
@@ -15,7 +16,7 @@ public interface NotificationMsService {
 
     BroadcastSummaryResponse findBroadcast(Long broadcastId);
 
-    PageResponse<BroadcastRecipientResponse> findRecipients(Long broadcastId, Long userId, Pageable pageable);
+    PageResponse<BroadcastRecipientResponse> findRecipients(Long broadcastId, List<Long> userIds, Pageable pageable);
 
     void deleteBroadcast(Long broadcastId);
 }

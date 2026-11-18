@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -138,11 +139,14 @@ class OutboxTests {
 
         @Bean
         DataSource dataSource() {
-            return new EmbeddedDatabaseBuilder()
+            EmbeddedDatabase database = new EmbeddedDatabaseBuilder()
                 .setType(EmbeddedDatabaseType.H2)
                 .generateUniqueName(true)
                 .addScript("classpath:outbox-test-schema.sql")
                 .build();
+            new JdbcTemplate(database).execute("CREATE ALIAS pg_try_advisory_xact_lock AS $$ "
+                + "boolean tryLock(long key) { return true; } $$");
+            return database;
         }
 
         @Bean

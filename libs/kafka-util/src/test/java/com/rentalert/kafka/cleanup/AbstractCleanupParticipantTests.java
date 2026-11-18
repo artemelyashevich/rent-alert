@@ -3,41 +3,43 @@ package com.rentalert.kafka.cleanup;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 import com.rentalert.dto.cleanup.CleanupResult;
 import com.rentalert.dto.event.KafkaTopics;
 import com.rentalert.dto.event.cleanup.CleanupCommand;
 import com.rentalert.dto.event.cleanup.CleanupReply;
-import com.rentalert.kafka.inbox.InboxGuard;
 import com.rentalert.kafka.outbox.OutboxPublisher;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
 
 class AbstractCleanupParticipantTests {
 
     private final OutboxPublisher outboxPublisher = mock(OutboxPublisher.class);
-    private final InboxGuard inboxGuard = mock(InboxGuard.class);
+    private final TransactionTemplate transactionTemplate = mock(TransactionTemplate.class);
+    private final List<String> events = new ArrayList<>();
     private final Instant reference = Instant.parse("2026-09-30T21:00:00Z");
     private final AtomicInteger cleanUps = new AtomicInteger();
     private Instant cleanedWith;
     private final AbstractCleanupParticipant participant = new AbstractCleanupParticipant("listing-ms") {
         @Override
         protected CleanupResult cleanUp(Instant referenceTime) {
+            events.add("cleanUp");
             cleanedWith = referenceTime;
             cleanUps.incrementAndGet();
             return new CleanupResult(5, 1, Duration.ofMillis(40), List.of());
@@ -47,15 +49,16 @@ class AbstractCleanupParticipantTests {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(participant, "outboxPublisher", outboxPublisher);
-        ReflectionTestUtils.setField(participant, "inboxGuard", inboxGuard);
-        Set<UUID> processed = new HashSet<>();
-        when(inboxGuard.processOnce(any(), any(), any())).thenAnswer(invocation -> {
-            if (!processed.add(invocation.<UUID>getArgument(1))) {
-                return false;
-            }
-            invocation.<Runnable>getArgument(2).run();
-            return true;
-        });
+        ReflectionTestUtils.setField(participant, "transactionTemplate", transactionTemplate);
+        doAnswer(invocation -> {
+            events.add("transaction");
+            invocation.<Consumer<TransactionStatus>>getArgument(0).accept(null);
+            return null;
+        }).when(transactionTemplate).executeWithoutResult(any());
+        doAnswer(invocation -> {
+            events.add("publish");
+            return null;
+        }).when(outboxPublisher).publish(any(), any(), any());
     }
 
     @Test
@@ -71,34 +74,28 @@ class AbstractCleanupParticipantTests {
     }
 
     @Test
-    void commandIsProcessedThroughInboxWithStepKey() {
-        UUID sagaId = UUID.randomUUID();
-        UUID expectedKey = UUID.nameUUIDFromBytes(("cleanup:" + sagaId + ":1:listing-ms").getBytes(StandardCharsets.UTF_8));
+    void cleanUpRunsOutsideTransactionAndReplyIsPublishedInsideIt() {
+        participant.onCommand(new CleanupCommand(UUID.randomUUID(), 1, "listing-ms", reference));
 
-        participant.onCommand(new CleanupCommand(sagaId, 1, "listing-ms", reference));
-
-        verify(inboxGuard).processOnce(eq("listing-ms"), eq(expectedKey), any(Runnable.class));
+        assertThat(events).containsExactly("cleanUp", "transaction", "publish");
     }
 
     @Test
-    void duplicateCommandIsNotCleanedOrRepliedTwice() {
+    void repeatedCommandIsCleanedAndRepliedAgain() {
         CleanupCommand command = new CleanupCommand(UUID.randomUUID(), 1, "listing-ms", reference);
 
         participant.onCommand(command);
         participant.onCommand(command);
 
-        assertThat(cleanUps).hasValue(1);
-        verify(outboxPublisher, times(1)).publish(eq(KafkaTopics.CLEANUP_REPLIES), any(), any());
+        assertThat(cleanUps).hasValue(2);
+        verify(outboxPublisher, times(2)).publish(eq(KafkaTopics.CLEANUP_REPLIES), eq(command.sagaId().toString()), any());
     }
 
     @Test
-    void commandsOfDifferentStepsAreBothProcessed() {
-        UUID sagaId = UUID.randomUUID();
+    void replyIsPublishedOncePerCommand() {
+        participant.onCommand(new CleanupCommand(UUID.randomUUID(), 1, "listing-ms", reference));
 
-        participant.onCommand(new CleanupCommand(sagaId, 1, "listing-ms", reference));
-        participant.onCommand(new CleanupCommand(sagaId, 2, "listing-ms", reference));
-
-        assertThat(cleanUps).hasValue(2);
+        verify(outboxPublisher, times(1)).publish(eq(KafkaTopics.CLEANUP_REPLIES), any(), any());
     }
 
     @Test
@@ -106,6 +103,6 @@ class AbstractCleanupParticipantTests {
         participant.onCommand(new CleanupCommand(UUID.randomUUID(), 2, "processing-ms", reference));
 
         assertThat(cleanedWith).isNull();
-        verifyNoInteractions(outboxPublisher, inboxGuard);
+        verifyNoInteractions(outboxPublisher, transactionTemplate);
     }
 }

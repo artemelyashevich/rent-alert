@@ -9,11 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Sends complaints about roommate profiles and listings to roommate-ms through the outbox.
- * Must run in the transaction that stores the feedback, so the event is published only if the complaint is saved.
- * Other feedback subject types are ignored.
- */
 @Component
 public class RoommateComplaintEventPublisher extends AbstractOutboxEventPublisher {
 

@@ -2,7 +2,9 @@ package com.rentalert.redis.dto;
 
 import com.rentalert.dto.auth.EmailOtp;
 import com.rentalert.dto.currency.CurrencyRateDto;
+import com.rentalert.dto.listing.ListingDto;
 import com.rentalert.dto.listing.SchedulerSettingsResponse;
+import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.dto.profile.UserProfileResponse;
 import com.rentalert.dto.profile.filter.UserFilterResponse;
 import com.rentalert.dto.user.UserSession;
@@ -32,6 +34,10 @@ public enum CacheType {
     }),
     /** Key: userId. */
     USER_ACTIVE_FILTER(new TypeReference<UserFilterResponse>() {
+    }),
+    USER_BRIEF(new TypeReference<UserBriefResponse>() {
+    }),
+    LISTING_CARD(new TypeReference<ListingDto>() {
     }),
 
     /** Key: {@code ScheduleProvider}. */

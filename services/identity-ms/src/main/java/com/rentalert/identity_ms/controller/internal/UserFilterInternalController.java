@@ -32,7 +32,6 @@ public class UserFilterInternalController {
             : ResponseEntity.ok(userFilterMapper.toResponse(filter));
     }
 
-    /** Общий фильтр roommate-матча; 204, если фильтр для матча ещё не создан. */
     @GetMapping("/match/{matchId}")
     public ResponseEntity<UserFilterResponse> findMatchFilter(@PathVariable Long matchId) {
         return userFilterService.findByOwnerMatchId(matchId)
@@ -40,7 +39,6 @@ public class UserFilterInternalController {
             .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
-    /** Создаёт или обновляет общий фильтр roommate-матча. */
     @PutMapping("/match/{matchId}")
     public ResponseEntity<UserFilterResponse> upsertMatchFilter(
         @PathVariable Long matchId,
@@ -49,7 +47,6 @@ public class UserFilterInternalController {
         return ResponseEntity.ok(userFilterService.upsertForMatch(matchId, request));
     }
 
-    /** Включает или выключает общий фильтр roommate-матча; 404, если фильтр для матча не создан. */
     @PutMapping("/match/{matchId}/activation/{active}")
     public ResponseEntity<UserFilterResponse> setMatchFilterActivation(
         @PathVariable Long matchId,

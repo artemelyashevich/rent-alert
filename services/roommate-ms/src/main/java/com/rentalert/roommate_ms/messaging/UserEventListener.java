@@ -20,9 +20,6 @@ public class UserEventListener extends AbstractIdempotentKafkaListener {
         this.userDataService = userDataService;
     }
 
-    /**
-     * Removes all roommate data of a user whose profile was deleted by an administrator.
-     */
     @KafkaListener(topics = KafkaTopics.USER_EVENTS, groupId = CONSUMER)
     public void onUserAction(UserActionEvent event) {
         if (event.getEvent() == UserEvent.USER_DELETED && event.getInitiatorId() != null) {

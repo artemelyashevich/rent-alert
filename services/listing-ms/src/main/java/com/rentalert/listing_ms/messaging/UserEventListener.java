@@ -20,9 +20,6 @@ public class UserEventListener extends AbstractIdempotentKafkaListener {
         this.userDataService = userDataService;
     }
 
-    /**
-     * Removes listing data of a deleted user; the removal runs once per event. Other user events are ignored.
-     */
     @KafkaListener(topics = KafkaTopics.USER_EVENTS, groupId = CONSUMER)
     public void onUserAction(UserActionEvent event) {
         if (event.getEvent() == UserEvent.USER_DELETED && event.getInitiatorId() != null) {

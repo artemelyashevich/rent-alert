@@ -13,6 +13,7 @@ import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.dto.currency.Currency;
 import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.redis.service.CacheService;
 import com.rentalert.roommate_ms.domain.RoommateCalendarEventEmbeddedId;
 import com.rentalert.roommate_ms.domain.RoommateCalendarEventView;
 import com.rentalert.roommate_ms.domain.RoommateViewingStatus;
@@ -31,8 +32,10 @@ class RoommateCalendarServiceImplTests {
     private static final LocalDate TO = LocalDate.of(2030, 1, 31);
 
     private final IdentityMsService identityMsService = mock(IdentityMsService.class);
+    private final RoommateUserBriefs roommateUserBriefs =
+        new RoommateUserBriefs(identityMsService, new RoommateBatchCache(mock(CacheService.class)));
     private final RoommateCalendarEventViewRepository repository = mock(RoommateCalendarEventViewRepository.class);
-    private final RoommateCalendarService service = new RoommateCalendarServiceImpl(identityMsService, repository);
+    private final RoommateCalendarService service = new RoommateCalendarServiceImpl(repository, roommateUserBriefs);
 
     @Test
     void eventsCarryCounterpartyName() {

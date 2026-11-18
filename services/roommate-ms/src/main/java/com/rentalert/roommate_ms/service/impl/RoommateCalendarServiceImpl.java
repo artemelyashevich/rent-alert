@@ -3,11 +3,11 @@ package com.rentalert.roommate_ms.service.impl;
 import com.rentalert.common.exception.AppException;
 import com.rentalert.common.exception.InternalExceptionCode;
 import com.rentalert.dto.profile.UserBriefResponse;
-import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.roommate_ms.domain.RoommateCalendarEventView;
 import com.rentalert.roommate_ms.dto.RoommateCalendarEventResponse;
 import com.rentalert.roommate_ms.repository.RoommateCalendarEventViewRepository;
 import com.rentalert.roommate_ms.service.RoommateCalendarService;
+import com.rentalert.roommate_ms.service.RoommateUserBriefs;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -18,20 +18,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoommateCalendarServiceImpl implements RoommateCalendarService {
 
     private static final int MAX_RANGE_DAYS = 366;
 
-    private final IdentityMsService identityMsService;
     private final RoommateCalendarEventViewRepository calendarEventViewRepository;
+    private final RoommateUserBriefs roommateUserBriefs;
 
     @Override
     @Transactional(readOnly = true)
@@ -68,17 +66,9 @@ public class RoommateCalendarServiceImpl implements RoommateCalendarService {
     }
 
     private Map<Long, String> findUsernamesOrEmpty(Collection<Long> userIds) {
-        if (userIds.isEmpty()) {
-            return Map.of();
-        }
-        try {
-            return identityMsService.findUserBriefs(userIds).stream()
-                .filter(brief -> brief.username() != null)
-                .collect(Collectors.toMap(UserBriefResponse::userId, UserBriefResponse::username, (a, b) -> a));
-        } catch (RuntimeException e) {
-            log.warn("Calendar events are shown without counterparty names: {}", e.getMessage());
-            return Map.of();
-        }
+        return roommateUserBriefs.find(userIds).values().stream()
+            .filter(brief -> brief.username() != null)
+            .collect(Collectors.toMap(UserBriefResponse::userId, UserBriefResponse::username, (a, b) -> a));
     }
 
     private void validateRange(LocalDate from, LocalDate to) {

@@ -1,9 +1,11 @@
 package com.rentalert.internal.client.service;
 
 import com.rentalert.dto.PageResponse;
+import com.rentalert.dto.roommate.RoommateMatchParticipantsDto;
 import com.rentalert.dto.roommate.RoommateModerationDecisionRequest;
 import com.rentalert.dto.roommate.RoommateModerationTaskResponse;
 import com.rentalert.dto.roommate.RoommateViewingDto;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 
@@ -15,8 +17,7 @@ public interface RoommateMsService {
 
     RoommateModerationTaskResponse rejectModeration(Long taskId, RoommateModerationDecisionRequest request);
 
-    /**
-     * Viewing of a roommate pair with its listing snapshot; empty if the viewing does not exist.
-     */
     Optional<RoommateViewingDto> getViewing(Long viewingId);
+
+    List<RoommateMatchParticipantsDto> findMatchParticipants(List<Long> matchIds);
 }

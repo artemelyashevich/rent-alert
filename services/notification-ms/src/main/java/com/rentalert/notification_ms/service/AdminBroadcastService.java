@@ -15,7 +15,7 @@ public interface AdminBroadcastService {
 
     BroadcastSummaryResponse findById(Long broadcastId);
 
-    Page<BroadcastRecipientResponse> findRecipients(Long broadcastId, Long userId, Pageable pageable);
+    Page<BroadcastRecipientResponse> findRecipients(Long broadcastId, List<Long> userIds, Pageable pageable);
 
     void delete(Long broadcastId);
 }

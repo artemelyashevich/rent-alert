@@ -8,9 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Announces deleted listings through the transactional outbox, so consumers learn about a deletion only if it is committed. Must be called inside the deleting transaction.
- */
 @Component
 public class ListingEventPublisher extends AbstractOutboxEventPublisher {
 

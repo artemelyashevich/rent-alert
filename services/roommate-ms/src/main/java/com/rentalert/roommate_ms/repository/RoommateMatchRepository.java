@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -16,6 +17,29 @@ public interface RoommateMatchRepository extends JpaRepository<RoommateMatch, Lo
 
     Optional<RoommateMatch> findByUserLoIdAndUserHiIdAndScenarioAndContextRef(
         Long userLoId, Long userHiId, RoommateScenario scenario, String contextRef);
+
+    @Modifying(clearAutomatically = false)
+    @Query(value = """
+        INSERT INTO roommate_matches (scenario, user_lo_id, user_hi_id, context_ref, roommate_listing_id,
+            lo_decision, hi_decision, status, status_version, initiator_user_id, expires_at,
+            lo_moved, hi_moved, created_at, updated_at)
+        VALUES (:scenario, :userLoId, :userHiId, :contextRef, :roommateListingId,
+            :loDecision, :hiDecision, :status, 0, :initiatorUserId, :expiresAt,
+            FALSE, FALSE, :now, :now)
+        ON CONFLICT (user_lo_id, user_hi_id, scenario, context_ref) DO NOTHING
+        """, nativeQuery = true)
+    int insertIfAbsent(
+        @Param("scenario") String scenario,
+        @Param("userLoId") Long userLoId,
+        @Param("userHiId") Long userHiId,
+        @Param("contextRef") String contextRef,
+        @Param("roommateListingId") Long roommateListingId,
+        @Param("loDecision") String loDecision,
+        @Param("hiDecision") String hiDecision,
+        @Param("status") String status,
+        @Param("initiatorUserId") Long initiatorUserId,
+        @Param("expiresAt") Instant expiresAt,
+        @Param("now") Instant now);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from RoommateMatch m where m.id = :id")

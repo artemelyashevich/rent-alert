@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -43,6 +44,11 @@ public class UserProfileInternalController {
     @PostMapping("/briefs")
     public List<UserBriefResponse> findBriefs(@RequestBody List<Long> userIds) {
         return userProfileService.findBriefs(userIds);
+    }
+
+    @GetMapping("/search")
+    public List<UserBriefResponse> searchByUsername(@RequestParam("username") String username) {
+        return userProfileService.searchBriefsByUsername(username);
     }
 
     @PostMapping("/by-telegram")

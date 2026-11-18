@@ -1,6 +1,7 @@
 package com.rentalert.notification_ms.repository;
 
 import com.rentalert.notification_ms.domain.NotificationBroadcastRecipient;
+import java.util.Collection;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,12 +16,23 @@ public interface NotificationBroadcastRecipientRepository extends JpaRepository<
             select r
             from NotificationBroadcastRecipient r
             where r.broadcast.id = :broadcastId
-              and (:searchId is null or r.userId = :searchId)
             order by r.createdAt asc
         """)
     Page<NotificationBroadcastRecipient> findAllByBroadcastId(
         @Param("broadcastId") Long broadcastId,
-        @Param("searchId") Long searchId,
+        Pageable pageable
+    );
+
+    @Query("""
+            select r
+            from NotificationBroadcastRecipient r
+            where r.broadcast.id = :broadcastId
+              and r.userId in :userIds
+            order by r.createdAt asc
+        """)
+    Page<NotificationBroadcastRecipient> findAllByBroadcastIdAndUserIdIn(
+        @Param("broadcastId") Long broadcastId,
+        @Param("userIds") Collection<Long> userIds,
         Pageable pageable
     );
 

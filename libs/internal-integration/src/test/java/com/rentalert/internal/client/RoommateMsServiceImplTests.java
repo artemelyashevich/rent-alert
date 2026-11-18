@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.dto.PageResponse;
+import com.rentalert.dto.roommate.RoommateMatchParticipantsDto;
+import com.rentalert.dto.roommate.RoommateMatchStatus;
 import com.rentalert.dto.roommate.RoommateModerationDecisionRequest;
 import com.rentalert.dto.roommate.RoommateModerationTaskResponse;
 import com.rentalert.dto.roommate.RoommateViewingDto;
@@ -75,5 +77,17 @@ class RoommateMsServiceImplTests {
         assertThat(service.getViewing(5L)).contains(viewing);
         assertThat(service.getViewing(6L)).isEmpty();
         verify(client, times(2)).getViewing(5L);
+    }
+
+    @Test
+    void matchParticipantsAreRetriedAndEmptyBodyIsEmptyList() {
+        RoommateMatchParticipantsDto participants = new RoommateMatchParticipantsDto(10L,
+            RoommateMatchStatus.MATCHED, 1L, 2L, Instant.parse("2026-10-01T10:00:00Z"));
+        when(client.findMatchParticipants(List.of(10L, 11L))).thenThrow(UNAVAILABLE).thenReturn(List.of(participants));
+        when(client.findMatchParticipants(List.of(12L))).thenReturn(null);
+
+        assertThat(service.findMatchParticipants(List.of(10L, 11L))).containsExactly(participants);
+        assertThat(service.findMatchParticipants(List.of(12L))).isEmpty();
+        verify(client, times(2)).findMatchParticipants(List.of(10L, 11L));
     }
 }

@@ -17,6 +17,8 @@ public interface UserProfileRepository extends JpaRepository<@NonNull UserProfil
 
     Optional<UserProfile> findByUsername(String username);
 
+    List<UserProfile> findAllByUsernameContainingIgnoreCaseOrderByIdAsc(String username);
+
     @Query("""
             select u
             from UserProfile u

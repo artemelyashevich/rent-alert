@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -90,17 +91,42 @@ public class AdminNotificationController {
         return withAuthor(summary, userBriefs.byId(Collections.singletonList(summary.createdByUserId())));
     }
 
-    @Operation(summary = "Получатели рассылки; search — id пользователя")
+    @Operation(summary = "Получатели рассылки; search — id пользователя (число) или часть username (строка)")
     @GetMapping("/broadcasts/{broadcastId}/recipients")
     public PageResponse<BroadcastRecipientResponse> findRecipients(
         @PathVariable Long broadcastId,
-        @RequestParam(required = false) Long search,
+        @RequestParam(required = false) String search,
         @ParameterObject @PageableDefault(size = 50) Pageable pageable
     ) {
-        PageResponse<BroadcastRecipientResponse> page = notificationMsService.findRecipients(broadcastId, search, pageable);
+        PageResponse<BroadcastRecipientResponse> page = searchRecipients(broadcastId, search, pageable);
         Map<Long, UserBriefResponse> briefs = userBriefs.byId(page.content().stream().map(BroadcastRecipientResponse::userId).toList());
         List<BroadcastRecipientResponse> content = page.content().stream().map(recipient -> withUser(recipient, briefs)).toList();
         return new PageResponse<>(content, page.number(), page.size(), page.totalElements(), page.totalPages());
+    }
+
+    private PageResponse<BroadcastRecipientResponse> searchRecipients(Long broadcastId, String search, Pageable pageable) {
+        String term = StringUtils.hasText(search) ? search.trim() : null;
+        if (term == null) {
+            return notificationMsService.findRecipients(broadcastId, null, pageable);
+        }
+        Long userId = parseLongOrNull(term);
+        if (userId != null) {
+            return notificationMsService.findRecipients(broadcastId, List.of(userId), pageable);
+        }
+        List<Long> userIds = userBriefs.searchUserIds(term);
+        if (userIds.isEmpty()) {
+            notificationMsService.findBroadcast(broadcastId);
+            return new PageResponse<>(List.of(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0);
+        }
+        return notificationMsService.findRecipients(broadcastId, userIds, pageable);
+    }
+
+    private static Long parseLongOrNull(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Operation(summary = "Удалить рассылку вместе со списком получателей")

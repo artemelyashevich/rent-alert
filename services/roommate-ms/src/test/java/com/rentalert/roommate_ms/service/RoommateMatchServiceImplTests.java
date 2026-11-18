@@ -14,6 +14,7 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -29,6 +30,7 @@ import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.internal.client.service.ListingMsService;
 import com.rentalert.kafka.audit.UserAudit;
+import com.rentalert.redis.service.CacheService;
 import com.rentalert.roommate_ms.domain.RoommateDecision;
 import com.rentalert.roommate_ms.domain.RoommateListing;
 import com.rentalert.roommate_ms.domain.RoommateListingStatus;
@@ -73,6 +75,8 @@ class RoommateMatchServiceImplTests {
     private final RoommateMatchParticipantRepository participantRepository = mock(RoommateMatchParticipantRepository.class);
     private final RoommateMatchRepository matchRepository = mock(RoommateMatchRepository.class);
     private final RoommateProfileAccess profileAccess = mock(RoommateProfileAccess.class);
+    private final RoommateUserBriefs roommateUserBriefs =
+        new RoommateUserBriefs(identityMsService, new RoommateBatchCache(mock(CacheService.class)));
     private final RoommateViewingRepository viewingRepository = mock(RoommateViewingRepository.class);
 
     private RoommateMatchServiceImpl service;
@@ -81,7 +85,7 @@ class RoommateMatchServiceImplTests {
     void setUp() {
         service = new RoommateMatchServiceImpl(eventPublisher, identityMsService, listingMsService, listingRepository,
             matchEventRepository, participantRepository, matchRepository, new RoommateMatchStateMachine(), profileAccess,
-            viewingRepository);
+            roommateUserBriefs, viewingRepository);
     }
 
     private static RoommateMatch match(long id, long loId, long hiId, RoommateMatchStatus status,
@@ -112,16 +116,15 @@ class RoommateMatchServiceImplTests {
     @Test
     void likeCreatesWaitingMatchWhenNoneExists() {
         when(matchRepository.findByUserLoIdAndUserHiIdAndScenarioAndContextRef(1L, 2L, RoommateScenario.PARTNER, ""))
-            .thenReturn(Optional.empty());
-        when(matchRepository.save(any(RoommateMatch.class))).thenAnswer(inv -> {
-            RoommateMatch m = inv.getArgument(0);
-            m.setId(100L);
-            return m;
-        });
+            .thenReturn(Optional.empty())
+            .thenReturn(Optional.of(match(100L, 1L, 2L, WAITING_RESPONSE, INTERESTED, PENDING)));
+        when(matchRepository.insertIfAbsent(eq("PARTNER"), eq(1L), eq(2L), eq(""), isNull(), eq("INTERESTED"),
+            eq("PENDING"), eq("WAITING_RESPONSE"), eq(1L), any(), any())).thenReturn(1);
         when(identityMsService.findUserBriefs(List.of(2L))).thenReturn(List.of(brief(2L)));
 
         RoommateMatchView view = service.like(1L, 2L);
 
+        assertThat(view.id()).isEqualTo(100L);
         assertThat(view.status()).isEqualTo(WAITING_RESPONSE);
         assertThat(view.myDecision()).isEqualTo(INTERESTED);
         assertThat(view.counterpartyDecision()).isEqualTo(PENDING);
@@ -142,7 +145,7 @@ class RoommateMatchServiceImplTests {
             InternalExceptionCode.EX404_ROOMMATE_PROFILE_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         assertCode(() -> service.like(1L, 2L), InternalExceptionCode.EX404_ROOMMATE_PROFILE_NOT_FOUND);
-        verify(matchRepository, never()).save(any());
+        verify(matchRepository, never()).insertIfAbsent(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -187,30 +190,36 @@ class RoommateMatchServiceImplTests {
     }
 
     @Test
-    void raceOnCreateFallsBackToTheMatchCreatedConcurrently() {
+    void raceOnCreateAppliesLikeToTheConcurrentlyCreatedMatchWithoutCreatingAnotherPair() {
         RoommateMatch createdConcurrently = match(100L, 1L, 2L, WAITING_RESPONSE, PENDING, INTERESTED);
         when(matchRepository.findByUserLoIdAndUserHiIdAndScenarioAndContextRef(1L, 2L, RoommateScenario.PARTNER, ""))
             .thenReturn(Optional.empty())
             .thenReturn(Optional.of(createdConcurrently));
-        when(matchRepository.save(any(RoommateMatch.class))).thenThrow(new DataIntegrityViolationException("uk violation"));
+        when(matchRepository.insertIfAbsent(eq("PARTNER"), eq(1L), eq(2L), eq(""), isNull(), eq("INTERESTED"),
+            eq("PENDING"), eq("WAITING_RESPONSE"), eq(1L), any(), any())).thenReturn(0);
         when(matchRepository.findByIdForUpdate(100L)).thenReturn(Optional.of(createdConcurrently));
 
         RoommateMatchView view = service.like(1L, 2L);
 
         assertThat(view.status()).isEqualTo(MATCHED);
+        assertThat(view.myDecision()).isEqualTo(INTERESTED);
+        assertThat(createdConcurrently.getContactsUnlockedAt()).isNotNull();
+        verify(matchRepository).saveAndFlush(createdConcurrently);
+        verify(participantRepository, never()).save(any());
     }
 
     @Test
     void likeListingCreatesRoomMatchWithTheAuthorAsCounterparty() {
         RoommateListing listing = RoommateListing.builder().id(7L).authorUserId(9L).status(RoommateListingStatus.ACTIVE).build();
         when(listingRepository.findById(7L)).thenReturn(Optional.of(listing));
+        RoommateMatch roomMatch = RoommateMatch.builder().id(101L).scenario(RoommateScenario.ROOM).userLoId(1L).userHiId(9L)
+            .contextRef("7").roommateListing(listing).loDecision(INTERESTED).hiDecision(PENDING)
+            .status(WAITING_RESPONSE).statusVersion(0L).initiatorUserId(1L).build();
         when(matchRepository.findByUserLoIdAndUserHiIdAndScenarioAndContextRef(1L, 9L, RoommateScenario.ROOM, "7"))
-            .thenReturn(Optional.empty());
-        when(matchRepository.save(any(RoommateMatch.class))).thenAnswer(inv -> {
-            RoommateMatch m = inv.getArgument(0);
-            m.setId(101L);
-            return m;
-        });
+            .thenReturn(Optional.empty())
+            .thenReturn(Optional.of(roomMatch));
+        when(matchRepository.insertIfAbsent(eq("ROOM"), eq(1L), eq(9L), eq("7"), eq(7L), eq("INTERESTED"),
+            eq("PENDING"), eq("WAITING_RESPONSE"), eq(1L), any(), any())).thenReturn(1);
 
         RoommateMatchView view = service.likeListing(1L, 7L);
 

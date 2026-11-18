@@ -153,4 +153,9 @@ public class IdentityMsServiceImpl extends AbstractResilientClient implements Id
         }
         return execute(() -> identityMsClient.findUserBriefs(userIds));
     }
+
+    @Override
+    public List<UserBriefResponse> searchUserBriefs(String username) {
+        return execute(() -> identityMsClient.searchUserBriefs(username));
+    }
 }

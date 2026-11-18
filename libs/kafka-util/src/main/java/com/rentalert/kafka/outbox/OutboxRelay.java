@@ -25,6 +25,8 @@ public class OutboxRelay {
         LIMIT ?
         FOR UPDATE SKIP LOCKED
         """;
+    private static final String TRY_RELAY_LOCK = "SELECT pg_try_advisory_xact_lock(?)";
+    private static final long RELAY_LOCK_KEY = 4_218_765_031L;
     private static final String MARK_PUBLISHED = "UPDATE outbox_event SET published_at = ? WHERE id = ?";
     private static final String MARK_FAILED = "UPDATE outbox_event SET attempts = attempts + 1, last_error = ? WHERE id = ?";
     private static final String DELETE_PUBLISHED = "DELETE FROM outbox_event WHERE published_at < ?";
@@ -67,6 +69,9 @@ public class OutboxRelay {
 
     // Stops at the first failure: sending later rows would reorder messages of the same key
     private int relayBatch() {
+        if (!tryAcquireRelayLock()) {
+            return 0;
+        }
         List<OutboxRow> rows = jdbcTemplate.query(SELECT_BATCH, (rs, i) -> new OutboxRow(
             rs.getLong("id"), rs.getString("topic"), rs.getString("message_key"), rs.getString("payload"),
             rs.getString("trace_id")), batchSize);
@@ -86,6 +91,10 @@ public class OutboxRelay {
             sent++;
         }
         return sent;
+    }
+
+    private boolean tryAcquireRelayLock() {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(TRY_RELAY_LOCK, Boolean.class, RELAY_LOCK_KEY));
     }
 
     private ProducerRecord<String, Object> toRecord(OutboxRow row) {

@@ -8,12 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Bounded, time-limited memory of delivered event ids, used to drop Kafka redeliveries on one instance.
- * <p>
- * Entries older than the TTL and entries beyond the size limit (oldest first) are evicted. The state is local to the
- * instance, which is enough because every instance consumes each event exactly once from its own consumer group.
- */
 public class RecentEventCache {
 
     private final Clock clock;
@@ -31,17 +25,11 @@ public class RecentEventCache {
         };
     }
 
-    /**
-     * Whether the event was added and has not expired yet.
-     */
     public synchronized boolean contains(UUID eventId) {
         evictExpired();
         return deliveredAt.containsKey(eventId);
     }
 
-    /**
-     * Remembers an event that was delivered, starting its TTL now.
-     */
     public synchronized void add(UUID eventId) {
         evictExpired();
         deliveredAt.put(eventId, clock.instant());

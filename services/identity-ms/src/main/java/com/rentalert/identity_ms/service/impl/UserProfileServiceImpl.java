@@ -125,6 +125,14 @@ public class UserProfileServiceImpl implements UserProfileService {
             .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserBriefResponse> searchBriefsByUsername(String username) {
+        return userProfileRepository.findAllByUsernameContainingIgnoreCaseOrderByIdAsc(username).stream()
+            .map(profile -> new UserBriefResponse(profile.getId(), profile.getUsername(), profile.getPhotoUrl()))
+            .toList();
+    }
+
     private NotificationRequest.Receiver receiverOf(UserProfile profile) {
         UserSettings settings = profile.getSettings();
         String email = Boolean.TRUE.equals(settings.getEmailActive()) && settings.getEmail() != null

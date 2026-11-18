@@ -18,13 +18,6 @@ public class RoommateModerationGate {
     private final TextModerationService textModerationService;
     private final RoommateModerationTaskRepository taskRepository;
 
-    /**
-     * Runs a submitted text through the auto-filter and keeps the manual moderation queue in sync: one pending task
-     * per subject field, replaced on resubmission and dropped once the text passes on its own.
-     *
-     * @return the resulting moderation status of the field
-     * @throws AppException 400 {@code ROOMMATE_TEXT_REJECTED} when the text is rejected outright
-     */
     public ModerationStatus moderate(ModerationSubjectType subjectType, Long subjectId, String field, String submittedText) {
         ModerationVerdict verdict = textModerationService.check(submittedText);
         if (verdict.isRejected()) {

@@ -1,6 +1,7 @@
 package com.rentalert.internal.client;
 
 import com.rentalert.dto.PageResponse;
+import com.rentalert.dto.roommate.RoommateMatchParticipantsDto;
 import com.rentalert.dto.roommate.RoommateModerationDecisionRequest;
 import com.rentalert.dto.roommate.RoommateModerationTaskResponse;
 import com.rentalert.dto.roommate.RoommateViewingDto;
@@ -34,4 +35,7 @@ public interface RoommateMsClient {
 
     @GetMapping("/viewings/{viewingId}")
     RoommateViewingDto getViewing(@PathVariable("viewingId") Long viewingId);
+
+    @PostMapping("/matches/participants")
+    List<RoommateMatchParticipantsDto> findMatchParticipants(@RequestBody List<Long> matchIds);
 }

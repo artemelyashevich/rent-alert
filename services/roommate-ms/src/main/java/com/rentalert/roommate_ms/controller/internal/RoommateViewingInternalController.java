@@ -22,7 +22,6 @@ public class RoommateViewingInternalController {
     private final RoommateMatchRepository matchRepository;
     private final RoommateViewingRepository viewingRepository;
 
-    /** Просмотр пары для напоминаний; 204, если просмотра с таким id нет. */
     @GetMapping("/{viewingId}")
     public ResponseEntity<RoommateViewingDto> findViewing(@PathVariable Long viewingId) {
         return viewingRepository.findById(viewingId)

@@ -20,14 +20,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/**
- * Publishes a {@link UserActionEvent} for methods annotated with {@link UserAudit} after they complete successfully.
- * If a transaction is already active, the method and the event write through {@link OutboxPublisher} run in it.
- * Otherwise the aspect opens its own transaction around both the method call and the publication, so the business
- * effects and the outbox row commit or roll back together regardless of the advice order with {@code @Transactional}.
- * <p>
- * Registered only when {@code app.kafka.user-audit.enabled=true}, see {@code AbstractKafkaProducerConfiguration}.
- */
 @Aspect
 public class UserAuditAspect {
 
@@ -38,9 +30,6 @@ public class UserAuditAspect {
     private final OutboxPublisher outboxPublisher;
     private final TransactionTemplate transactionTemplate;
 
-    /**
-     * @param currentUserIdProvider fallback user id source, may be {@code null} if every audited method sets {@code userId}
-     */
     public UserAuditAspect(CurrentUserIdProvider currentUserIdProvider, OutboxPublisher outboxPublisher,
         PlatformTransactionManager transactionManager) {
         this.currentUserIdProvider = currentUserIdProvider;
@@ -48,11 +37,6 @@ public class UserAuditAspect {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
-    /**
-     * Resolves the user id and params before the call, runs the method and publishes the event only if it returns
-     * normally. The filter id is resolved after the call and may reference {@code #result}. Any exception from the
-     * method rolls back the transaction opened by this aspect, if it opened one, and is rethrown unchanged.
-     */
     @Around("@annotation(userAudit)")
     public Object audit(ProceedingJoinPoint joinPoint, UserAudit userAudit) throws Throwable {
         StandardEvaluationContext context = buildContext(joinPoint);

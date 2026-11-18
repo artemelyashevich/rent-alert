@@ -52,9 +52,6 @@ public class RoommateFeedController {
     }
 
     @Operation(summary = "Лайкнуть кандидата", description = "Идемпотентно; при взаимном интересе матч сразу переходит в MATCHED.")
-    /**
-     * Records interest in a candidate; 404 if the candidate has no roommate profile, 400 for oneself.
-     */
     @PostMapping("/roommates/{candidateUserId}/like")
     @ResponseStatus(HttpStatus.CREATED)
     public RoommateMatchView likeCandidate(@PathVariable Long candidateUserId) {
@@ -69,9 +66,6 @@ public class RoommateFeedController {
     }
 
     @Operation(summary = "Лайкнуть объявление о подселении", description = "Создаёт/двигает матч с автором объявления (сценарий ROOM).")
-    /**
-     * Records interest in an active room listing; the listing author becomes the other side of the match.
-     */
     @PostMapping("/listings/{listingId}/like")
     @ResponseStatus(HttpStatus.CREATED)
     public RoommateMatchView likeListing(@PathVariable Long listingId) {

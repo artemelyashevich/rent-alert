@@ -16,12 +16,16 @@ import com.rentalert.dto.notification.NotificationRequest;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.dto.profile.BotStatus;
 import com.rentalert.dto.profile.UserRole;
+import com.rentalert.dto.roommate.RoommateMatchParticipantsDto;
+import com.rentalert.dto.roommate.RoommateMatchStatus;
 import com.rentalert.identity_ms.domain.UserFilter;
 import com.rentalert.identity_ms.domain.UserProfile;
 import com.rentalert.identity_ms.domain.UserSettings;
 import com.rentalert.identity_ms.messaging.NotificationRequestPublisher;
 import com.rentalert.identity_ms.messaging.UserEventPublisher;
 import com.rentalert.identity_ms.repository.UserFilterRepository;
+import com.rentalert.identity_ms.repository.UserProfileRepository;
+import com.rentalert.internal.client.service.RoommateMsService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -46,7 +50,13 @@ class NewListingNotificationServiceImplTests {
     private QuietHoursPolicy quietHoursPolicy;
 
     @Mock
+    private RoommateMsService roommateMsService;
+
+    @Mock
     private UserEventPublisher userEventPublisher;
+
+    @Mock
+    private UserProfileRepository userProfileRepository;
 
     @InjectMocks
     private NewListingNotificationServiceImpl service;
@@ -199,5 +209,89 @@ class NewListingNotificationServiceImplTests {
         service.notifyMatchingUsers(withoutMessage);
 
         verifyNoInteractions(userFilterRepository, notificationRequestPublisher, userEventPublisher);
+    }
+
+    @Test
+    void sharedFilterNotifiesBothUnlockedParticipants() {
+        when(userFilterRepository.findActiveFiltersByRoomsAndArea(any(), any(), any(), any()))
+            .thenReturn(List.of(sharedFilter(500L)));
+        when(roommateMsService.findMatchParticipants(List.of(500L))).thenReturn(List.of(unlockedMatch(500L, 1L, 2L)));
+        when(userProfileRepository.findAllById(any())).thenReturn(List.of(user(1L), user(2L)));
+
+        service.notifyMatchingUsers(listing(ListingCategory.FLAT));
+
+        ArgumentCaptor<NotificationRequest> requests = ArgumentCaptor.forClass(NotificationRequest.class);
+        verify(notificationRequestPublisher, times(2)).publishListingMatch(requests.capture());
+        assertThat(requests.getAllValues()).extracting(NotificationRequest::userId).containsExactlyInAnyOrder(1L, 2L);
+        assertThat(requests.getAllValues()).allMatch(request -> request.deduplicationKey() != null
+            && request.listingId().equals(7L));
+    }
+
+    @Test
+    void personalAndSharedFilterGiveOneNotificationPerUser() {
+        UserProfile lo = user(1L);
+        when(userFilterRepository.findActiveFiltersByRoomsAndArea(any(), any(), any(), any())).thenReturn(List.of(
+            filter(lo, null, null, null), sharedFilter(500L)));
+        when(roommateMsService.findMatchParticipants(List.of(500L))).thenReturn(List.of(unlockedMatch(500L, 1L, 2L)));
+        when(userProfileRepository.findAllById(any())).thenReturn(List.of(lo, user(2L)));
+
+        service.notifyMatchingUsers(listing(ListingCategory.FLAT));
+
+        ArgumentCaptor<NotificationRequest> requests = ArgumentCaptor.forClass(NotificationRequest.class);
+        verify(notificationRequestPublisher, times(2)).publishListingMatch(requests.capture());
+        assertThat(requests.getAllValues()).extracting(NotificationRequest::userId).containsExactlyInAnyOrder(1L, 2L);
+    }
+
+    @Test
+    void sharedFilterRecipientsAreCheckedWithTheirOwnSettings() {
+        UserProfile blocked = user(1L);
+        blocked.getSettings().setRoleName(UserRole.BLOCKED);
+        when(userFilterRepository.findActiveFiltersByRoomsAndArea(any(), any(), any(), any()))
+            .thenReturn(List.of(sharedFilter(500L)));
+        when(roommateMsService.findMatchParticipants(List.of(500L))).thenReturn(List.of(unlockedMatch(500L, 1L, 2L)));
+        when(userProfileRepository.findAllById(any())).thenReturn(List.of(blocked, user(2L)));
+
+        service.notifyMatchingUsers(listing(ListingCategory.FLAT));
+
+        ArgumentCaptor<NotificationRequest> requests = ArgumentCaptor.forClass(NotificationRequest.class);
+        verify(notificationRequestPublisher).publishListingMatch(requests.capture());
+        assertThat(requests.getValue().userId()).isEqualTo(2L);
+    }
+
+    @Test
+    void sharedFilterIsSkippedWhenMatchIsNotUnlocked() {
+        when(userFilterRepository.findActiveFiltersByRoomsAndArea(any(), any(), any(), any()))
+            .thenReturn(List.of(sharedFilter(500L)));
+        when(roommateMsService.findMatchParticipants(List.of(500L))).thenReturn(List.of(
+            new RoommateMatchParticipantsDto(500L, RoommateMatchStatus.WAITING_RESPONSE, 1L, 2L, null)));
+
+        service.notifyMatchingUsers(listing(ListingCategory.FLAT));
+
+        verifyNoInteractions(notificationRequestPublisher, userEventPublisher);
+    }
+
+    @Test
+    void sharedFilterIsSkippedWhenRoommateServiceUnavailableButPersonalFiltersStillWork() {
+        UserProfile personal = user(10L);
+        when(userFilterRepository.findActiveFiltersByRoomsAndArea(any(), any(), any(), any())).thenReturn(List.of(
+            sharedFilter(500L), filter(personal, null, null, null)));
+        when(roommateMsService.findMatchParticipants(List.of(500L)))
+            .thenThrow(new IllegalStateException("roommate-ms is down"));
+
+        service.notifyMatchingUsers(listing(ListingCategory.FLAT));
+
+        ArgumentCaptor<NotificationRequest> requests = ArgumentCaptor.forClass(NotificationRequest.class);
+        verify(notificationRequestPublisher).publishListingMatch(requests.capture());
+        assertThat(requests.getValue().userId()).isEqualTo(10L);
+        verifyNoInteractions(userProfileRepository);
+    }
+
+    private static UserFilter sharedFilter(Long matchId) {
+        return UserFilter.builder().ownerMatchId(matchId).active(true).build();
+    }
+
+    private static RoommateMatchParticipantsDto unlockedMatch(Long matchId, Long userLoId, Long userHiId) {
+        return new RoommateMatchParticipantsDto(matchId, RoommateMatchStatus.MATCHED, userLoId, userHiId,
+            Instant.parse("2026-10-01T10:00:00Z"));
     }
 }

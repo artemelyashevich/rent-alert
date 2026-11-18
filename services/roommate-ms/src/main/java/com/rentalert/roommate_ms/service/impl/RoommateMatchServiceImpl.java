@@ -32,6 +32,7 @@ import com.rentalert.roommate_ms.repository.RoommateViewingRepository;
 import com.rentalert.roommate_ms.service.RoommateMatchService;
 import com.rentalert.roommate_ms.service.RoommateMatchStateMachine;
 import com.rentalert.roommate_ms.service.RoommateProfileAccess;
+import com.rentalert.roommate_ms.service.RoommateUserBriefs;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -39,8 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,6 +70,7 @@ public class RoommateMatchServiceImpl implements RoommateMatchService {
     private final RoommateMatchRepository matchRepository;
     private final RoommateMatchStateMachine stateMachine;
     private final RoommateProfileAccess profileAccess;
+    private final RoommateUserBriefs roommateUserBriefs;
     private final RoommateViewingRepository viewingRepository;
 
     @Override
@@ -109,27 +109,18 @@ public class RoommateMatchServiceImpl implements RoommateMatchService {
         }
 
         boolean actorIsLo = actorUserId == lo;
-        RoommateMatch match = RoommateMatch.builder()
-            .scenario(scenario)
-            .userLoId(lo)
-            .userHiId(hi)
-            .contextRef(contextRef)
-            .roommateListing(listing)
-            .loDecision(actorIsLo ? RoommateDecision.INTERESTED : RoommateDecision.PENDING)
-            .hiDecision(actorIsLo ? RoommateDecision.PENDING : RoommateDecision.INTERESTED)
-            .status(RoommateMatchStatus.WAITING_RESPONSE)
-            .initiatorUserId(actorUserId)
-            .expiresAt(Instant.now().plus(INTEREST_TTL))
-            .build();
+        RoommateDecision loDecision = actorIsLo ? RoommateDecision.INTERESTED : RoommateDecision.PENDING;
+        RoommateDecision hiDecision = actorIsLo ? RoommateDecision.PENDING : RoommateDecision.INTERESTED;
+        Instant now = Instant.now();
+        int inserted = matchRepository.insertIfAbsent(scenario.name(), lo, hi, contextRef,
+            listing == null ? null : listing.getId(), loDecision.name(), hiDecision.name(),
+            RoommateMatchStatus.WAITING_RESPONSE.name(), actorUserId, now.plus(INTEREST_TTL), now);
+        RoommateMatch match = matchRepository.findByUserLoIdAndUserHiIdAndScenarioAndContextRef(lo, hi, scenario, contextRef)
+            .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_ROOMMATE_MATCH_NOT_FOUND, HttpStatus.NOT_FOUND));
 
-        try {
-            match = matchRepository.save(match);
-        } catch (DataIntegrityViolationException race) {
-            log.info("Race on like creation, refetching. lo={}, hi={}, scenario={}", lo, hi, scenario);
-            RoommateMatch created = matchRepository
-                .findByUserLoIdAndUserHiIdAndScenarioAndContextRef(lo, hi, scenario, contextRef)
-                .orElseThrow(() -> race);
-            return applyLikeOnExisting(created.getId(), actorUserId);
+        if (inserted == 0) {
+            log.info("Race on like creation, applying to concurrently created match. lo={}, hi={}, scenario={}", lo, hi, scenario);
+            return applyLikeOnExisting(match.getId(), actorUserId);
         }
 
         saveParticipant(match, lo, scenario, actorIsLo ? RoommateParticipantRole.INITIATOR : RoommateParticipantRole.RESPONDER);
@@ -519,12 +510,6 @@ public class RoommateMatchServiceImpl implements RoommateMatchService {
     }
 
     private Map<Long, UserBriefResponse> findBriefs(Collection<Long> userIds) {
-        try {
-            return identityMsService.findUserBriefs(userIds).stream()
-                .collect(Collectors.toMap(UserBriefResponse::userId, Function.identity()));
-        } catch (RuntimeException e) {
-            log.warn("Roommate matches are shown without names and photos: {}", e.getMessage());
-            return Map.of();
-        }
+        return roommateUserBriefs.find(userIds);
     }
 }

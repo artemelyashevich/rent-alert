@@ -14,10 +14,6 @@ public class RoommateMatchAccess {
 
     private final RoommateMatchRepository matchRepository;
 
-    /**
-     * Shared filter and favorites of a pair are opened together with the contacts, i.e. only after mutual interest.
-     * 404 for an unknown match, 403 for a non-participant or a match whose contacts are still locked.
-     */
     public RoommateMatch requireUnlocked(Long matchId, Long userId) {
         RoommateMatch match = matchRepository.findById(matchId)
             .orElseThrow(() -> new AppException(InternalExceptionCode.EX404_ROOMMATE_MATCH_NOT_FOUND, HttpStatus.NOT_FOUND));

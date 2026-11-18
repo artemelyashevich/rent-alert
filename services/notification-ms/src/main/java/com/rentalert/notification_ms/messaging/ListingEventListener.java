@@ -21,9 +21,6 @@ public class ListingEventListener extends AbstractIdempotentKafkaListener {
         this.notificationService = notificationService;
     }
 
-    /**
-     * Removes notifications of deleted listings; a redelivered event deletes nothing new.
-     */
     @KafkaListener(topics = KafkaTopics.LISTINGS_DELETED, groupId = CONSUMER)
     public void onListingsDeleted(ListingsDeletedEvent event) {
         processOnce(keyOf(event), () -> notificationService.deleteByListingIds(event.listingIds()));

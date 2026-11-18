@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,8 +38,24 @@ class RoommateSharedFavoriteServiceImplTests {
     private final ListingMsService listingMsService = mock(ListingMsService.class);
     private final RoommateMatchRepository matchRepository = mock(RoommateMatchRepository.class);
     private final RoommateSharedFavoriteRepository favoriteRepository = mock(RoommateSharedFavoriteRepository.class);
+    private final RoommateListingCards roommateListingCards =
+        new RoommateListingCards(listingMsService, new RoommateBatchCache(new InMemoryCache().service()));
     private final RoommateSharedFavoriteService service = new RoommateSharedFavoriteServiceImpl(
-        listingMsService, new RoommateMatchAccess(matchRepository), new RoommateSharedFavoriteMapperImpl(), favoriteRepository);
+        listingMsService, new RoommateMatchAccess(matchRepository), new RoommateSharedFavoriteMapperImpl(), favoriteRepository,
+        roommateListingCards);
+
+    @Test
+    void repeatedFavoritesListIsServedCardsFromCache() {
+        unlockedMatch();
+        when(favoriteRepository.findAllByIdMatchId(MATCH_ID)).thenReturn(List.of(favorite(ListingStatusName.WAITING_RESPONSE)));
+        when(listingMsService.findCards(any())).thenReturn(List.of(card()));
+
+        service.findAll(MATCH_ID, USER_ID);
+        var result = service.findAll(MATCH_ID, USER_ID);
+
+        assertThat(result.get(0).listing().getId()).isEqualTo(LISTING_ID);
+        verify(listingMsService, times(1)).findCards(any());
+    }
 
     @Test
     void favoritesAreReturnedWithListingCards() {

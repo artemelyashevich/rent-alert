@@ -38,17 +38,10 @@ public class RoommateMatchStateMachine {
         EDGES.put(RoommateMatchAction.CONFIRM_MOVE_IN, Map.of(VIEWING_TOGETHER, MOVED_IN));
     }
 
-    /**
-     * Whether the match is closed for good: no action may move it and a repeated like must not revive it.
-     */
     public boolean isTerminal(RoommateMatchStatus status) {
         return TERMINAL.contains(status);
     }
 
-    /**
-     * The status the action leads to from the given one, or 409 {@code ROOMMATE_TRANSITION_NOT_ALLOWED}.
-     * DECLINE is allowed from any non-terminal status; the other actions have a single edge each.
-     */
     public RoommateMatchStatus target(RoommateMatchAction action, RoommateMatchStatus from) {
         if (action == RoommateMatchAction.DECLINE) {
             if (!DECLINABLE.contains(from)) {

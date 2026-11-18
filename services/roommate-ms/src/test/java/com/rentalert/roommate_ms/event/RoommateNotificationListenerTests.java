@@ -16,12 +16,15 @@ import static org.mockito.Mockito.when;
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.dto.profile.UserBriefResponse;
 import com.rentalert.internal.client.service.IdentityMsService;
+import com.rentalert.redis.service.CacheService;
 import com.rentalert.roommate_ms.domain.RoommateMatchStatus;
 import com.rentalert.roommate_ms.domain.RoommateScenario;
 import com.rentalert.roommate_ms.domain.RoommateViewing;
 import com.rentalert.roommate_ms.domain.RoommateViewingStatus;
 import com.rentalert.roommate_ms.messaging.RoommateNotificationPublisher;
 import com.rentalert.roommate_ms.repository.RoommateViewingRepository;
+import com.rentalert.roommate_ms.service.RoommateBatchCache;
+import com.rentalert.roommate_ms.service.RoommateUserBriefs;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -33,10 +36,12 @@ class RoommateNotificationListenerTests {
 
     private final IdentityMsService identityMsService = mock(IdentityMsService.class);
     private final RoommateNotificationPublisher notificationPublisher = mock(RoommateNotificationPublisher.class);
+    private final RoommateUserBriefs roommateUserBriefs =
+        new RoommateUserBriefs(identityMsService, new RoommateBatchCache(mock(CacheService.class)));
     private final RoommateViewingRepository viewingRepository = mock(RoommateViewingRepository.class);
 
     private final RoommateNotificationListener listener =
-        new RoommateNotificationListener(identityMsService, notificationPublisher, viewingRepository);
+        new RoommateNotificationListener(notificationPublisher, roommateUserBriefs, viewingRepository);
 
     private void briefsFor(Long... userIds) {
         when(identityMsService.findUserBriefs(any())).thenReturn(

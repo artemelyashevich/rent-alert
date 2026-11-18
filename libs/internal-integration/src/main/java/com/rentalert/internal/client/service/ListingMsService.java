@@ -17,8 +17,5 @@ public interface ListingMsService {
 
     boolean hideListing(Long userId, Long listingId);
 
-    /**
-     * Listing cards by id. Ids of deleted listings are absent from the result; an empty input makes no call.
-     */
     List<ListingDto> findCards(Collection<Long> ids);
 }

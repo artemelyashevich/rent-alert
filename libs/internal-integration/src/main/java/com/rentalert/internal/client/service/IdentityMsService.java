@@ -23,23 +23,16 @@ public interface IdentityMsService {
 
     NotificationRequest.Receiver getReceiver(Long userId);
 
-    /**
-     * The user's encrypted addresses and the end of their quiet hours, for notifications sent by services that
-     * don't own the user's settings.
-     */
     NotificationDelivery getDelivery(Long userId);
 
     Optional<UserProfileResponse> findByTelegramId(String telegramId);
 
     Optional<UserFilterResponse> getActiveFilter(Long userId);
 
-    /** The shared filter of a roommate match, empty if it has not been created yet. */
     Optional<UserFilterResponse> getMatchFilter(Long matchId);
 
-    /** Creates or updates the shared filter of a roommate match. */
     UserFilterResponse upsertMatchFilter(Long matchId, UserFilterRequest request);
 
-    /** Turns the shared filter of a roommate match on or off. */
     UserFilterResponse setMatchFilterActivation(Long matchId, boolean active);
 
     List<BroadcastTarget> findBroadcastTargets(List<Long> userIds);
@@ -58,9 +51,7 @@ public interface IdentityMsService {
 
     List<UserBriefResponse> findBriefs(Collection<Long> userIds);
 
-    /**
-     * Name and photo of the given users for user-facing screens; unlike {@link #findBriefs} it needs no admin
-     * token. An empty input makes no call.
-     */
     List<UserBriefResponse> findUserBriefs(Collection<Long> userIds);
+
+    List<UserBriefResponse> searchUserBriefs(String username);
 }

@@ -18,7 +18,6 @@ public interface ListingService {
     /** Объявление по id. Бросает 404, если не найдено. */
     Listing getById(Long id);
 
-    /** Карточки объявлений по id в порядке их возрастания; отсутствующие id пропускаются. */
     List<ListingDto> findCards(Collection<Long> ids);
 
     /**

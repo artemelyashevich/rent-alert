@@ -36,6 +36,8 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -118,5 +120,27 @@ class AdminBroadcastServiceImplTests {
 
         assertThatThrownBy(() -> service.broadcast("Привет", List.of(5L), false, 99L)).isInstanceOf(AppBadRequestException.class);
         verify(broadcastRepository, never()).save(any());
+    }
+
+    @Test
+    void recipientsWithoutUserFilterAreNotNarrowed() {
+        when(broadcastRepository.existsById(3L)).thenReturn(true);
+        when(recipientRepository.findAllByBroadcastId(3L, PageRequest.of(0, 50))).thenReturn(Page.empty());
+
+        service.findRecipients(3L, null, PageRequest.of(0, 50));
+
+        verify(recipientRepository).findAllByBroadcastId(3L, PageRequest.of(0, 50));
+        verify(recipientRepository, never()).findAllByBroadcastIdAndUserIdIn(any(), any(), any());
+    }
+
+    @Test
+    void recipientsAreFilteredByUserIds() {
+        when(broadcastRepository.existsById(3L)).thenReturn(true);
+        when(recipientRepository.findAllByBroadcastIdAndUserIdIn(3L, List.of(7L, 8L), PageRequest.of(0, 50))).thenReturn(Page.empty());
+
+        service.findRecipients(3L, List.of(7L, 8L), PageRequest.of(0, 50));
+
+        verify(recipientRepository).findAllByBroadcastIdAndUserIdIn(3L, List.of(7L, 8L), PageRequest.of(0, 50));
+        verify(recipientRepository, never()).findAllByBroadcastId(any(), any());
     }
 }

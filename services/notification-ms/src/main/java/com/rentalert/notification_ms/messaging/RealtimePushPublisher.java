@@ -10,9 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class RealtimePushPublisher extends AbstractOutboxEventPublisher {
 
-    /**
-     * Queues a realtime push to the user's open connections in the outbox of the current transaction.
-     */
     public void publishPush(String userId, RealtimeNotificationPayload payload) {
         publish(KafkaTopics.REALTIME_PUSH, userId, new RealtimePushEvent(UUID.randomUUID(), userId, payload));
     }

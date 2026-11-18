@@ -201,11 +201,14 @@ public class AdminBroadcastServiceImpl implements AdminBroadcastService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<BroadcastRecipientResponse> findRecipients(Long broadcastId, Long userId, Pageable pageable) {
+    public Page<BroadcastRecipientResponse> findRecipients(Long broadcastId, List<Long> userIds, Pageable pageable) {
         if (!broadcastRepository.existsById(broadcastId)) {
             throw new AppNotFoundException(InternalExceptionCode.EX404_BROADCAST_NOT_FOUND);
         }
-        return recipientRepository.findAllByBroadcastId(broadcastId, userId, pageable).map(recipientMapper::toResponse);
+        Page<NotificationBroadcastRecipient> recipients = userIds == null
+            ? recipientRepository.findAllByBroadcastId(broadcastId, pageable)
+            : recipientRepository.findAllByBroadcastIdAndUserIdIn(broadcastId, userIds, pageable);
+        return recipients.map(recipientMapper::toResponse);
     }
 
     @Override

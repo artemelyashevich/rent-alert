@@ -11,6 +11,7 @@ import com.rentalert.roommate_ms.dto.RoommateSharedFavoriteResponse;
 import com.rentalert.roommate_ms.dto.RoommateSharedFavoriteUpdateDto;
 import com.rentalert.roommate_ms.mapper.RoommateSharedFavoriteMapper;
 import com.rentalert.roommate_ms.repository.RoommateSharedFavoriteRepository;
+import com.rentalert.roommate_ms.service.RoommateListingCards;
 import com.rentalert.roommate_ms.service.RoommateMatchAccess;
 import com.rentalert.roommate_ms.service.RoommateSharedFavoriteService;
 import java.util.Collection;
@@ -34,13 +35,14 @@ public class RoommateSharedFavoriteServiceImpl implements RoommateSharedFavorite
     private final RoommateMatchAccess matchAccess;
     private final RoommateSharedFavoriteMapper mapper;
     private final RoommateSharedFavoriteRepository favoriteRepository;
+    private final RoommateListingCards roommateListingCards;
 
     @Override
     @Transactional(readOnly = true)
     public List<RoommateSharedFavoriteResponse> findAll(Long matchId, Long requesterUserId) {
         matchAccess.requireUnlocked(matchId, requesterUserId);
         List<RoommateSharedFavorite> favorites = favoriteRepository.findAllByIdMatchId(matchId);
-        Map<Long, ListingDto> cards = findCardsOrEmpty(favorites.stream().map(f -> f.getId().getListingId()).toList());
+        Map<Long, ListingDto> cards = roommateListingCards.find(favorites.stream().map(f -> f.getId().getListingId()).toList());
         return favorites.stream()
             .map(f -> mapper.toResponse(f, cards.get(f.getId().getListingId())))
             .toList();

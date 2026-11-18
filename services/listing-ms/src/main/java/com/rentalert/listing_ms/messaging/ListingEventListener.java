@@ -22,10 +22,6 @@ public class ListingEventListener extends AbstractIdempotentKafkaListener {
         this.listingService = listingService;
     }
 
-    /**
-     * Stores a created listing once per event. The event carries no idempotency key, so the key is derived from the
-     * event type, listing id and source identity, which are the same on every redelivery.
-     */
     @KafkaListener(topics = KafkaTopics.LISTINGS, groupId = CONSUMER)
     public void onListingCreated(ListingCreatedEvent event) {
         if (event.listingId() == null || event.source() == null || event.sourceId() == null) {

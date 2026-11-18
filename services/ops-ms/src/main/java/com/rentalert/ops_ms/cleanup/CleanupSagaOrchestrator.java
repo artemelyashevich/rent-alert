@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 @Slf4j
@@ -36,17 +37,20 @@ public class CleanupSagaOrchestrator {
     private final CleanupSagaStepRepository stepRepository;
     private final CleanupCommandPublisher cleanupCommandPublisher;
     private final JobSettingService jobSettingService;
+    private final TransactionTemplate transactionTemplate;
     private final List<String> steps;
     private final Duration stepTimeout;
     private final int maxAttempts;
 
     public CleanupSagaOrchestrator(CleanupSagaRepository sagaRepository, CleanupSagaStepRepository stepRepository, CleanupCommandPublisher cleanupCommandPublisher, JobSettingService jobSettingService,
+                                   TransactionTemplate transactionTemplate,
                                    @Value("${app.cleanup.saga.steps:listing-ms,processing-ms,notification-ms,roommate-ms,ops-ms}") List<String> steps,
                                    @Value("${app.cleanup.saga.step-timeout:PT30M}") Duration stepTimeout, @Value("${app.cleanup.saga.max-attempts:3}") int maxAttempts) {
         this.sagaRepository = sagaRepository;
         this.stepRepository = stepRepository;
         this.cleanupCommandPublisher = cleanupCommandPublisher;
         this.jobSettingService = jobSettingService;
+        this.transactionTemplate = transactionTemplate;
         this.steps = steps;
         this.stepTimeout = stepTimeout;
         this.maxAttempts = maxAttempts;
@@ -75,7 +79,7 @@ public class CleanupSagaOrchestrator {
     @Transactional
     public void onReply(CleanupReply reply, Instant now) {
         Optional<CleanupSaga> saga = sagaRepository.findBySagaId(reply.sagaId());
-        Optional<CleanupSagaStep> step = stepRepository.findBySagaIdAndStepOrder(reply.sagaId(), reply.step());
+        Optional<CleanupSagaStep> step = stepRepository.findBySagaIdAndStepOrderForUpdate(reply.sagaId(), reply.step());
         if (saga.isEmpty() || step.isEmpty() || step.get().getStatus() != CleanupStepStatus.SENT) {
             log.debug("[CLEANUP] ignoring reply for saga {} step {}: unknown or already handled", reply.sagaId(), reply.step());
             return;
@@ -91,21 +95,32 @@ public class CleanupSagaOrchestrator {
         proceed(saga.get(), now);
     }
 
-    @Transactional
     public void checkTimeouts(Instant now) {
-        for (CleanupSagaStep step : stepRepository.findAllByStatusAndSentAtBefore(CleanupStepStatus.SENT, now.minus(stepTimeout))) {
-            CleanupSaga saga = sagaRepository.findBySagaId(step.getSagaId()).orElseThrow();
-            if (step.getAttempts() < maxAttempts) {
-                log.warn("[CLEANUP] saga {} step {} ({}) got no reply, sending again", step.getSagaId(), step.getStepOrder(), step.getService());
-                send(saga, step, now);
-                continue;
-            }
-            log.error("[CLEANUP] saga {} step {} ({}) timed out after {} attempts", step.getSagaId(), step.getStepOrder(), step.getService(), step.getAttempts());
-            step.setStatus(CleanupStepStatus.TIMED_OUT);
-            step.setFinishedAt(now);
-            step.setErrors("no reply from %s after %d attempts".formatted(step.getService(), step.getAttempts()));
-            proceed(saga, now);
+        for (CleanupSagaStep candidate : stepRepository.findAllByStatusAndSentAtBefore(CleanupStepStatus.SENT, now.minus(stepTimeout))) {
+            transactionTemplate.executeWithoutResult(status -> checkTimeout(candidate.getSagaId(), candidate.getStepOrder(), now));
         }
+    }
+
+    private void checkTimeout(UUID sagaId, int stepOrder, Instant now) {
+        Instant sentBefore = now.minus(stepTimeout);
+        CleanupSagaStep step = stepRepository.findBySagaIdAndStepOrderForUpdate(sagaId, stepOrder)
+            .filter(s -> s.getStatus() == CleanupStepStatus.SENT && s.getSentAt().isBefore(sentBefore))
+            .orElse(null);
+        if (step == null) {
+            log.debug("[CLEANUP] saga {} step {}: timeout check skipped, already handled or not expired", sagaId, stepOrder);
+            return;
+        }
+        CleanupSaga saga = sagaRepository.findBySagaId(sagaId).orElseThrow();
+        if (step.getAttempts() < maxAttempts) {
+            log.warn("[CLEANUP] saga {} step {} ({}) got no reply, sending again", sagaId, stepOrder, step.getService());
+            send(saga, step, now);
+            return;
+        }
+        log.error("[CLEANUP] saga {} step {} ({}) timed out after {} attempts", sagaId, stepOrder, step.getService(), step.getAttempts());
+        step.setStatus(CleanupStepStatus.TIMED_OUT);
+        step.setFinishedAt(now);
+        step.setErrors("no reply from %s after %d attempts".formatted(step.getService(), step.getAttempts()));
+        proceed(saga, now);
     }
 
     private void proceed(CleanupSaga saga, Instant now) {

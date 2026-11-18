@@ -127,6 +127,16 @@ class UserProfileServiceImplTests {
         assertThat(userProfileService.findBriefs(List.of(5L, 6L))).containsExactly(new UserBriefResponse(5L, "anna", "a.jpg"));
     }
 
+    @Test
+    void usernameSearchReturnsMatchingBriefs() {
+        UserProfile profile = profileWithSettings(UserSettings.builder().build());
+        profile.setUsername("anna");
+        profile.setPhotoUrl("a.jpg");
+        when(userProfileRepository.findAllByUsernameContainingIgnoreCaseOrderByIdAsc("ANN")).thenReturn(List.of(profile));
+
+        assertThat(userProfileService.searchBriefsByUsername("ANN")).containsExactly(new UserBriefResponse(5L, "anna", "a.jpg"));
+    }
+
     private UserProfile profileWithSettings(UserSettings settings) {
         UserProfile profile = new UserProfile();
         profile.setId(5L);

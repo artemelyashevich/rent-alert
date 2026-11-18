@@ -22,11 +22,6 @@ public class ListingEventListener extends AbstractIdempotentKafkaListener {
         this.newListingNotificationService = newListingNotificationService;
     }
 
-    /**
-     * Notifies matching users once per listing. The idempotency key is derived from the listing id assigned by
-     * processing-ms, so a redelivered listing does not produce duplicate notifications. A listing without id is not
-     * retryable.
-     */
     @KafkaListener(topics = KafkaTopics.LISTINGS, groupId = CONSUMER)
     public void onListingCreated(ListingCreatedEvent event) {
         if (event.listingId() == null) {

@@ -9,6 +9,7 @@ import com.rentalert.dto.notification.BroadcastSummaryResponse;
 import com.rentalert.notification_ms.config.PublicUrls;
 import com.rentalert.notification_ms.service.AdminBroadcastService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -51,10 +52,10 @@ public class AdminBroadcastInternalController {
     @GetMapping("/{broadcastId}/recipients")
     public PageResponse<BroadcastRecipientResponse> findRecipients(
         @PathVariable Long broadcastId,
-        @RequestParam(required = false) Long userId,
+        @RequestParam(value = "userId", required = false) List<Long> userIds,
         @PageableDefault(size = 50) Pageable pageable
     ) {
-        return PageUtil.toResponse(adminBroadcastService.findRecipients(broadcastId, userId, pageable));
+        return PageUtil.toResponse(adminBroadcastService.findRecipients(broadcastId, userIds, pageable));
     }
 
     @DeleteMapping("/{broadcastId}")

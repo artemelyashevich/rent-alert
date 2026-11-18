@@ -18,7 +18,7 @@ public class KafkaConsumerConfiguration extends AbstractKafkaConsumerConfigurati
 
     @Bean
     public NewTopic serviceStartedTopic() {
-        return newTopic(KafkaTopics.SERVICE_STARTED, 1, Duration.ofDays(1));
+        return newTopic(KafkaTopics.SERVICE_STARTED, 3, Duration.ofDays(1));
     }
 
     @Bean

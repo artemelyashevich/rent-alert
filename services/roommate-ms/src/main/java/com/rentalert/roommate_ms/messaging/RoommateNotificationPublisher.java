@@ -21,19 +21,10 @@ public class RoommateNotificationPublisher extends AbstractOutboxEventPublisher 
 
     private final IdentityMsService identityMsService;
 
-    /**
-     * Queues a notification for the user through the outbox of the current transaction, deferred until the end of
-     * the user's quiet hours. A failure to resolve the user's addresses is logged and the notification is skipped,
-     * so it never rolls back the business change.
-     */
     public void publish(Long userId, NotificationType type, String message, String deduplicationKey) {
         publish(userId, type, Map.of("message", message), deduplicationKey, null);
     }
 
-    /**
-     * Same as {@link #publish(Long, NotificationType, String, String)} with template parameters and an optional
-     * {@code notBefore}; the later of {@code notBefore} and the end of quiet hours is used as the send time.
-     */
     public void publish(
         Long userId, NotificationType type, Map<String, String> templateParams, String deduplicationKey, Instant notBefore) {
         NotificationDelivery delivery;

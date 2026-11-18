@@ -11,6 +11,7 @@ import com.rentalert.internal.client.NotificationMsClient;
 import com.rentalert.internal.client.service.NotificationMsService;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryRegistry;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 
 public class NotificationMsServiceImpl extends AbstractResilientClient implements NotificationMsService {
@@ -40,8 +41,8 @@ public class NotificationMsServiceImpl extends AbstractResilientClient implement
     }
 
     @Override
-    public PageResponse<BroadcastRecipientResponse> findRecipients(Long broadcastId, Long userId, Pageable pageable) {
-        return execute(() -> notificationMsClient.findRecipients(broadcastId, userId, pageable.getPageNumber(),
+    public PageResponse<BroadcastRecipientResponse> findRecipients(Long broadcastId, List<Long> userIds, Pageable pageable) {
+        return execute(() -> notificationMsClient.findRecipients(broadcastId, userIds, pageable.getPageNumber(),
             pageable.getPageSize(), PageUtil.toSortParams(pageable)));
     }
 

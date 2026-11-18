@@ -41,6 +41,9 @@ public interface IdentityMsClient {
     @PostMapping("/profiles/briefs")
     List<UserBriefResponse> findUserBriefs(@RequestBody Collection<Long> userIds);
 
+    @GetMapping("/profiles/search")
+    List<UserBriefResponse> searchUserBriefs(@RequestParam("username") String username);
+
     @PostMapping("/profiles/by-telegram")
     UserProfileResponse findByTelegramId(@RequestBody TelegramIdRequest request);
 

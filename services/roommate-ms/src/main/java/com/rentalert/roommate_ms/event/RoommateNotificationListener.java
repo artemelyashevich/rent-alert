@@ -2,11 +2,11 @@ package com.rentalert.roommate_ms.event;
 
 import com.rentalert.dto.notification.NotificationType;
 import com.rentalert.dto.profile.UserBriefResponse;
-import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.roommate_ms.domain.RoommateMatchStatus;
 import com.rentalert.roommate_ms.domain.RoommateViewing;
 import com.rentalert.roommate_ms.messaging.RoommateNotificationPublisher;
 import com.rentalert.roommate_ms.repository.RoommateViewingRepository;
+import com.rentalert.roommate_ms.service.RoommateUserBriefs;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -20,11 +20,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/**
- * Turns a roommate match transition into notifications, queued in the outbox of the transaction that made the
- * transition, so a rolled-back transition sends nothing. Counterparty names come from identity-ms and are optional:
- * when identity is unavailable the notification is sent without a name.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -32,14 +27,10 @@ public class RoommateNotificationListener {
 
     private static final Duration VIEWING_REMINDER_LEAD = Duration.ofDays(1);
 
-    private final IdentityMsService identityMsService;
     private final RoommateNotificationPublisher notificationPublisher;
+    private final RoommateUserBriefs roommateUserBriefs;
     private final RoommateViewingRepository viewingRepository;
 
-    /**
-     * Runs before the commit of the transition, so the outbox records join its transaction. Transitions without a
-     * notification and viewing reminders for matches less than a day away are skipped.
-     */
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void onTransition(RoommateMatchTransitionEvent event) {
         NotificationType type = resolveType(event);
@@ -96,14 +87,9 @@ public class RoommateNotificationListener {
     }
 
     private Map<Long, String> findNames(List<Long> userIds) {
-        try {
-            return identityMsService.findUserBriefs(userIds).stream()
-                .filter(brief -> brief.userId() != null && brief.username() != null)
-                .collect(Collectors.toMap(UserBriefResponse::userId, UserBriefResponse::username, (a, b) -> a));
-        } catch (RuntimeException e) {
-            log.warn("Roommate notifications are sent without counterparty names: {}", e.getMessage());
-            return Map.of();
-        }
+        return roommateUserBriefs.find(userIds).values().stream()
+            .filter(brief -> brief.userId() != null && brief.username() != null)
+            .collect(Collectors.toMap(UserBriefResponse::userId, UserBriefResponse::username, (a, b) -> a));
     }
 
     private static String buildMessage(NotificationType type, String counterpartyName) {

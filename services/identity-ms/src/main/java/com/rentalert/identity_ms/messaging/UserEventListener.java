@@ -20,9 +20,6 @@ public class UserEventListener extends AbstractIdempotentKafkaListener {
         this.botStatusService = botStatusService;
     }
 
-    /**
-     * Applies bot block and unblock actions once per event idempotency key; other user actions are ignored.
-     */
     @KafkaListener(topics = KafkaTopics.USER_EVENTS, groupId = CONSUMER)
     public void onUserAction(UserActionEvent event) {
         if (event.getInitiatorId() == null) {

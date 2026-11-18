@@ -1,7 +1,6 @@
 package com.rentalert.roommate_ms.service.impl;
 
 import com.rentalert.dto.profile.UserBriefResponse;
-import com.rentalert.internal.client.service.IdentityMsService;
 import com.rentalert.roommate_ms.domain.RoommateListing;
 import com.rentalert.roommate_ms.domain.RoommateProfile;
 import com.rentalert.roommate_ms.domain.RoommateScenario;
@@ -15,6 +14,7 @@ import com.rentalert.roommate_ms.repository.RoommateProfileRepository;
 import com.rentalert.roommate_ms.service.RoommateFeedService;
 import com.rentalert.roommate_ms.service.RoommateProfileAccess;
 import com.rentalert.roommate_ms.service.RoommateScoringService;
+import com.rentalert.roommate_ms.service.RoommateUserBriefs;
 import com.rentalert.roommate_ms.util.RoommateAgeUtil;
 import com.rentalert.roommate_ms.util.RoommateGenderPrefUtil;
 import java.time.Instant;
@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +44,7 @@ public class RoommateFeedServiceImpl implements RoommateFeedService {
     private final RoommateScoringService scoringService;
     private final RoommateFeedMapper feedMapper;
     private final RoommateProfileAccess profileAccess;
-    private final IdentityMsService identityMsService;
+    private final RoommateUserBriefs roommateUserBriefs;
 
     @Override
     @Transactional(readOnly = true)
@@ -137,13 +135,7 @@ public class RoommateFeedServiceImpl implements RoommateFeedService {
     }
 
     private Map<Long, UserBriefResponse> findBriefs(List<Long> userIds) {
-        try {
-            return identityMsService.findUserBriefs(userIds).stream()
-                .collect(Collectors.toMap(UserBriefResponse::userId, Function.identity()));
-        } catch (RuntimeException e) {
-            log.warn("Roommate feed is shown without names and photos: {}", e.getMessage());
-            return Map.of();
-        }
+        return roommateUserBriefs.find(userIds);
     }
 
     private RoommateFeedCursor parseCursor(String token, int currentHash) {

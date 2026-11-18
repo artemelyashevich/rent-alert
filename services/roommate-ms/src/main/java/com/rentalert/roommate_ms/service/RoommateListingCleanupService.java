@@ -12,10 +12,6 @@ public class RoommateListingCleanupService {
 
     private final RoommateListingCleanupRepository repository;
 
-    /**
-     * Removes shared favorites of the given listings and clears their listing id in roommate listings and viewings,
-     * in one transaction. Viewings keep their address snapshot. An empty input changes nothing.
-     */
     @Transactional
     public void deleteListingReferences(List<Long> listingIds) {
         if (listingIds == null || listingIds.isEmpty()) {

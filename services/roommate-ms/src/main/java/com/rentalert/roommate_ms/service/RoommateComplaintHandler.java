@@ -26,10 +26,6 @@ public class RoommateComplaintHandler {
     private final RoommateModerationTaskRepository taskRepository;
     private final RoommateProfileRepository profileRepository;
 
-    /**
-     * Adds one report to the subject. At the threshold a profile stops appearing in search and a listing is paused,
-     * and a manual moderation task is opened once. A missing subject is ignored.
-     */
     public void handle(RoommateComplaintEvent.SubjectType subjectType, Long subjectId) {
         if (subjectType == RoommateComplaintEvent.SubjectType.ROOMMATE_PROFILE) {
             profileRepository.findById(subjectId).ifPresent(this::handleProfile);

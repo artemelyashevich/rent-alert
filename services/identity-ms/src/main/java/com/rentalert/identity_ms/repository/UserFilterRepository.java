@@ -67,7 +67,6 @@ public interface UserFilterRepository extends JpaRepository<@NonNull UserFilter,
         select uf
         from UserFilter uf
         where uf.active = true
-          and uf.userProfile is not null
           and (uf.category is null or uf.category = :category)
           and (cast(:city as String) is null or lower(uf.city) = lower(:city))
           and (

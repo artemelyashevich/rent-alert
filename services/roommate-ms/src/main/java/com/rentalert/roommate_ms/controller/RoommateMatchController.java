@@ -34,9 +34,6 @@ public class RoommateMatchController {
     private final RoommateMatchService matchService;
     private final UserSessionService userSessionService;
 
-    /**
-     * The current user's matches, newest first, optionally filtered by status.
-     */
     @Operation(summary = "Мои матчи", description = "Опционально фильтр по статусам.")
     @GetMapping
     public Page<RoommateMatchView> myMatches(
@@ -46,19 +43,12 @@ public class RoommateMatchController {
         return matchService.myMatches(currentUserId(), status, pageable);
     }
 
-    /**
-     * One match of the current user; 403 if the user is not a participant.
-     */
     @Operation(summary = "Карточка матча")
     @GetMapping("/{matchId}")
     public RoommateMatchView getMatch(@PathVariable Long matchId) {
         return matchService.getMatch(matchId, currentUserId());
     }
 
-    /**
-     * Applies the action to the match. {@code expectedVersion} must equal the {@code statusVersion} from the last
-     * response, otherwise 409; the body may be omitted for actions without parameters.
-     */
     @Operation(
         summary = "Выполнить действие над матчем",
         description = "ACCEPT · DECLINE · START_CHAT · SCHEDULE_VIEWING · CANCEL_VIEWING · CONFIRM_MOVE_IN. "
@@ -74,9 +64,6 @@ public class RoommateMatchController {
         return matchService.transition(matchId, currentUserId(), action, body.toCommand(), body.expectedVersion());
     }
 
-    /**
-     * The counterparty's contact; 403 until the match has unlocked contacts (MATCHED).
-     */
     @Operation(summary = "Контакты второй стороны", description = "Доступно только после MATCHED.")
     @GetMapping("/{matchId}/contacts")
     public RoommateContactResponse getContacts(@PathVariable Long matchId) {

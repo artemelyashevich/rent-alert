@@ -47,6 +47,17 @@ class IdentityMsServiceImplTests {
     );
 
     @Test
+    void retriesUnavailableUserSearch() {
+        UserBriefResponse brief = new UserBriefResponse(5L, "anna", null);
+        when(client.searchUserBriefs("ann"))
+            .thenThrow(new UpstreamHttpException("unavailable", 503, null))
+            .thenReturn(List.of(brief));
+
+        assertThat(service.searchUserBriefs("ann")).containsExactly(brief);
+        verify(client, times(2)).searchUserBriefs("ann");
+    }
+
+    @Test
     void retriesUnavailableIdentity() {
         UserProfileResponse profile = mock(UserProfileResponse.class);
         when(client.getProfile(42L))
