@@ -34,6 +34,8 @@ public class ServiceStartedPublisher {
             .whenComplete((result, e) -> {
                 if (e != null) {
                     log.warn("Failed to report start of {}: {}", serviceName, e.getMessage());
+                } else {
+                    log.info("service started event sent service={}", serviceName);
                 }
             });
     }

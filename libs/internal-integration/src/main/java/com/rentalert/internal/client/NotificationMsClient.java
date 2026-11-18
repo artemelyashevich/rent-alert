@@ -35,7 +35,15 @@ public interface NotificationMsClient {
     @GetMapping("/admin/broadcasts/{broadcastId}/recipients")
     PageResponse<BroadcastRecipientResponse> findRecipients(
         @PathVariable("broadcastId") Long broadcastId,
-        @RequestParam(value = "userId", required = false) List<Long> userIds,
+        @RequestParam("page") int page,
+        @RequestParam("size") int size,
+        @RequestParam("sort") List<String> sort
+    );
+
+    @PostMapping("/admin/broadcasts/{broadcastId}/recipients")
+    PageResponse<BroadcastRecipientResponse> findRecipientsByUserIds(
+        @PathVariable("broadcastId") Long broadcastId,
+        @RequestBody List<Long> userIds,
         @RequestParam("page") int page,
         @RequestParam("size") int size,
         @RequestParam("sort") List<String> sort

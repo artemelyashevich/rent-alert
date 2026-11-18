@@ -1,12 +1,13 @@
 package com.rentalert.kafka.outbox;
 
 import com.rentalert.dto.GlobalConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.json.JsonMapper;
 
-
+@Slf4j
 public class OutboxPublisher {
 
     private static final String INSERT =
@@ -25,5 +26,6 @@ public class OutboxPublisher {
             throw new IllegalStateException("OutboxPublisher.publish must run inside the business transaction");
         }
         jdbcTemplate.update(INSERT, topic, key, jsonMapper.writeValueAsString(payload), MDC.get(GlobalConstants.TRACE_ID));
+        log.debug("event queued topic={} key={} type={}", topic, key, payload.getClass().getSimpleName());
     }
 }

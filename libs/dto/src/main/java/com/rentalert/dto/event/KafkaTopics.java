@@ -20,6 +20,12 @@ public class KafkaTopics {
 
     public static final String CLEANUP_REPLIES = "ops.cleanup-replies.v1";
 
+    public static final String MIGRATION_COMMANDS = "ops.migration-commands.v1";
+
+    public static final String MIGRATION_PROGRESS = "ops.migration-progress.v1";
+
+    public static final String MIGRATION_REPLIES = "ops.migration-replies.v1";
+
     /** {@link ServiceStartedEvent} from every service with a Kafka producer, key = service name. */
     public static final String SERVICE_STARTED = "ops.service-started.v1";
 

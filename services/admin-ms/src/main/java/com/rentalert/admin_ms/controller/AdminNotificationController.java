@@ -16,8 +16,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -110,15 +112,21 @@ public class AdminNotificationController {
             return notificationMsService.findRecipients(broadcastId, null, pageable);
         }
         Long userId = parseLongOrNull(term);
-        if (userId != null) {
-            return notificationMsService.findRecipients(broadcastId, List.of(userId), pageable);
-        }
-        List<Long> userIds = userBriefs.searchUserIds(term);
+        List<Long> userIds = userId == null
+            ? userBriefs.searchUserIds(term)
+            : withExactUserId(userId, userBriefs.searchUserIdsIfAvailable(term));
         if (userIds.isEmpty()) {
             notificationMsService.findBroadcast(broadcastId);
             return new PageResponse<>(List.of(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0);
         }
         return notificationMsService.findRecipients(broadcastId, userIds, pageable);
+    }
+
+    private static List<Long> withExactUserId(Long userId, List<Long> usernameMatches) {
+        Set<Long> userIds = new LinkedHashSet<>();
+        userIds.add(userId);
+        userIds.addAll(usernameMatches);
+        return List.copyOf(userIds);
     }
 
     private static Long parseLongOrNull(String value) {

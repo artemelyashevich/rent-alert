@@ -19,7 +19,7 @@ import tools.jackson.databind.json.JsonMapper;
 public class OutboxRelay {
 
     private static final String SELECT_BATCH = """
-        SELECT id, topic, message_key, payload, trace_id FROM outbox_event
+        SELECT id, topic, message_key, payload, trace_id, attempts FROM outbox_event
         WHERE published_at IS NULL
         ORDER BY id
         LIMIT ?
@@ -74,8 +74,9 @@ public class OutboxRelay {
         }
         List<OutboxRow> rows = jdbcTemplate.query(SELECT_BATCH, (rs, i) -> new OutboxRow(
             rs.getLong("id"), rs.getString("topic"), rs.getString("message_key"), rs.getString("payload"),
-            rs.getString("trace_id")), batchSize);
+            rs.getString("trace_id"), rs.getInt("attempts")), batchSize);
         int sent = 0;
+        long lastId = 0;
         for (OutboxRow row : rows) {
             try {
                 kafkaTemplate.send(toRecord(row)).get(sendTimeout.toMillis(), TimeUnit.MILLISECONDS);
@@ -83,12 +84,17 @@ public class OutboxRelay {
                 if (e instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
                 }
-                log.warn("Failed to relay outbox row {} to {}: {}", row.id(), row.topic(), e.getMessage());
+                log.warn("Failed to relay outbox row {} to {} attempts={}: {}", row.id(), row.topic(), row.attempts() + 1, e.getMessage());
                 jdbcTemplate.update(MARK_FAILED, String.valueOf(e.getMessage()), row.id());
                 return -1;
             }
             jdbcTemplate.update(MARK_PUBLISHED, Timestamp.from(Instant.now()), row.id());
+            log.debug("outbox relayed id={} topic={} key={}", row.id(), row.topic(), row.key());
             sent++;
+            lastId = row.id();
+        }
+        if (sent > 0) {
+            log.info("outbox relayed count={} lastId={}", sent, lastId);
         }
         return sent;
     }
@@ -106,7 +112,7 @@ public class OutboxRelay {
         return record;
     }
 
-    private record OutboxRow(long id, String topic, String key, String payload, String traceId) {
+    private record OutboxRow(long id, String topic, String key, String payload, String traceId, int attempts) {
 
     }
 }

@@ -90,11 +90,11 @@ CREATE TABLE IF NOT EXISTS public.user_filters
     varchar
 (
     5
-) DEFAULT 'USD':: character varying NOT NULL,
+) DEFAULT 'USD'::character varying NOT NULL,
     city varchar
 (
     255
-) DEFAULT 'Минск':: character varying NOT NULL,
+) DEFAULT 'Минск'::character varying NOT NULL,
     owner_match_id int8 NULL,
     category varchar
 (
@@ -116,16 +116,8 @@ CREATE TABLE IF NOT EXISTS public.user_filters
     (
     ARRAY
 [
-    'FLAT'
-    :
-    :
-    character
-    varying,
-    'ROOM'
-    :
-    :
-    character
-    varying]
+    'FLAT'::character varying,
+    'ROOM'::character varying]
 )::text[])))),
     CONSTRAINT chk_user_filters_single_owner CHECK
 (
@@ -219,11 +211,11 @@ CREATE TABLE IF NOT EXISTS public.user_settings
     color_theme varchar
 (
     16
-) DEFAULT 'SYSTEM':: character varying NOT NULL,
+) DEFAULT 'SYSTEM'::character varying NOT NULL,
     "language" varchar
 (
     8
-) DEFAULT 'RU':: character varying NOT NULL,
+) DEFAULT 'RU'::character varying NOT NULL,
     refresh_token varchar
 (
     512
@@ -235,7 +227,7 @@ CREATE TABLE IF NOT EXISTS public.user_settings
     role_name varchar
 (
     50
-) DEFAULT 'USER':: character varying NOT NULL,
+) DEFAULT 'USER'::character varying NOT NULL,
     bot_status public."bot_status_enum" DEFAULT 'ACTIVE'::bot_status_enum NOT NULL,
     quiet_from time NULL,
     quiet_to time NULL,
@@ -298,7 +290,7 @@ CREATE TABLE IF NOT EXISTS public.feedbacks
     subject_type varchar
 (
     20
-) DEFAULT 'APP':: character varying NOT NULL,
+) DEFAULT 'APP'::character varying NOT NULL,
     subject_id int8 NULL,
     reason_code varchar
 (

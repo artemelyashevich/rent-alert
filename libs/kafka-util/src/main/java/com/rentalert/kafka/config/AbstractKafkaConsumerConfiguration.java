@@ -1,10 +1,18 @@
 package com.rentalert.kafka.config;
 
+import com.rentalert.common.service.LockService;
 import com.rentalert.kafka.NonRetryableEventException;
 import com.rentalert.kafka.TraceIdRecordInterceptor;
 import com.rentalert.kafka.inbox.InboxGuard;
+import com.rentalert.kafka.migration.MigrationControl;
+import com.rentalert.kafka.migration.MonolithSource;
+import com.rentalert.kafka.migration.RedisMigrationControl;
+import com.rentalert.redis.service.CacheService;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Map;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -14,11 +22,14 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.kafka.autoconfigure.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
@@ -85,6 +96,28 @@ public abstract class AbstractKafkaConsumerConfiguration implements DisposableBe
         factory.setCommonErrorHandler(errorHandler(kafkaProperties));
         factory.setRecordInterceptor(new TraceIdRecordInterceptor());
         return factory;
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "app.migration.enabled", havingValue = "true")
+    public MonolithSource monolithSource(@Value("${app.migration.source.url}") String url,
+        @Value("${app.migration.source.username}") String username,
+        @Value("${app.migration.source.password}") String password) {
+        DataSource dataSource = new DriverManagerDataSource(url, username, password) {
+            @Override
+            public Connection getConnection() throws SQLException {
+                Connection connection = super.getConnection();
+                connection.setReadOnly(true);
+                return connection;
+            }
+        };
+        return new MonolithSource(new JdbcTemplate(dataSource));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(MigrationControl.class)
+    public MigrationControl redisMigrationControl(@Lazy CacheService cacheService, @Lazy LockService lockService) {
+        return new RedisMigrationControl(cacheService, lockService);
     }
 
     protected CommonErrorHandler errorHandler(KafkaProperties kafkaProperties) {

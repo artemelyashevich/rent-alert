@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ops-ms
+  labels:
+    app.kubernetes.io/name: ops-ms
+    app.kubernetes.io/part-of: rentalert
+spec:
+  selector:
+    app.kubernetes.io/name: ops-ms
+  ports:
+    - name: http
+      port: 8083
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-ms
+  labels:
+    app.kubernetes.io/name: ops-ms
+    app.kubernetes.io/part-of: rentalert
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ops-ms
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ops-ms
+        app.kubernetes.io/part-of: rentalert
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-dependencies
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              for dep in config-server:8888 discovery:8761 kafka:9092 redis:6379 postgres:5432; do
+                until nc -z "${dep%%:*}" "${dep##*:}"; do echo "waiting for $dep"; sleep 2; done
+              done
+      containers:
+        - name: ops-ms
+          image: rentalert/ops-ms:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: rentalert-config
+          env:
+            - name: EUREKA_INSTANCE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: DB_URL
+              value: jdbc:postgresql://postgres:5432/ops
+            - name: DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: rentalert-config
+                  key: OPS_DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rentalert-secrets
+                  key: OPS_DB_PASSWORD
+            - name: APP_AUTH_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rentalert-secrets
+                  key: APP_AUTH_ACCESS_SECRET
+            - name: APP_AUTH_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rentalert-secrets
+                  key: APP_AUTH_REFRESH_SECRET
+            - name: APP_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: rentalert-secrets
+                  key: APP_INTERNAL_TOKEN
+            - name: MIGRATION_SOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rentalert-secrets
+                  key: MIGRATION_SOURCE_URL
+            - name: MIGRATION_SOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rentalert-secrets
+                  key: MIGRATION_SOURCE_USERNAME
+            - name: MIGRATION_SOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rentalert-secrets
+                  key: MIGRATION_SOURCE_PASSWORD
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi

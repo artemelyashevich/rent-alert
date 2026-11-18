@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS public.listings
     floor int4 NULL,
     floors_total int4 NULL,
     furniture bool DEFAULT false NOT NULL,
-    photos _varchar DEFAULT '{}':: character varying [] NOT NULL,
+    photos _varchar DEFAULT '{}'::character varying [] NOT NULL,
     is_active bool DEFAULT true NOT NULL,
     created_at timestamptz NOT NULL,
     updated_at timestamptz NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS public.listings
     category varchar
 (
     10
-) DEFAULT 'FLAT':: character varying NOT NULL,
+) DEFAULT 'FLAT'::character varying NOT NULL,
     room_area float4 NULL,
     geo_lat float8 NULL,
     geo_lng float8 NULL,
@@ -121,16 +121,8 @@ CREATE TABLE IF NOT EXISTS public.listings
     (
     ARRAY
 [
-    'FLAT'
-    :
-    :
-    character
-    varying,
-    'ROOM'
-    :
-    :
-    character
-    varying]
+    'FLAT'::character varying,
+    'ROOM'::character varying]
 )::text[]))),
     CONSTRAINT chk_listings_source CHECK
 (
@@ -142,21 +134,9 @@ CREATE TABLE IF NOT EXISTS public.listings
     (
     ARRAY
 [
-    'KUFAR'
-    :
-    :
-    character
-    varying,
-    'REALT'
-    :
-    :
-    character
-    varying,
-    'ONLINER'
-    :
-    :
-    character
-    varying]
+    'KUFAR'::character varying,
+    'REALT'::character varying,
+    'ONLINER'::character varying]
 )::text[]))),
     CONSTRAINT listings_pkey PRIMARY KEY
 (

@@ -4,6 +4,8 @@ import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.audit.AuditLogResponse;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.job.JobSettingResponse;
+import com.rentalert.dto.migration.MigrationRunResponse;
+import com.rentalert.dto.migration.MigrationStartRequest;
 import com.rentalert.dto.statistics.SystemActivityOverview;
 import com.rentalert.dto.statistics.UserActionSummary;
 import com.rentalert.dto.statistics.UserActivityLog;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = OpsMsClient.SERVICE_NAME, path = "/ops/internal")
@@ -64,4 +67,17 @@ public interface OpsMsClient {
 
     @GetMapping("/admin/user-statistics/system")
     SystemActivityOverview getSystemActivity(@RequestParam("since") String since);
+
+    @PostMapping("/admin/migrations")
+    MigrationRunResponse startMigration(@RequestBody MigrationStartRequest request,
+        @RequestParam("requestedBy") Long requestedBy);
+
+    @GetMapping("/admin/migrations")
+    PageResponse<MigrationRunResponse> listMigrations(@RequestParam("size") int size);
+
+    @GetMapping("/admin/migrations/{id}")
+    MigrationRunResponse getMigration(@PathVariable("id") UUID id);
+
+    @PostMapping("/admin/migrations/{id}/cancel")
+    MigrationRunResponse cancelMigration(@PathVariable("id") UUID id);
 }

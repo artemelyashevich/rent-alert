@@ -12,6 +12,7 @@ public class PublicUrls {
     public static final String FEEDBACK_TAG = PREFIX + "/feedbacks";
     public static final String JOB_SETTINGS_TAG = PREFIX + "/job-settings";
     public static final String LISTING_STATISTICS_TAG = PREFIX + "/listing-statistics";
+    public static final String MIGRATION_TAG = PREFIX + "/migrations";
     public static final String NOTIFICATION_TAG = PREFIX + "/notifications";
     public static final String USER_STATISTICS_TAG = PREFIX + "/user-statistics";
     public static final String PROFILE_TAG = PREFIX + "/profiles";

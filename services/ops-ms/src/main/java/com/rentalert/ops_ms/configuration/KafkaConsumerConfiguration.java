@@ -34,4 +34,19 @@ public class KafkaConsumerConfiguration extends AbstractKafkaConsumerConfigurati
     public KafkaAdmin.NewTopics cleanupRepliesTopics() {
         return topicWithDeadLetter(KafkaTopics.CLEANUP_REPLIES, Duration.ofDays(7));
     }
+
+    @Bean
+    public KafkaAdmin.NewTopics migrationCommandsTopics() {
+        return topicWithDeadLetter(KafkaTopics.MIGRATION_COMMANDS, Duration.ofDays(7));
+    }
+
+    @Bean
+    public KafkaAdmin.NewTopics migrationProgressTopics() {
+        return topicWithDeadLetter(KafkaTopics.MIGRATION_PROGRESS, Duration.ofDays(7));
+    }
+
+    @Bean
+    public KafkaAdmin.NewTopics migrationRepliesTopics() {
+        return topicWithDeadLetter(KafkaTopics.MIGRATION_REPLIES, Duration.ofDays(7));
+    }
 }

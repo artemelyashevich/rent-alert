@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserBriefs {
 
+    private static final int MAX_SEARCH_USER_IDS = 1000;
+
     private final IdentityMsService identityMsService;
 
     public Map<Long, UserBriefResponse> byId(Collection<Long> userIds) {
@@ -33,10 +35,25 @@ public class UserBriefs {
 
     public List<Long> searchUserIds(String username) {
         try {
-            return identityMsService.searchUserBriefs(username).stream().map(UserBriefResponse::userId).toList();
+            return fetchUserIds(username);
         } catch (UpstreamHttpException | RetryableException | CallNotPermittedException e) {
             throw new AppException("Сервис пользователей недоступен, поиск по имени временно невозможен", e,
                 HttpStatus.SERVICE_UNAVAILABLE);
         }
+    }
+
+    public List<Long> searchUserIdsIfAvailable(String username) {
+        try {
+            return fetchUserIds(username);
+        } catch (UpstreamHttpException | RetryableException | CallNotPermittedException e) {
+            return List.of();
+        }
+    }
+
+    private List<Long> fetchUserIds(String username) {
+        return identityMsService.searchUserBriefs(username).stream()
+            .map(UserBriefResponse::userId)
+            .limit(MAX_SEARCH_USER_IDS)
+            .toList();
     }
 }

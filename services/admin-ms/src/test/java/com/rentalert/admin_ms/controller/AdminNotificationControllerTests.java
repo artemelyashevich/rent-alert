@@ -61,12 +61,26 @@ class AdminNotificationControllerTests {
     }
 
     @Test
-    void numericSearchFiltersRecipientsByUserId() {
+    void numericSearchMergesExactUserIdWithUsernameMatches() {
+        when(userBriefs.searchUserIdsIfAvailable("7")).thenReturn(List.of(70L, 7L, 8L));
+        when(client.findRecipients(10L, List.of(7L, 70L, 8L), PageRequest.of(0, 50))).thenReturn(new PageResponse<>(List.of(), 0, 50, 0, 0));
+
+        PageResponse<BroadcastRecipientResponse> page = controller.findRecipients(10L, "7", PageRequest.of(0, 50));
+
+        assertThat(page.content()).isEmpty();
+        verify(client).findRecipients(10L, List.of(7L, 70L, 8L), PageRequest.of(0, 50));
+        verify(userBriefs, never()).searchUserIds(any());
+    }
+
+    @Test
+    void numericSearchDegradesToExactUserIdWhenIdentityIsUnavailable() {
+        when(userBriefs.searchUserIdsIfAvailable("7")).thenReturn(List.of());
         when(client.findRecipients(10L, List.of(7L), PageRequest.of(0, 50))).thenReturn(new PageResponse<>(List.of(), 0, 50, 0, 0));
 
         PageResponse<BroadcastRecipientResponse> page = controller.findRecipients(10L, "7", PageRequest.of(0, 50));
 
         assertThat(page.content()).isEmpty();
+        verify(client).findRecipients(10L, List.of(7L), PageRequest.of(0, 50));
         verify(userBriefs, never()).searchUserIds(any());
     }
 

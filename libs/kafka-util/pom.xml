@@ -20,6 +20,11 @@
             <groupId>com.rentalert</groupId>
         </dependency>
 
+        <dependency>
+            <artifactId>redis-util</artifactId>
+            <groupId>com.rentalert</groupId>
+        </dependency>
+
         <!-- Outbox: the service's own DataSource and transactions -->
         <dependency>
             <artifactId>spring-jdbc</artifactId>

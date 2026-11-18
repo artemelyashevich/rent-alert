@@ -50,9 +50,14 @@ public class AdminBroadcastInternalController {
     }
 
     @GetMapping("/{broadcastId}/recipients")
-    public PageResponse<BroadcastRecipientResponse> findRecipients(
+    public PageResponse<BroadcastRecipientResponse> findRecipients(@PathVariable Long broadcastId, @PageableDefault(size = 50) Pageable pageable) {
+        return PageUtil.toResponse(adminBroadcastService.findRecipients(broadcastId, null, pageable));
+    }
+
+    @PostMapping("/{broadcastId}/recipients")
+    public PageResponse<BroadcastRecipientResponse> findRecipientsByUserIds(
         @PathVariable Long broadcastId,
-        @RequestParam(value = "userId", required = false) List<Long> userIds,
+        @RequestBody List<Long> userIds,
         @PageableDefault(size = 50) Pageable pageable
     ) {
         return PageUtil.toResponse(adminBroadcastService.findRecipients(broadcastId, userIds, pageable));

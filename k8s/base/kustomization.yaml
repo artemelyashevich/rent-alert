@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rentalert
+resources:
+  - namespace.yaml
+  - infra/postgres.yaml
+  - infra/redis.yaml
+  - infra/kafka.yaml
+  - infra/redpanda-console.yaml
+  - apps/config-server.yaml
+  - apps/discovery.yaml
+  - apps/gateway.yaml
+  - apps/identity-ms.yaml
+  - apps/notification-ms.yaml
+  - apps/listing-ms.yaml
+  - apps/processing-ms.yaml
+  - apps/roommate-ms.yaml
+  - apps/ops-ms.yaml
+  - apps/admin-ms.yaml
+  - apps/realtime-ms.yaml
+configMapGenerator:
+  - name: rentalert-config
+    literals:
+      - POSTGRES_USER=rentalert
+      - IDENTITY_DB_USER=identity_ms
+      - NOTIFICATION_DB_USER=notification_ms
+      - OPS_DB_USER=ops_ms
+      - LISTING_DB_USER=listing_ms
+      - PROCESSING_DB_USER=processing_ms
+      - ROOMMATE_DB_USER=roommate_ms
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - 'SPRING_APPLICATION_JSON={"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery:8761/eureka/"}}}}'
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - APP_KAFKA_TOPIC_REPLICAS=1
+      - APP_KAFKA_TOPIC_MIN_INSYNC_REPLICAS=1
+      - MIGRATION_ENABLED=true
+      - TELEGRAM_BOT_ENABLED=false
+      - FRONT_ADDRESS=
+      - MAIL_HOST=localhost
+      - MAIL_PORT=587
+      - KUFAR_URL=
+      - REALT_URL=
+      - ONLINER_URL=
+  - name: postgres-init
+    files:
+      - ../../docker/postgres/init/01-create-databases.sh

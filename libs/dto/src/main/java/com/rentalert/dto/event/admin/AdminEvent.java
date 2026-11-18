@@ -11,6 +11,8 @@ public enum AdminEvent {
     JOB_CACHE_SYNC(AdminEventGroup.JOB, "Синхронизация кэшей"),
     JOB_CLEANUP_CACHE_ALL(AdminEventGroup.JOB, "Очистка кэша"),
     JOB_SYNC_CURRENCY_RATES(AdminEventGroup.JOB, "Синхронизация курсов валют"),
+    MIGRATION_STARTED(AdminEventGroup.JOB, "Запуск переноса данных. Сервисы = '%s'. Dry run = '%s'"),
+    MIGRATION_CANCELLED(AdminEventGroup.JOB, "Отмена переноса данных по id = '%s'"),
     NOTIFICATION_SEND(AdminEventGroup.NOTIFICATION, "Отправка уведомлений"),
     NOTIFICATION_DELETE(AdminEventGroup.NOTIFICATION, "Удаление по id = '%s'"),
     SCHEDULER_SETTINGS_CREATE(AdminEventGroup.SCHEDULER, "Создание настроек планировщика для провайдера = '%s'"),

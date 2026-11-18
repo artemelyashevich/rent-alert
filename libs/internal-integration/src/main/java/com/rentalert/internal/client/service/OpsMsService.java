@@ -4,6 +4,8 @@ import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.audit.AuditLogResponse;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.job.JobSettingResponse;
+import com.rentalert.dto.migration.MigrationRunResponse;
+import com.rentalert.dto.migration.MigrationStartRequest;
 import com.rentalert.dto.statistics.SystemActivityOverview;
 import com.rentalert.dto.statistics.UserActionSummary;
 import com.rentalert.dto.statistics.UserActivityLog;
@@ -30,4 +32,12 @@ public interface OpsMsService {
     List<UserActivityLog> getUserActivityLog(Long userId, LocalDate since, LocalDate until);
 
     SystemActivityOverview getSystemActivity(LocalDate since);
+
+    MigrationRunResponse startMigration(MigrationStartRequest request, Long requestedBy);
+
+    List<MigrationRunResponse> listMigrations(int limit);
+
+    MigrationRunResponse getMigration(UUID id);
+
+    MigrationRunResponse cancelMigration(UUID id);
 }

@@ -5,3 +5,4 @@ mvnw
 .mvn
 /*/*/target/
 docker/.env
+k8s/overlays/minikube/secrets.env

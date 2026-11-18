@@ -7,6 +7,7 @@ import com.rentalert.dto.event.user.UserEvent;
 import com.rentalert.kafka.outbox.OutboxPublisher;
 import java.util.Arrays;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -20,6 +21,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Slf4j
 @Aspect
 public class UserAuditAspect {
 
@@ -103,6 +105,7 @@ public class UserAuditAspect {
         event.setInitiatorId(userId);
         event.setEventStatus(EventStatus.SUCCESS);
         outboxPublisher.publish(KafkaTopics.USER_EVENTS, String.valueOf(userId), event);
+        log.debug("user audit published event={} userId={}", userEvent, userId);
     }
 
     private <T> T evaluate(StandardEvaluationContext context, String expression, Class<T> type) {

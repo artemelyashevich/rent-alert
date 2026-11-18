@@ -48,6 +48,8 @@ public enum CacheType {
     }),
     CITY_NAMES(new TypeReference<List<String>>() {
     }),
+    MIGRATION_CANCELLED(new TypeReference<Boolean>() {
+    }),
     /** Key: parser task key; marks a task that is being processed right now. */
     SCHEDULER_IN_FLIGHT(new TypeReference<Boolean>() {
     }),

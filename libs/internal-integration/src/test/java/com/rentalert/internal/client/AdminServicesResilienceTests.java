@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.rentalert.common.exception.UpstreamHttpException;
 import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.listing.CityRequest;
+import com.rentalert.dto.migration.MigrationStartRequest;
 import com.rentalert.dto.notification.BroadcastRequest;
 import com.rentalert.internal.client.service.NotificationMsService;
 import com.rentalert.internal.client.service.OpsMsService;
@@ -26,6 +27,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -86,5 +88,37 @@ class AdminServicesResilienceTests {
 
         assertThatThrownBy(opsMsService::startCleanup).isSameAs(UNAVAILABLE);
         verify(opsMsClient).startCleanup();
+    }
+
+    @Test
+    void migrationStartIsNotRetried() {
+        MigrationStartRequest request = new MigrationStartRequest(List.of("ops-ms"), null);
+        when(opsMsClient.startMigration(request, 1L)).thenThrow(UNAVAILABLE);
+
+        assertThatThrownBy(() -> opsMsService.startMigration(request, 1L)).isSameAs(UNAVAILABLE);
+        verify(opsMsClient).startMigration(request, 1L);
+    }
+
+    @Test
+    void migrationCancelIsNotRetried() {
+        UUID id = UUID.randomUUID();
+        when(opsMsClient.cancelMigration(id)).thenThrow(UNAVAILABLE);
+
+        assertThatThrownBy(() -> opsMsService.cancelMigration(id)).isSameAs(UNAVAILABLE);
+        verify(opsMsClient).cancelMigration(id);
+    }
+
+    @Test
+    void migrationReadsAreRetried() {
+        UUID id = UUID.randomUUID();
+        when(opsMsClient.getMigration(id)).thenThrow(UNAVAILABLE).thenReturn(null);
+        when(opsMsClient.listMigrations(20)).thenThrow(UNAVAILABLE)
+            .thenReturn(new PageResponse<>(List.of(), 0, 20, 0, 0));
+
+        opsMsService.getMigration(id);
+        opsMsService.listMigrations(20);
+
+        verify(opsMsClient, times(2)).getMigration(id);
+        verify(opsMsClient, times(2)).listMigrations(20);
     }
 }

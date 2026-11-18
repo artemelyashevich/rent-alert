@@ -42,7 +42,11 @@ public class NotificationMsServiceImpl extends AbstractResilientClient implement
 
     @Override
     public PageResponse<BroadcastRecipientResponse> findRecipients(Long broadcastId, List<Long> userIds, Pageable pageable) {
-        return execute(() -> notificationMsClient.findRecipients(broadcastId, userIds, pageable.getPageNumber(),
+        if (userIds == null) {
+            return execute(() -> notificationMsClient.findRecipients(broadcastId, pageable.getPageNumber(),
+                pageable.getPageSize(), PageUtil.toSortParams(pageable)));
+        }
+        return execute(() -> notificationMsClient.findRecipientsByUserIds(broadcastId, userIds, pageable.getPageNumber(),
             pageable.getPageSize(), PageUtil.toSortParams(pageable)));
     }
 

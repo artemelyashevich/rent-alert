@@ -5,6 +5,8 @@ import com.rentalert.dto.PageResponse;
 import com.rentalert.dto.audit.AuditLogResponse;
 import com.rentalert.dto.event.EventInitiatorType;
 import com.rentalert.dto.job.JobSettingResponse;
+import com.rentalert.dto.migration.MigrationRunResponse;
+import com.rentalert.dto.migration.MigrationStartRequest;
 import com.rentalert.dto.statistics.SystemActivityOverview;
 import com.rentalert.dto.statistics.UserActionSummary;
 import com.rentalert.dto.statistics.UserActivityLog;
@@ -68,5 +70,25 @@ public class OpsMsServiceImpl extends AbstractResilientClient implements OpsMsSe
     @Override
     public SystemActivityOverview getSystemActivity(LocalDate since) {
         return execute(() -> opsMsClient.getSystemActivity(since.toString()));
+    }
+
+    @Override
+    public MigrationRunResponse startMigration(MigrationStartRequest request, Long requestedBy) {
+        return executeOnce(() -> opsMsClient.startMigration(request, requestedBy));
+    }
+
+    @Override
+    public List<MigrationRunResponse> listMigrations(int limit) {
+        return execute(() -> opsMsClient.listMigrations(limit).content());
+    }
+
+    @Override
+    public MigrationRunResponse getMigration(UUID id) {
+        return execute(() -> opsMsClient.getMigration(id));
+    }
+
+    @Override
+    public MigrationRunResponse cancelMigration(UUID id) {
+        return executeOnce(() -> opsMsClient.cancelMigration(id));
     }
 }

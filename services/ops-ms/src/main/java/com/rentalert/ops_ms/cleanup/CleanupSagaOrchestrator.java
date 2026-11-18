@@ -139,6 +139,7 @@ public class CleanupSagaOrchestrator {
         step.setSentAt(now);
         stepRepository.save(step);
         cleanupCommandPublisher.publishCommand(new CleanupCommand(saga.getSagaId(), step.getStepOrder(), step.getService(), saga.getReferenceTime()));
+        log.info("cleanup saga {} step {} -> {}", saga.getSagaId(), step.getStepOrder(), step.getStatus());
     }
 
     private void finish(CleanupSaga saga, List<CleanupSagaStep> sagaSteps, Instant now) {
