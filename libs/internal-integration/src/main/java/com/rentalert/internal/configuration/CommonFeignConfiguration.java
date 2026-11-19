@@ -86,9 +86,8 @@ public class CommonFeignConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public OpsMsService opsMsService(@Lazy OpsMsClient opsMsClient, RetryRegistry retryRegistry,
-        CircuitBreakerRegistry circuitBreakerRegistry) {
-        return new OpsMsServiceImpl(opsMsClient, retryRegistry, circuitBreakerRegistry);
+    public OpsMsService opsMsService(@Lazy OpsMsClient opsMsClient, RetryRegistry retryRegistry) {
+        return new OpsMsServiceImpl(opsMsClient, retryRegistry);
     }
 
     @Bean

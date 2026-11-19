@@ -14,7 +14,6 @@ import com.rentalert.dto.statistics.UserStatisticsResponse;
 import com.rentalert.internal.client.AbstractResilientClient;
 import com.rentalert.internal.client.OpsMsClient;
 import com.rentalert.internal.client.service.OpsMsService;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,8 +24,8 @@ public class OpsMsServiceImpl extends AbstractResilientClient implements OpsMsSe
 
     private final OpsMsClient opsMsClient;
 
-    public OpsMsServiceImpl(OpsMsClient opsMsClient, RetryRegistry retryRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
-        super(OpsMsClient.SERVICE_NAME, retryRegistry, circuitBreakerRegistry);
+    public OpsMsServiceImpl(OpsMsClient opsMsClient, RetryRegistry retryRegistry) {
+        super(OpsMsClient.SERVICE_NAME, retryRegistry);
         this.opsMsClient = opsMsClient;
     }
 

@@ -57,9 +57,16 @@ logging:
     com.rentalert: ${LOG_LEVEL_APP:INFO}
     com.rentalert.kafka: INFO
     com.rentalert.internal.client: DEBUG
+    com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver: WARN
+    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
   pattern:
     dateformat: yyyy-MM-dd HH:mm:ss.SSS,Europe/Minsk
     console: "%d{${logging.pattern.dateformat}} %clr(%-5level) [%thread] [%X{traceId:-}] %logger{0} : %replace(%msg){'\\R+',' '} %ex%n"
+
+client:
+  server:
+    log-mode: ${CLIENT_SERVER_LOG_MODE:true}
 
 app:
   auth:
@@ -80,7 +87,7 @@ app:
     requests-per-window: ${RATE_LIMIT_REQUESTS_PER_WINDOW:50}
     window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:10}
   migration:
-    enabled: ${MIGRATION_ENABLED:false}
+    enabled: ${MIGRATION_ENABLED:true}
     source:
       url: ${MIGRATION_SOURCE_URL:}
       username: ${MIGRATION_SOURCE_USERNAME:}

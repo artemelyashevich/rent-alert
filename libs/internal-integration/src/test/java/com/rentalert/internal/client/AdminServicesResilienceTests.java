@@ -43,7 +43,7 @@ class AdminServicesResilienceTests {
         .build());
 
     private final OpsMsClient opsMsClient = mock(OpsMsClient.class);
-    private final OpsMsService opsMsService = new OpsMsServiceImpl(opsMsClient, retryRegistry, CircuitBreakerRegistry.ofDefaults());
+    private final OpsMsService opsMsService = new OpsMsServiceImpl(opsMsClient, retryRegistry);
     private final ProcessingMsClient processingMsClient = mock(ProcessingMsClient.class);
     private final ProcessingMsService processingMsService = new ProcessingMsServiceImpl(processingMsClient, mock(CacheService.class),
         retryRegistry, CircuitBreakerRegistry.ofDefaults());

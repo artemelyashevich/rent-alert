@@ -56,7 +56,7 @@ minikube service gateway -n rentalert --url
 k8s/scripts/port-forward.sh
 ```
 
-`port-forward.sh` пробрасывает gateway на `http://localhost:8222` и консоль Kafka на `http://localhost:9999` (порты меняются `GATEWAY_PORT` и `CONSOLE_PORT`).
+`port-forward.sh` пробрасывает gateway на `http://localhost:8222`, консоль Kafka на `http://localhost:9999`, Postgres на `localhost:15432` и Redis на `localhost:6379` (порты меняются `GATEWAY_PORT`, `CONSOLE_PORT`, `POSTGRES_PORT` и `REDIS_PORT`).
 
 Eureka и config-server:
 
